@@ -1,5 +1,7 @@
 import styled from 'styled-components'
-import Header from '../components/Header/header'
+import Layout from '../components/Layout/Layout';
+import TopHeader from '../components/Dashboard/HeaderDashboard';
+import CardsFinancas from '../components/Dashboard/CardsFinancas'
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -10,9 +12,12 @@ const AppContainer = styled.div`
 function Home() {
   return (
     <AppContainer>
-      <Header />
+      <Layout>
+        <TopHeader />
+        <CardsFinancas />
+      </Layout>
     </AppContainer>
-  )
+  );
 }
 
 export default Home

@@ -1,5 +1,4 @@
 import styled from 'styled-components'
-import Header from '../components/Header/header'
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -11,7 +10,6 @@ function Dashboard() {
   return (
     <AppContainer>
         <h1>ESSA É A DASHBOARD</h1>
-      <Header />
     </AppContainer>
   )
 }
