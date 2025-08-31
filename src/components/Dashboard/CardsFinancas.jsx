@@ -17,7 +17,8 @@ const MonthSelect = styled.select`
   padding: 8px 10px;
   border: 1px solid #d0d7de;
   border-radius: 8px;
-  background: #fff;
+  background: #ffffffff;
+  color: #000
 `;
 
 const Cards = styled.div`
@@ -31,7 +32,7 @@ const Card = styled.div`
   min-width: 220px;
   border-radius: 14px;
   padding: 16px 18px;
-  color: #fff;
+  color: #ffffffff;
   display: flex;
   flex-direction: column;
   gap: 8px;

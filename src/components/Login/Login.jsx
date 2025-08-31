@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import logo from '../../assets/logo.png';
+import * as API from '../../services/LoginService';
 
 
 const Container = styled.div`
@@ -119,11 +120,7 @@ const Login = () => {
     setErro('');
 
     try {
-      const res = await fetch('http://25.38.62.218:3000/unauth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, senha }),
-      });
+      const res = await API.loginUser(email, senha)
 
       const data = await res.json();
 

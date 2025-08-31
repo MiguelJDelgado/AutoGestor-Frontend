@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import ModalSucesso from '../ModalSucesso/ModalSucesso';
+import * as API from '../../services/CadastroService';
 
 const Container = styled.div`
   background-color: #222;
@@ -92,6 +93,8 @@ const Cadastro = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [role, setRole] = useState('');
   const [repetirSenha, setRepetirSenha] = useState('');
   const [erro, setErro] = useState('');
   const [mostrarModal, setMostrarModal] = useState(false);
@@ -105,12 +108,16 @@ const Cadastro = () => {
       return;
     }
 
+    const novoUsuario = {
+    name: nome,
+    email,
+    password: senha,
+    cellphone: telefone,
+    role
+  };
+
     try {
-      const res = await fetch('http://25.38.62.218:3000/unauth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, email, senha}),
-      });
+      const res = await API.createUser(novoUsuario)
 
       const data = await res.json();
 
