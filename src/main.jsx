@@ -5,11 +5,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './routes/Home.jsx'
 import Login from './routes/Login.jsx'
 import CadastroComponent from './routes/Cadastro.jsx'
-import Produtos from './routes/Produtos.jsx'
-import MenuAluno from './components/Menu/MenuAluno.jsx'
-import TipoDeProva from './components/TipoProva/TipoProva.jsx'
-import TelaQuestoes from './components/QuestoesProva/QuestoesProva.jsx'
-import AnosEnem from './components/AnosEnem/AnosEnem.jsx'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -92,10 +87,6 @@ createRoot(document.getElementById('root')).render(
         <Route path='/login' element={<Login />}/>
         <Route path='/cadastro' element={<CadastroComponent />}/>
         <Route path='/produtos' element={<Produtos />}/>
-        <Route path='/menuAluno' element={<MenuAluno />}/>
-        <Route path='/tipo-prova' element={<TipoDeProva />}/>
-        <Route path='/questoes-prova' element={<TelaQuestoes />}/>
-        <Route path='/anos-enem' element={<AnosEnem />}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
