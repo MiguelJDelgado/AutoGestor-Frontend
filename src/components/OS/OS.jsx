@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import Layout from '../components/Layout/Layout.jsx'
+import Layout from '../Layout/Layout'
 
 const AppContainer = styled.div`
   width: 100%;

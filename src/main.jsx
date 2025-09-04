@@ -5,6 +5,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './routes/Home.jsx'
 import Login from './routes/Login.jsx'
 import CadastroComponent from './routes/Cadastro.jsx'
+import Produtos from './routes/Produtos.jsx'
+import Os from './routes/OS.jsx'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -87,6 +89,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/login' element={<Login />}/>
         <Route path='/cadastro' element={<CadastroComponent />}/>
         <Route path='/produtos' element={<Produtos />}/>
+        <Route path='/ordem-de-serviço' element={<Os />}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,

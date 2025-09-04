@@ -2,7 +2,6 @@ import styled from 'styled-components';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
-import ModalSucesso from '../ModalSucesso/ModalSucesso';
 import * as API from '../../services/CadastroService';
 
 const Container = styled.div`
@@ -187,7 +186,6 @@ const Cadastro = () => {
         </Card>
       </Container>
 
-      {mostrarModal && <ModalSucesso onConfirm={irParaLogin} />}
     </>
   );
 };
