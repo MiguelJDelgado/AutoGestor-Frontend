@@ -1,5 +1,9 @@
 import styled from 'styled-components'
-import Layout from '../Layout/Layout'
+import editarIcon from '../../assets/editar.png'
+import excluirIcon from '../../assets/excluir.png'
+import olhoIcon from '../../assets/olho.png'
+import aprovarIcon from '../../assets/aprovar.png'
+import imprimirIcon from '../../assets/imprimir.png'
 
 const AppContainer = styled.div`
   width: 100%;
@@ -23,8 +27,6 @@ const Header = styled.div`
   box-sizing: border-box;
 `
 
-
-
 const NewOrderButton = styled.button`
   background-color: #28a745;
   color: white;
@@ -42,7 +44,7 @@ const NewOrderButton = styled.button`
 `
 
 const MainContent = styled.div`
-  background-color: #ffffff;
+  background-color:rgb(253, 253, 253);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   overflow: hidden;
@@ -112,6 +114,12 @@ const Select = styled.select`
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
   }
+
+  &.status-select {
+    background-color:#333;
+    color: #ffffff;
+    border-color: #1f2937;
+  }
 `
 
 const FilterButton = styled.button`
@@ -149,17 +157,12 @@ const Table = styled.table`
 `
 
 const Th = styled.th`
-  background-color: #f8f9fa;
+  background-color:#7f929d;
   padding: 12px;
   text-align: left;
   border-bottom: 2px solid #dee2e6;
-  color: #495057;
+  color:rgb(255, 255, 255);
   font-weight: 600;
-  cursor: pointer;
-  
-  &:hover {
-    background-color: #e9ecef;
-  }
 `
 
 const Td = styled.td`
@@ -176,7 +179,7 @@ const StatusBadge = styled.span`
   text-transform: uppercase;
   
   &.analise {
-    background-color: #fff3cd;
+    background-color:rgb(224, 187, 64);
     color: #856404;
   }
   
@@ -210,9 +213,46 @@ const ActionIcon = styled.span`
   color: #6c757d;
 `
 
-function Os() {
+const IconImage = styled.img`
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+`
+
+function Os({
+  orders = [],
+  onApprove = () => {},
+  onPrint = () => {},
+  onEdit = () => {},
+  onDelete = () => {},
+  onView = () => {}
+}) {
+  const formatCurrencyBRL = (value) => {
+    if (value === null || value === undefined) return ''
+    try {
+      const numeric = typeof value === 'number' ? value : Number(value)
+      if (Number.isNaN(numeric)) return String(value)
+      return numeric.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+    } catch {
+      return String(value)
+    }
+  }
+
+  const formatDateTimeBR = (value) => {
+    if (!value) return ''
+    try {
+      const date = typeof value === 'string' || typeof value === 'number' ? new Date(value) : value
+      if (Number.isNaN(date.getTime())) return String(value)
+      const datePart = date.toLocaleDateString('pt-BR')
+      const timePart = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+      return `${datePart} ${timePart}`
+    } catch {
+      return String(value)
+    }
+  }
+
   return (
-    <Layout>
       <AppContainer>
         <Header>
               <Title>Ordem de Serviço</Title>
@@ -246,8 +286,7 @@ function Os() {
               
               <FormGroup>
                 <Label>Status</Label>
-                <Select>
-                  <option value="">Todos</option>
+                <Select className="status-select">
                   <option value="analise">Análise/Orçamento</option>
                   <option value="pendente">Pendente</option>
                   <option value="finalizado">Finalizado</option>
@@ -261,7 +300,7 @@ function Os() {
               
               <FormGroup>
                 <FilterButton>
-                  🔍 Filtrar
+                  Filtrar
                 </FilterButton>
               </FormGroup>
             </SearchForm>
@@ -284,58 +323,59 @@ function Os() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <Td>1</Td>
-                  <Td>25072101</Td>
-                  <Td>Thalisson Misgael</Td>
-                  <Td>Ford Fiesta (Gasolina)</Td>
-                  <Td>DOW2P22</Td>
-                  <Td><StatusBadge className="analise">Analise/Orçamento</StatusBadge></Td>
-                  <Td>21/07/2025 09:30<br/><small>Finalizada em 00/00/0000 00:00</small></Td>
-                  <Td>R$ 2.685,00</Td>
-                  <Td>
-                    <ActionButton title="Aprovar">✅</ActionButton>
-                    <ActionButton title="Documento">📄</ActionButton>
-                    <ActionButton title="Editar">✏️</ActionButton>
-                    <ActionButton title="Excluir">🗑️</ActionButton>
-                  </Td>
-                </tr>
-                <tr>
-                  <Td>2</Td>
-                  <Td>25072201</Td>
-                  <Td>Maicol Tanuel</Td>
-                  <Td>Ford Focus (Flex)</Td>
-                  <Td>ABW3K20</Td>
-                  <Td><StatusBadge className="finalizado">Finalizado</StatusBadge></Td>
-                  <Td>22/07/2025 10:05<br/><small>Finalizada em 23/07/2025 11:30</small></Td>
-                  <Td>R$ 1.405,00</Td>
-                  <Td>
-                    <ActionButton title="Imprimir">🖨️</ActionButton>
-                    <ActionButton title="Visualizar">👁️</ActionButton>
-                  </Td>
-                </tr>
-                <tr>
-                  <Td>3</Td>
-                  <Td>25072202</Td>
-                  <Td>Fikete Jenseniel</Td>
-                  <Td>Fiat Palio (Álcool)</Td>
-                  <Td>ABC9P20</Td>
-                  <Td><StatusBadge className="pendente">Pendente</StatusBadge></Td>
-                  <Td>22/07/2025 15:10<br/><small>Finalizada em 00/00/0000 00:00</small></Td>
-                  <Td>R$ 805,00</Td>
-                  <Td>
-                    <ActionButton title="Aprovar">✅</ActionButton>
-                    <ActionButton title="Documento">📄</ActionButton>
-                    <ActionButton title="Editar">✏️</ActionButton>
-                    <ActionButton title="Excluir">🗑️</ActionButton>
-                  </Td>
-                </tr>
+                {orders.map((order) => (
+                  <tr key={order.id ?? order.codigo ?? order.osNumero}>
+                    <Td>{order.codigo}</Td>
+                    <Td>{order.osNumero}</Td>
+                    <Td>{order.clienteNome}</Td>
+                    <Td>{order.veiculoDescricao}</Td>
+                    <Td>{order.placa}</Td>
+                    <Td>
+                      <StatusBadge className={order.status}>
+                        {order.statusLabel ?? order.status}
+                      </StatusBadge>
+                    </Td>
+                    <Td>
+                      {formatDateTimeBR(order.dataCriacao)}
+                      <br/>
+                      <small>
+                        {order.dataFinalizacao
+                          ? `Finalizada em ${formatDateTimeBR(order.dataFinalizacao)}`
+                          : 'Finalizada em 00/00/0000 00:00'}
+                      </small>
+                    </Td>
+                    <Td>{formatCurrencyBRL(order.valor)}</Td>
+                    <Td>
+                      {order.status !== 'finalizado' && (
+                        <ActionButton title="Aprovar" onClick={() => onApprove(order)}>
+                          <IconImage src={aprovarIcon} alt="Aprovar" />
+                        </ActionButton>
+                      )}
+                      <ActionButton title="Imprimir" onClick={() => onPrint(order)}>
+                        <IconImage src={imprimirIcon} alt="Imprimir" />
+                      </ActionButton>
+                      <ActionButton title="Editar" onClick={() => onEdit(order)}>
+                        <IconImage src={editarIcon} alt="Editar" />
+                      </ActionButton>
+                      <ActionButton title="Excluir" onClick={() => onDelete(order)}>
+                        <IconImage src={excluirIcon} alt="Excluir" />
+                      </ActionButton>
+                      <ActionButton title="Visualizar" onClick={() => onView(order)}>
+                        <IconImage src={olhoIcon} alt="Visualizar" />
+                      </ActionButton>
+                    </Td>
+                  </tr>
+                ))}
+                {orders.length === 0 && (
+                  <tr>
+                    <Td colSpan="9">Nenhuma ordem encontrada.</Td>
+                  </tr>
+                )}
               </tbody>
             </Table>
           </TableSection>
         </MainContent>
       </AppContainer>
-    </Layout>
   )
 }
 
