@@ -37,7 +37,6 @@ const FormGrid = styled.div`
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 
-  /* Ajuste para telas menores */
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -64,7 +63,7 @@ const Input = styled.input`
   font-size: 14px;
   color: #0f2f43;
   width: 100%;
-  box-sizing: border-box; /* Garante que padding não cause overflow */
+  box-sizing: border-box;
 
   &::placeholder {
     color: #6b7a86;
@@ -81,6 +80,41 @@ const Select = styled.select`
   color: #0f2f43;
   width: 100%;
   box-sizing: border-box;
+`;
+
+const DescriptionSection = styled.div`
+  margin-bottom: 24px;
+  padding: 16px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background: #f8f9fa;
+`;
+
+const DescriptionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f2f43;
+`;
+
+const DescriptionInput = styled.textarea`
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #d5dde3;
+  border-radius: 6px;
+  background: #e4eaef;
+  font-size: 14px;
+  color: #0f2f43;
+  resize: vertical;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: #6b7a86;
+  }
 `;
 
 function CriarOS() {
@@ -185,6 +219,43 @@ function CriarOS() {
           </div>
         </FormGrid>
       </Section>
+
+      {/* PRODUTOS */}
+      <Section>
+        <SectionHeader>🛠️ Produtos</SectionHeader>
+        <FormGrid>
+          <div>
+            <Label>Nome do Produto</Label>
+            <Input placeholder="Digite o nome" />
+          </div>
+          <div>
+            <Label>Quantidade</Label>
+            <Input type="number" placeholder="Ex.: 1" />
+          </div>
+          <div>
+            <Label>Valor Unitário</Label>
+            <Input type="text" placeholder="Ex.: R$ 100,00" />
+          </div>
+          <div>
+            <Label>Código</Label>
+            <Input placeholder="Digite o código" />
+          </div>
+        </FormGrid>
+      </Section>
+
+      {/* SOLICITAÇÃO DO CLIENTE */}
+      <DescriptionSection>
+        <DescriptionHeader>📩 Solicitação do cliente</DescriptionHeader>
+        <Label>Descrição do problema relatado</Label>
+        <DescriptionInput placeholder="Descreva o problema relatado..." />
+      </DescriptionSection>
+
+      {/* ANÁLISE INICIAL / DIAGNÓSTICO */}
+      <DescriptionSection>
+        <DescriptionHeader>🔍 Análise Inicial / Diagnóstico</DescriptionHeader>
+        <Label>Descrição do diagnóstico</Label>
+        <DescriptionInput placeholder="Descreva o diagnóstico..." />
+      </DescriptionSection>
     </Container>
   );
 }
