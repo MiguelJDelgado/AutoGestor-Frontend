@@ -8,6 +8,7 @@ import CadastroComponent from './routes/Cadastro.jsx'
 import Produtos from './routes/Produtos.jsx'
 import Servicos from './routes/Servicos.jsx'
 import Os from './routes/OS.jsx'
+import CriarOS from './routes/CriarOS.jsx'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -92,6 +93,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/produtos' element={<Produtos />}/>
         <Route path='/servicos' element={<Servicos />}/>
         <Route path='/ordem-de-serviço' element={<Os />}/>
+        <Route path='/criar-ordem-de-serviço' element={<CriarOS />}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
