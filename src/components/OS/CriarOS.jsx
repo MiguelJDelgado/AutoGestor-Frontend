@@ -1,0 +1,185 @@
+import styled from "styled-components";
+
+const Container = styled.div`
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  padding: 20px;
+`;
+
+const Title = styled.h2`
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f2f43;
+  margin-bottom: 20px;
+`;
+
+const Section = styled.div`
+  margin-bottom: 24px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f2f43;
+`;
+
+const FormGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+`;
+
+const Label = styled.label`
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+  display: block;
+`;
+
+const Input = styled.input`
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d5dde3;
+  border-radius: 6px;
+  background: #e4eaef;
+  font-size: 14px;
+  color: #0f2f43;
+  width: 100%;
+
+  &::placeholder {
+    color: #6b7a86;
+  }
+`;
+
+const Select = styled.select`
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #d5dde3;
+  background: #e4eaef;
+  font-size: 14px;
+  color: #0f2f43;
+  width: 100%;
+`;
+
+function CriarOS (){
+  return (
+    <Container>
+      <Title>Nova Ordem de Serviço</Title>
+
+      {/* DADOS */}
+      <Section>
+        <SectionHeader>📄 Dados</SectionHeader>
+        <FormGrid>
+          <div>
+            <Label>Número da O.S</Label>
+            <Input placeholder="Digite o número" />
+          </div>
+          <div>
+            <Label>Status</Label>
+            <Select>
+              <option>Orçamento</option>
+              <option>Aprovado</option>
+              <option>Em execução</option>
+              <option>Finalizado</option>
+            </Select>
+          </div>
+          <div>
+            <Label>Entrada do veículo</Label>
+            <Input type="date" />
+          </div>
+          <div>
+            <Label>Previsão de entrega</Label>
+            <Input type="date" />
+          </div>
+          <div>
+            <Label>Colaborador</Label>
+            <Input placeholder="Digite o colaborador" />
+          </div>
+        </FormGrid>
+      </Section>
+
+      {/* CLIENTE */}
+      <Section>
+        <SectionHeader>👤 Cliente</SectionHeader>
+        <FormGrid>
+          <div>
+            <Label>Nome</Label>
+            <Input placeholder="Nome do cliente" />
+          </div>
+          <div>
+            <Label>CPF/CNPJ</Label>
+            <Input placeholder="000.000.000-00" />
+          </div>
+          <div>
+            <Label>Telefone</Label>
+            <Input placeholder="(00) 00000-0000" />
+          </div>
+          <div>
+            <Label>Email</Label>
+            <Input placeholder="exemplo@email.com" />
+          </div>
+          <div>
+            <Label>Endereço</Label>
+            <Input placeholder="Rua/Avenida" />
+          </div>
+          <div>
+            <Label>Número</Label>
+            <Input placeholder="Nº" />
+          </div>
+          <div>
+            <Label>Município</Label>
+            <Input placeholder="Cidade" />
+          </div>
+        </FormGrid>
+      </Section>
+
+      {/* VEÍCULO */}
+      <Section>
+        <SectionHeader>🚗 Dados do veículo</SectionHeader>
+        <FormGrid>
+          <div>
+            <Label>Marca</Label>
+            <Input placeholder="Marca" />
+          </div>
+          <div>
+            <Label>Modelo</Label>
+            <Input placeholder="Modelo" />
+          </div>
+          <div>
+            <Label>Placa</Label>
+            <Input placeholder="XXX-0000" />
+          </div>
+          <div>
+            <Label>Email</Label>
+            <Input placeholder="exemplo@email.com" />
+          </div>
+          <div>
+            <Label>Endereço</Label>
+            <Input placeholder="Rua/Avenida" />
+          </div>
+          <div>
+            <Label>Número</Label>
+            <Input placeholder="Nº" />
+          </div>
+          <div>
+            <Label>Município</Label>
+            <Input placeholder="Cidade" />
+          </div>
+        </FormGrid>
+      </Section>
+    </Container>
+  );
+};
+
+export default CriarOS;
