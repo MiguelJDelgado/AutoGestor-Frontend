@@ -36,6 +36,15 @@ const FormGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+
+  /* Ajuste para telas menores */
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Label = styled.label`
@@ -55,6 +64,7 @@ const Input = styled.input`
   font-size: 14px;
   color: #0f2f43;
   width: 100%;
+  box-sizing: border-box; /* Garante que padding não cause overflow */
 
   &::placeholder {
     color: #6b7a86;
@@ -70,9 +80,10 @@ const Select = styled.select`
   font-size: 14px;
   color: #0f2f43;
   width: 100%;
+  box-sizing: border-box;
 `;
 
-function CriarOS (){
+function CriarOS() {
   return (
     <Container>
       <Title>Nova Ordem de Serviço</Title>
@@ -161,25 +172,21 @@ function CriarOS (){
             <Input placeholder="XXX-0000" />
           </div>
           <div>
-            <Label>Email</Label>
-            <Input placeholder="exemplo@email.com" />
+            <Label>Ano</Label>
+            <Input placeholder="Ano do veículo" />
           </div>
           <div>
-            <Label>Endereço</Label>
-            <Input placeholder="Rua/Avenida" />
+            <Label>Cor</Label>
+            <Input placeholder="Cor do veículo" />
           </div>
           <div>
-            <Label>Número</Label>
-            <Input placeholder="Nº" />
-          </div>
-          <div>
-            <Label>Município</Label>
-            <Input placeholder="Cidade" />
+            <Label>Quilometragem</Label>
+            <Input placeholder="KM rodados" />
           </div>
         </FormGrid>
       </Section>
     </Container>
   );
-};
+}
 
 export default CriarOS;
