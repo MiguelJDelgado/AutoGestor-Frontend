@@ -2,7 +2,7 @@ import Table from '../Table';
 import Header from '../../Header/Header';
 
 const TelaProdutos = () => {
-  const columns = ["Data", "Descrição", "Estoque Disponível", "Valor Unit.", "Valor Unit. Pago"];
+  const columns = ["Título", "Descrição", "Horas Trabalho", "Valor Hora", "Valor Total"];
   const data = [
     {
       "Data": "18/04/2023",
@@ -19,7 +19,6 @@ const TelaProdutos = () => {
       "Valor Unit. Pago": "R$ 60,00",
     },
   ];
-
   const handleView = (row) => console.log("Visualizar", row);
   const handleEdit = (row) => console.log("Editar", row);
   const handleDelete = (row) => console.log("Excluir", row);
@@ -27,13 +26,13 @@ const TelaProdutos = () => {
   return (
     <div>
       <Header>Produtos</Header>
-      <Table 
-        columns={columns} 
-        data={data} 
-        onView={handleView} 
-        onEdit={handleEdit} 
-        onDelete={handleDelete} 
-      />
+        <Table 
+          columns={columns} 
+          data={data} 
+          onView={handleView} 
+          onEdit={handleEdit} 
+          onDelete={handleDelete} 
+        />
     </div>
   );
 };

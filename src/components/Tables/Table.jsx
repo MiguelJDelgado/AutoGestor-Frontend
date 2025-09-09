@@ -1,7 +1,8 @@
-import styled from "styled-components";
-import olhoIcon from "../../assets/olho.png";
-import editarIcon from "../../assets/editar.png";
-import excluirIcon from "../../assets/excluir.png";
+import styled from 'styled-components';
+import olhoIcon from '../../assets/olho.png';
+import editarIcon from '../../assets/editar.png';
+import excluirIcon from '../../assets/excluir.png';
+import pesquisarIcon from '../../assets/pesquisa.png'
 
 const Container = styled.div`
   background: #fff;
@@ -36,11 +37,11 @@ const Select = styled.select`
   height: 36px;
   padding: 0 36px 0 12px;
   border-radius: 6px;
-  background-color: #0f2f43;
+  background-color: #00273d;
+  color: #ffffffff;
   font-size: 14px;
-  background-repeat: no-repeat;
   background-position: right 10px center;
-  background-sxize: 18px;
+  background-size: 18px;
   width: 100%;
 `;
 
@@ -49,14 +50,10 @@ const Input = styled.input`
   padding: 0 12px;
   border: 1px solid #d5dde3;
   border-radius: 6px;
-  background: #e4eaef;
+  background: #dee3e6;
   font-size: 14px;
   color: #0f2f43;
-  width: 95%;
-
-  &::placeholder {
-    color: #6b7a86;
-  }
+  width: 98%;
 `;
 
 const SearchButton = styled.button`
@@ -65,7 +62,7 @@ const SearchButton = styled.button`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #e9eff3;
+  background: #dee3e6;
   color: #0f2f43;
   border: 1px solid #d5dde3;
   border-radius: 6px;
@@ -73,9 +70,10 @@ const SearchButton = styled.button`
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s;
 
-  &:hover {
-    background:rgb(13, 158, 255);
-    border-color: #c7d2da;
+  img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
   }
 `;
 
@@ -142,11 +140,11 @@ const DataTableWithSearch = ({
         <ControlsRow>
           <Select>
             {searchOptions.map((opt, i) => (
-              <option key={i} value={opt.value}>{opt.label}</option>
+              <option key={i} value={opt}>{opt}</option> // CORREÇÃO AQUI
             ))}
           </Select>
           <Input type="text" placeholder="Digite para buscar..." />
-          <SearchButton onClick={onSearch}>🔍</SearchButton>
+          <SearchButton onClick={onSearch}><img src={pesquisarIcon}></img></SearchButton>
         </ControlsRow>
       </SearchSection>
 
