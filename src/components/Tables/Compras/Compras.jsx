@@ -8,7 +8,7 @@ const TelaCompras = () => {
     "Produto",
     "Quantidade",
     "Fornecedor",
-    "Valor Estimado",
+    "Valor Total",
     "Status"
   ];
 
