@@ -2,7 +2,6 @@ import Table from '../Table';
 import Header from '../../Header/Header';
 
 const TelaCompras = () => {
-  // Definindo colunas para a lista de solicitações de compras
   const columns = [
     "Data",
     "Solicitante",
@@ -13,6 +12,38 @@ const TelaCompras = () => {
     "Status"
   ];
 
+  // Função para aplicar estilo ao status
+  const renderStatus = (status) => {
+    let style = {
+      padding: "6px 0",
+      borderRadius: "8px",
+      color: "white",
+      fontWeight: "bold",
+      display: "inline-block",
+      width: "110px",
+      textAlign: "center" 
+    };
+
+    switch (status?.toLowerCase()) {
+      case "pendente":
+        style.backgroundColor = "#facc15";
+        break;
+      case "autorizado":
+        style.backgroundColor = "#22c55e"; 
+        break;
+      case "recebido":
+        style.backgroundColor = "#3b82f6"; 
+        break;
+      case "rejeitado":
+        style.backgroundColor = "#ef4444";
+        break;
+      default:
+        style.backgroundColor = "#6b7280"; 
+    }
+
+    return <span style={style}>{status || "—"}</span>;
+  };
+
   // Dados fictícios de exemplo
   const data = [
     {
@@ -22,7 +53,7 @@ const TelaCompras = () => {
       "Quantidade": "10 un",
       "Fornecedor": "TechDistribuidora",
       "Valor Estimado": "R$ 8.000,00",
-      "Status": "Autorizado"
+      "Status": renderStatus("Autorizado")
     },
     {
       "Data": "28/08/2025",
@@ -30,7 +61,17 @@ const TelaCompras = () => {
       "Produto": "Cadeiras Escritório",
       "Quantidade": "20 un",
       "Fornecedor": "MoveisCo",
-      "Valor Estimado": "R$ 12.500,00"
+      "Valor Estimado": "R$ 12.500,00",
+      "Status": renderStatus("Pendente")
+    },
+    {
+      "Data": "15/08/2025",
+      "Solicitante": "João Peter Gomes",
+      "Produto": "Notebook Dell",
+      "Quantidade": "5 un",
+      "Fornecedor": "Dell Oficial",
+      "Valor Estimado": "R$ 25.000,00",
+      "Status": renderStatus("Recebido")
     },
     {
       "Data": "15/08/2025",
@@ -38,7 +79,8 @@ const TelaCompras = () => {
       "Produto": "Notebook Dell",
       "Quantidade": "5 un",
       "Fornecedor": "Dell Oficial",
-      "Valor Estimado": "R$ 25.000,00"
+      "Valor Estimado": "R$ 25.000,00",
+      "Status": renderStatus("Rejeitado")
     }
   ];
 
