@@ -9,6 +9,7 @@ import Produtos from './routes/Produtos.jsx'
 import Servicos from './routes/Servicos.jsx'
 import Os from './routes/OS.jsx'
 import CriarOS from './routes/CriarOS.jsx'
+import TelaCompras from './routes/Compras.jsx'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -94,6 +95,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/servicos' element={<Servicos />}/>
         <Route path='/ordem-de-serviço' element={<Os />}/>
         <Route path='/criar-ordem-de-serviço' element={<CriarOS />}/>
+        <Route path='/compras' element={<TelaCompras />}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
