@@ -1,22 +1,39 @@
+import styled from 'styled-components';
 import Table from '../Table';
 import Header from '../../Header/Header';
 
-const TelaProdutos = () => {
+const NewOrderButton = styled.button`
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #218838;
+  }
+`
+
+const TelaServicos = () => {
   const columns = ["Título", "Descrição", "Horas Trabalho", "Valor Hora", "Valor Total"];
   const data = [
     {
-      "Data": "18/04/2023",
+      "Título": "Troca de filtro",
       "Descrição": "FILTRO COMBUSTÍVEL / FORD / JEEP / FIAT",
-      "Estoque Disponível": "05 UNIDADES",
-      "Valor Unit.": "R$ 60,00",
-      "Valor Unit. Pago": "R$ 30,00",
+      "Horas Trabalho": 3,
+      "Valor Hora": 60,
+      "Valor Total": 3 * 60,
     },
     {
-      "Data": "10/08/2024",
+      "Título": "Manutenção motor",
       "Descrição": "FILTRO DO MOTOR FORD / JEEP",
-      "Estoque Disponível": "03 UNIDADES",
-      "Valor Unit.": "R$ 80,00",
-      "Valor Unit. Pago": "R$ 60,00",
+      "Horas Trabalho": 5,
+      "Valor Hora": 80,
+      "Valor Total": 5 * 80,
     },
   ];
   const handleView = (row) => console.log("Visualizar", row);
@@ -25,16 +42,18 @@ const TelaProdutos = () => {
 
   return (
     <div>
-      <Header>Produtos</Header>
-        <Table 
-          columns={columns} 
-          data={data} 
-          onView={handleView} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete} 
-        />
+      <Header title="Servicos">
+        <NewOrderButton>+ Novo Serviço</NewOrderButton>
+      </Header>
+      <Table 
+        columns={columns} 
+        data={data} 
+        onView={handleView} 
+        onEdit={handleEdit} 
+        onDelete={handleDelete} 
+      />
     </div>
   );
 };
 
-export default TelaProdutos;
+export default TelaServicos;
