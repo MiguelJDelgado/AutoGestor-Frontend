@@ -19,11 +19,28 @@ const Title = styled.h1`
   margin: 0;
   padding: 20px;
 `
+
+const NewOrderButton = styled.button`
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #218838;
+  }
+`
+
 function Header({ title, children }) {
   return (
     <Headers>
       <Title>{title}</Title>
-      {children}
+      <NewOrderButton>{children}</NewOrderButton>
     </Headers>
   );
 }

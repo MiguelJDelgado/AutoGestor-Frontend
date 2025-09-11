@@ -1,3 +1,4 @@
+import styled from 'styled-components';
 import Table from '../Table';
 import Header from '../../Header/Header';
 
@@ -91,7 +92,8 @@ const TelaCompras = () => {
 
   return (
     <div>
-      <Header>Solicitações de Compras</Header>
+      <Header title="Compras" children="+ Nova Solicitação de Compra">
+      </Header>
       <Table 
         columns={columns} 
         data={data} 
