@@ -88,11 +88,11 @@ createRoot(document.getElementById('root')).render(
     <GlobalStyle />
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<Home />}/>
+        <Route path='/dashboard' element={<Home />}/>
         <Route path='/login' element={<Login />}/>
         <Route path='/cadastro' element={<CadastroComponent />}/>
         <Route path='/produtos' element={<Produtos />}/>
-        <Route path='/servicos' element={<Servicos />}/>
+        <Route path='/serviços' element={<Servicos />}/>
         <Route path='/ordem-de-serviço' element={<Os />}/>
         <Route path='/criar-ordem-de-serviço' element={<CriarOS />}/>
         <Route path='/compras' element={<TelaCompras />}/>

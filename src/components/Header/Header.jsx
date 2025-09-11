@@ -14,17 +14,18 @@ const Headers = styled.div`
 `
 
 const Title = styled.h1`
-  font-size: 24px;
+  font-size: 30px;
   color: #333;
   margin: 0;
   padding: 20px;
 `
-function Header() {
-    return(
-        <Headers>
-            <Title></Title>
-        </Headers>
-    );
+function Header({ title, children }) {
+  return (
+    <Headers>
+      <Title>{title}</Title>
+      {children}
+    </Headers>
+  );
 }
 
 export default Header;
