@@ -92,8 +92,7 @@ const TelaCompras = () => {
 
   return (
     <div>
-      <Header title="Compras" children="+ Nova Solicitação de Compra">
-      </Header>
+      <Header title="Compras" children="+ Nova Solicitação de Compra"></Header>
       <Table 
         columns={columns} 
         data={data} 

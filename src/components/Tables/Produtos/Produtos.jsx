@@ -1,22 +1,5 @@
-import styled from 'styled-components';
 import Table from '../Table';
 import Header from '../../Header/Header';
-
-const NewOrderButton = styled.button`
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #218838;
-  }
-`
 
 const TelaProdutos = () => {
   const columns = ["Data", "Descrição", "Estoque Disponível", "Valor Unit.", "Valor Unit. Pago"];
@@ -43,9 +26,7 @@ const TelaProdutos = () => {
 
   return (
     <div>
-      <Header title="Produtos">
-        <NewOrderButton>+ Novo Produto</NewOrderButton>
-      </Header>
+      <Header title="Produtos" children="+ Novo Produto"></Header>
       <Table 
         columns={columns} 
         data={data} 

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import styled from 'styled-components';
 import Table from '../Table';
 import Header from '../../Header/Header';
@@ -6,7 +7,7 @@ const NewOrderButton = styled.button`
   background-color: #28a745;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 12px 12px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
@@ -18,7 +19,32 @@ const NewOrderButton = styled.button`
   }
 `
 
+const Modal = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  z-index: 1000;
+  width: 400px;
+`;
+
+const Overlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+`;
+
 const TelaServicos = () => {
+  const [showModal, setShowModal] = useState(false);
+
   const columns = ["Título", "Descrição", "Horas Trabalho", "Valor Hora", "Valor Total"];
   const data = [
     {
@@ -36,24 +62,26 @@ const TelaServicos = () => {
       "Valor Total": 5 * 80,
     },
   ];
-  const handleView = (row) => console.log("Visualizar", row);
-  const handleEdit = (row) => console.log("Editar", row);
-  const handleDelete = (row) => console.log("Excluir", row);
 
   return (
     <div>
-      <Header title="Servicos">
-        <NewOrderButton>+ Novo Serviço</NewOrderButton>
-      </Header>
-      <Table 
-        columns={columns} 
-        data={data} 
-        onView={handleView} 
-        onEdit={handleEdit} 
-        onDelete={handleDelete} 
-      />
+      <Header title="Serviços" children="+ Novo Serviço"></Header>
+
+      {showModal && (
+        <>
+          <Overlay onClick={() => setShowModal(false)} />
+          <Modal>
+            <h2>Adicionar Novo Serviço</h2>
+            {/* Aqui você coloca seu formulário de serviço */}
+            <button onClick={() => setShowModal(false)}>Fechar</button>
+          </Modal>
+        </>
+      )}
+
+      <Table columns={columns} data={data} />
     </div>
   );
 };
 
 export default TelaServicos;
+
