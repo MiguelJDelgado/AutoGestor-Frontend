@@ -4,44 +4,7 @@ import excluirIcon from '../../assets/excluir.png'
 import olhoIcon from '../../assets/olho.png'
 import aprovarIcon from '../../assets/aprovar.png'
 import imprimirIcon from '../../assets/imprimir.png'
-
-const AppContainer = styled.div`
-  width: 100%;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding: 0 20px 20px 0;
-  box-sizing: border-box;
-  overflow-x: hidden;
-`
-
-const Header = styled.div`
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  box-sizing: border-box;
-`
-
-const NewOrderButton = styled.button`
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #218838;
-  }
-`
+import Header from '../Header/Header'
 
 const MainContent = styled.div`
   background-color:rgb(253, 253, 253);
@@ -252,15 +215,10 @@ function Os({
     }
   }
 
-  return (
-      <AppContainer>
-        <Header>
-              <Title>Ordem de Serviço</Title>
-            <NewOrderButton>+ Nova ordem de serviço</NewOrderButton>
-        </Header>
+  return (     
 
         <MainContent>
-          
+          <Header title="Ordem de Serviço" children="+ Nova Ordem de Serviço"></Header>
           <SearchSection>
             <SearchTitle>Buscar</SearchTitle>
             <SearchForm>
@@ -375,7 +333,7 @@ function Os({
             </Table>
           </TableSection>
         </MainContent>
-      </AppContainer>
+      
   )
 }
 

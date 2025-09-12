@@ -3,22 +3,6 @@ import styled from 'styled-components';
 import Table from '../Table';
 import Header from '../../Header/Header';
 
-const NewOrderButton = styled.button`
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #218838;
-  }
-`
-
 const Modal = styled.div`
   position: fixed;
   top: 50%;
