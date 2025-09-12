@@ -11,6 +11,7 @@ import Os from './routes/OS.jsx'
 import CriarOS from './routes/CriarOS.jsx'
 import TelaCompras from './routes/Compras.jsx'
 import TelaMecanicos from './routes/Mecanicos.jsx'
+import TelaVeiculos from './routes/Veiculos.jsx'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -89,6 +90,7 @@ createRoot(document.getElementById('root')).render(
     <GlobalStyle />
     <BrowserRouter>
       <Routes>
+        <Route path='/' element={<Home />}/>
         <Route path='/dashboard' element={<Home />}/>
         <Route path='/login' element={<Login />}/>
         <Route path='/cadastro' element={<CadastroComponent />}/>
@@ -98,6 +100,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/criar-ordem-de-serviço' element={<CriarOS />}/>
         <Route path='/compras' element={<TelaCompras />}/>
         <Route path='/mecânicos' element={<TelaMecanicos />}/>
+        <Route path='/veículos' element={<TelaVeiculos />}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
