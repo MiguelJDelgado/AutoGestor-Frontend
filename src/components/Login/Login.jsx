@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import logo from '../../assets/logo.png';
 import * as API from '../../services/LoginService';
+import {jwtDecode} from 'jwt-decode';
 
 
 const Container = styled.div`
@@ -120,14 +121,7 @@ const Login = () => {
     setErro('');
 
     try {
-      const res = await API.loginUser(email, senha)
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErro(data.erro || 'Erro ao fazer login');
-        return;
-      }
+      const data = await API.loginUser(email, senha);
 
       localStorage.setItem('token', data.token);
 
@@ -152,7 +146,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error(err);
-      setErro('Erro de conexão com o servidor ou decodificação do token');
+      setErro(err.message || 'Erro de conexão com o servidor');
     }
   }
 
