@@ -12,6 +12,7 @@ import CriarOS from './routes/CriarOS.jsx'
 import TelaCompras from './routes/Compras.jsx'
 import TelaMecanicos from './routes/Mecanicos.jsx'
 import TelaVeiculos from './routes/Veiculos.jsx'
+import TelaClientes from './routes/Clientes.jsx'
 import TelaFornecedores from './routes/Fornecedores.jsx'
 
 const GlobalStyle = createGlobalStyle`
@@ -102,6 +103,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/compras' element={<TelaCompras />}/>
         <Route path='/mecânicos' element={<TelaMecanicos />}/>
         <Route path='/veículos' element={<TelaVeiculos />}/>
+        <Route path='/clientes' element={<TelaClientes />}/>
         <Route path='/fornecedores' element={<TelaFornecedores />}/>
       </Routes>
     </BrowserRouter>
