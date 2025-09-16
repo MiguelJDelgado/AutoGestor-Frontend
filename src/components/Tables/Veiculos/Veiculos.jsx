@@ -35,6 +35,7 @@ const columns = ["Marca", "Modelo", "Placa", "Ano", "Tipo de Combustível", "Cha
       <Table 
         columns={columns} 
         data={data} 
+        searchOptions={columns}
         onView={handleView} 
         onEdit={handleEdit} 
         onDelete={handleDelete} 

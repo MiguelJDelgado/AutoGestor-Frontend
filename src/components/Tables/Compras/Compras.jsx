@@ -96,7 +96,7 @@ const TelaCompras = () => {
       <Table 
         columns={columns} 
         data={data} 
-        searchOptions={["Data", "Solicitante", "Produto", "Fornecedor"]} 
+        searchOptions={columns} 
         onView={handleView} 
         onEdit={handleEdit} 
         onDelete={handleDelete} 

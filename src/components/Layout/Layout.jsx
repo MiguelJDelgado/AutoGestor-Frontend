@@ -7,9 +7,9 @@ const LayoutContainer = styled.div`
 `;
 
 const MainContent = styled.main`
-  margin-left: ${({ isOpen }) => (isOpen ? "220px" : "70px")};
+  margin-left: ${({ isOpen }) => (isOpen ? "220px" : "80px")};
   transition: margin-left 0.3s ease;
-  padding: 20px 20px 20px 0; /* remove left padding to avoid white bar next to sidebar */
+  padding: 20px 20px 20px 0;
 `;
 
 function Layout({ children }) {
