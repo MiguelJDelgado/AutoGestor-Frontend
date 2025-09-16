@@ -62,7 +62,7 @@ const TelaServicos = () => {
         </>
       )}
 
-      <Table columns={columns} data={data} />
+      <Table columns={columns} data={data} searchOptions={columns}/>
     </div>
   );
 };

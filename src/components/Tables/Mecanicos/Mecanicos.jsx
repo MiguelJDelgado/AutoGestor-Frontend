@@ -55,7 +55,7 @@ const TelaMecanicos = () => {
       <Table 
         columns={columns} 
         data={data} 
-        searchOptions={["Nome", "Especialidade", "Telefone", "Email"]} 
+        searchOptions={columns} 
         onView={handleView} 
         onEdit={handleEdit} 
         onDelete={handleDelete} 

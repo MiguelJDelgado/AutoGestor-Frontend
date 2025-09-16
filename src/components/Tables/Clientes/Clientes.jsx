@@ -42,6 +42,7 @@ const TelaClientes = () => {
       <Table
         columns={columns}
         data={data}
+        searchOptions={columns}
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
