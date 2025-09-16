@@ -127,7 +127,7 @@ const IconButton = styled.button`
 const DataTableWithSearch = ({ 
   columns, 
   data, 
-  searchOptions = ["Data", "Descrição", "Estoque", "Fornecedor", "Valor.Unit"], 
+  searchOptions, 
   onSearch, 
   onView, 
   onEdit, 
@@ -140,7 +140,7 @@ const DataTableWithSearch = ({
         <ControlsRow>
           <Select>
             {searchOptions.map((opt, i) => (
-              <option key={i} value={opt}>{opt}</option> // CORREÇÃO AQUI
+              <option key={i} value={opt}>{opt}</option>
             ))}
           </Select>
           <Input type="text" placeholder="Digite para buscar..." />
