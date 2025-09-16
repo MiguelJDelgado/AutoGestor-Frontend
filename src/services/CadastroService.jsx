@@ -1,6 +1,6 @@
 // src/services/userService.js
 
-const API_URL = import.meta.env.VITE_API + "/users";
+const API_URL = import.meta.env.VITE_API + "auth/users";
 
 // Buscar todos
 export const getUsers = async () => {

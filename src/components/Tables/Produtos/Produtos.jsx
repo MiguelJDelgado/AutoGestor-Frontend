@@ -1,24 +1,36 @@
-import Table from '../Table';
-import Header from '../../Header/Header';
+import { useEffect, useState } from "react";
+import Table from "../Table";
+import Header from "../../Header/Header";
+import { getProducts } from "../../../services/ProdutoService";
 
 const TelaProdutos = () => {
-  const columns = ["Data", "Descrição", "Estoque Disponível", "Valor Unit.", "Valor Unit. Pago"];
-  const data = [
-    {
-      "Data": "18/04/2023",
-      "Descrição": "FILTRO COMBUSTÍVEL / FORD / JEEP / FIAT",
-      "Estoque Disponível": "05 UNIDADES",
-      "Valor Unit.": "R$ 60,00",
-      "Valor Unit. Pago": "R$ 30,00",
-    },
-    {
-      "Data": "10/08/2024",
-      "Descrição": "FILTRO DO MOTOR FORD / JEEP",
-      "Estoque Disponível": "03 UNIDADES",
-      "Valor Unit.": "R$ 80,00",
-      "Valor Unit. Pago": "R$ 60,00",
-    },
-  ];
+  const columns = ["Código", "Data", "Nome", "Estoque Disponível", "Valor Unit. Venda", "Valor Unit. Pago"];
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await getProducts({ page: 1, limit: 10 });
+
+        const productsArray = response.data || [];
+
+        const formattedData = productsArray.map((p) => ({
+          "Código": p.code,
+          "Data": new Date(p.createdAt).toLocaleDateString("pt-BR"),
+          "Nome": p.name,
+          "Estoque Disponível": `${p.quantity} UNIDADES`,
+          "Valor Unit. Venda": p.salePrice ? `R$ ${p.salePrice.toFixed(2)}` : "-",
+          "Valor Unit. Pago": `R$ ${p.costUnitPrice.toFixed(2)}`,
+        }));
+
+        setData(formattedData);
+      } catch (error) {
+        console.error("Erro ao carregar produtos:", error.message);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   const handleView = (row) => console.log("Visualizar", row);
   const handleEdit = (row) => console.log("Editar", row);
@@ -26,13 +38,13 @@ const TelaProdutos = () => {
 
   return (
     <div>
-      <Header title="Produtos" children="+ Novo Produto"></Header>
-      <Table 
-        columns={columns} 
-        data={data} 
-        onView={handleView} 
-        onEdit={handleEdit} 
-        onDelete={handleDelete} 
+      <Header title="Produtos" children="+ Novo Produto" />
+      <Table
+        columns={columns}
+        data={data}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
     </div>
   );
