@@ -1,7 +1,6 @@
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
- 
- 
+import { NavLink } from 'react-router-dom';
+
 import logo from '../../../assets/logo.png';
 import OS from '../../../assets/OS.png';
 import Dashboard from '../../../assets/dashboard.png';
@@ -14,8 +13,7 @@ import Fornecedor from '../../../assets/fornecedor.png';
 import Mecanico from '../../../assets/mecanico.png';
 import sidebar from '../../../assets/sidebar.png';
 import profile from '../../../assets/profile.svg';
- 
- 
+
 const opcoesMenu = [
   { texto: 'Ordem de Serviço', icone: OS },
   { texto: 'Dashboard', icone: Dashboard },
@@ -27,8 +25,7 @@ const opcoesMenu = [
   { texto: 'Fornecedores', icone: Fornecedor },
   { texto: 'Mecânicos', icone: Mecanico },
 ];
- 
- 
+
 const SidebarContainer = styled.aside`
   position: fixed;
   left: 0;
@@ -41,51 +38,44 @@ const SidebarContainer = styled.aside`
   transition: width 0.3s;
   overflow: hidden;
 `;
- 
- 
+
 const Header = styled.div`
   display: flex;
   flex-direction: ${({ isOpen }) => (isOpen ? "row" : "column")};
-  align-items: ${({ isOpen }) => (isOpen ? "center" : "center")};
+  align-items: center;
   justify-content: ${({ isOpen }) => (isOpen ? "space-between" : "center")};
   padding: 12px 15px;
   gap: ${({ isOpen }) => (isOpen ? "0" : "10px")};
 `;
- 
- 
+
 const UserIcon = styled.img`
   width: 35px;
   height: 35px;
 `;
- 
- 
+
 const UserInfo = styled.div`
   display: ${({ isOpen }) => (isOpen ? "flex" : "none")};
   flex-direction: column;
   margin-left: 10px;
   color: white;
   font-size: 14px;
- 
- 
+
   strong { font-size: 15px; }
   span { font-size: 12px; color: #ccc; }
 `;
- 
- 
+
 const UserSection = styled.div`
   display: flex;
   align-items: center;
   color: white;
 `;
- 
- 
+
 const ToggleButton = styled.img`
   width: 22px;
   height: 22px;
   cursor: pointer;
 `;
- 
- 
+
 const Opcoes = styled.ul`
   display: flex;
   flex-direction: column;
@@ -94,15 +84,18 @@ const Opcoes = styled.ul`
   list-style: none;
   width: 100%;
 `;
- 
- 
-const ItemLink = styled(Link)`
+
+const ItemLink = styled(NavLink)`
   width: 100%;
   display: block;
   text-decoration: none;
+
+  &.active li {
+    background-color: #00476d;
+    font-weight: bold;
+  }
 `;
- 
- 
+
 const Opcao = styled.li`
   display: flex;
   align-items: center;
@@ -111,26 +104,22 @@ const Opcao = styled.li`
   color: white;
   transition: background 0.3s;
   font-size: 16px;
- 
- 
-  &:hover { background-color: #00476d; }
+
+  &:hover { background-color: #003a59; }
 `;
- 
- 
+
 const IconeOpcao = styled.img`
   width: 22px;
   height: 22px;
   margin-right: ${({ isOpen }) => (isOpen ? "10px" : "0")};
   flex-shrink: 0;
 `;
- 
- 
+
 const TextoOpcao = styled.span`
   display: ${({ isOpen }) => (isOpen ? "inline" : "none")};
   white-space: nowrap;
 `;
- 
- 
+
 const Footer = styled.div`
   margin-top: auto;
   display: flex;
@@ -138,14 +127,12 @@ const Footer = styled.div`
   align-items: center;
   padding-bottom: 20px;
 `;
- 
- 
+
 const LogoFooter = styled.img`
   max-width: ${({ isOpen }) => (isOpen ? "100px" : "60px")};
   transition: max-width 0.3s;
 `;
- 
- 
+
 function Sidebar({ isOpen, onToggle }) {
   return (
     <SidebarContainer isOpen={isOpen}>
