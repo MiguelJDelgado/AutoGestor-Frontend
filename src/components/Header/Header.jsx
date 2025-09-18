@@ -11,14 +11,14 @@ const Headers = styled.div`
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-`
+`;
 
 const Title = styled.h1`
   font-size: 30px;
   color: #333;
   margin: 0;
   padding: 20px;
-`
+`;
 
 const NewOrderButton = styled.button`
   background-color: #28a745;
@@ -34,13 +34,17 @@ const NewOrderButton = styled.button`
   &:hover {
     background-color: #218838;
   }
-`
+`;
 
-function Header({ title, children }) {
+function Header({ title, children, onNew }) {
   return (
     <Headers>
       <Title>{title}</Title>
-      <NewOrderButton>{children}</NewOrderButton>
+      {onNew && (
+        <NewOrderButton onClick={onNew}>
+          {children}
+        </NewOrderButton>
+      )}
     </Headers>
   );
 }

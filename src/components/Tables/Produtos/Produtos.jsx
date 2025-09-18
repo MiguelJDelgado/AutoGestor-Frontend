@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
 import { getProducts } from "../../../services/ProdutoService";
+import CriarProduto from "../../../modals/Produtos/CriarProdutos";
 
 const TelaProdutos = () => {
   const columns = ["Código", "Data", "Nome", "Estoque Disponível", "Valor Unit. Venda", "Valor Unit. Pago"];
   const [data, setData] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -36,9 +38,20 @@ const TelaProdutos = () => {
   const handleEdit = (row) => console.log("Editar", row);
   const handleDelete = (row) => console.log("Excluir", row);
 
+  const handleSaveProduct = (produto) => {
+    console.log("Novo produto salvo:", produto);
+    // Aqui você pode chamar o createProduct do service
+  };
+
   return (
     <div>
-      <Header title="Produtos" children="+ Novo Produto" />
+      <Header
+        title="Produtos"
+        onNew={() => setIsModalOpen(true)}
+      >
+        + Novo Produto
+      </Header>
+
       <Table
         columns={columns}
         data={data}
@@ -47,6 +60,13 @@ const TelaProdutos = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+
+      {isModalOpen && (
+        <CriarProduto
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveProduct}
+        />
+      )}
     </div>
   );
 };
