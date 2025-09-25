@@ -49,8 +49,12 @@ const TelaServicos = () => {
 
   return (
     <div>
-      <Header title="Serviços" children="+ Novo Serviço"></Header>
-
+      <Header
+        title="Serviços"
+        onNew={() => setIsModalOpen(true)}
+      >
+        + Novo Serviço
+      </Header>
       {showModal && (
         <>
           <Overlay onClick={() => setShowModal(false)} />

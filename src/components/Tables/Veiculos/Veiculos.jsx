@@ -31,7 +31,12 @@ const columns = ["Marca", "Modelo", "Placa", "Ano", "Tipo de Combustível", "Cha
 
   return (
     <div>
-      <Header title="Veículos" children="+ Novo Veículo"></Header>
+      <Header
+        title="Veículos"
+        onNew={() => setIsModalOpen(true)}
+      >
+        + Novo Veículo
+      </Header>
       <Table 
         columns={columns} 
         data={data} 

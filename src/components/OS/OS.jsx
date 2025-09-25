@@ -218,7 +218,12 @@ function Os({
   return (     
 
         <MainContent>
-          <Header title="Ordem de Serviço" children="+ Nova Ordem de Serviço"></Header>
+          <Header
+            title="Ordem de Serviço"
+            onNew={() => setIsModalOpen(true)}
+          >     
+            + Nova Ordem de Serviço
+          </Header>
           <SearchSection>
             <SearchTitle>Buscar</SearchTitle>
             <SearchForm>
