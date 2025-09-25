@@ -1,261 +1,272 @@
+import { useState } from "react";
 import styled from "styled-components";
 
+// ---------- estilos ----------
 const Container = styled.div`
-  background: #fff;
+  background: #f5f7fa;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px;
   margin-top: 20px;
-  padding: 20px;
+  font-family: "Segoe UI", sans-serif;
 `;
 
 const Title = styled.h2`
-  font-size: 18px;
-  font-weight: 600;
-  color: #0f2f43;
+  font-size: 20px;
+  font-weight: bold;
+  color: #2b3e50;
   margin-bottom: 20px;
-`;
-
-const Section = styled.div`
-  margin-bottom: 24px;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 16px;
-`;
-
-const SectionHeader = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+`;
+
+const Section = styled.div`
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  margin-bottom: 24px;
+  padding: 16px;
+`;
+
+const SectionHeader = styled.h3`
   font-size: 16px;
-  font-weight: 600;
-  color: #0f2f43;
+  font-weight: bold;
+  color: #2b3e50;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const FormWrapper = styled.div`
+  position: relative;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+`;
+
+const RemoveButton = styled.button`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ff5252;
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: bold;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  transition: 0.2s;
+
+  &:hover {
+    background: #e04848;
+  }
 `;
 
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 12px;
 
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
+`;
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
+const Field = styled.div`
+  display: flex;
+  flex-direction: column;
 `;
 
 const Label = styled.label`
   font-size: 13px;
-  font-weight: 500;
-  color: #333;
+  font-weight: 600;
+  color: #444;
   margin-bottom: 4px;
-  display: block;
 `;
 
 const Input = styled.input`
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid #d5dde3;
-  border-radius: 6px;
-  background: #e4eaef;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #f3f6f9;
   font-size: 14px;
-  color: #0f2f43;
-  width: 100%;
-  box-sizing: border-box;
-
-  &::placeholder {
-    color: #6b7a86;
-  }
+  color: #333;
 `;
 
 const Select = styled.select`
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 6px;
-  border: 1px solid #d5dde3;
-  background: #e4eaef;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background: #f3f6f9;
   font-size: 14px;
-  color: #0f2f43;
+  color: #333;
+`;
+
+const AddButton = styled.button`
   width: 100%;
-  box-sizing: border-box;
-`;
+  background: #00c853;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: 0.2s;
 
-const DescriptionSection = styled.div`
-  margin-bottom: 24px;
-  padding: 16px;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  background: #f8f9fa;
-`;
-
-const DescriptionHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #0f2f43;
-`;
-
-const DescriptionInput = styled.textarea`
-  width: 100%;
-  min-height: 100px;
-  padding: 12px;
-  border: 1px solid #d5dde3;
-  border-radius: 6px;
-  background: #e4eaef;
-  font-size: 14px;
-  color: #0f2f43;
-  resize: vertical;
-  box-sizing: border-box;
-
-  &::placeholder {
-    color: #6b7a86;
+  &:hover {
+    background: #00b248;
   }
 `;
 
+const RequestButton = styled.button`
+  background: #52ffa0ff;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  padding: 6px 12px;
+  cursor: pointer;
+  margin-bottom: 12px;
+
+  &:hover {
+    background: #e04848;
+  }
+`;
+
+// ---------- componente ----------
 function CriarOS() {
+  const [servicos, setServicos] = useState([{}]);
+  const [produtos, setProdutos] = useState([{}]);
+
+  const adicionarServico = () => setServicos([...servicos, {}]);
+  const removerServico = (index) =>
+    setServicos(servicos.filter((_, i) => i !== index));
+
+  const adicionarProduto = () => setProdutos([...produtos, {}]);
+  const removerProduto = (index) =>
+    setProdutos(produtos.filter((_, i) => i !== index));
+
   return (
     <Container>
-      <Title>Nova Ordem de Serviço</Title>
+      <Title>➕ Nova Ordem de Serviço</Title>
 
-      {/* DADOS */}
+      {/* SERVIÇOS */}
       <Section>
-        <SectionHeader>📄 Dados</SectionHeader>
-        <FormGrid>
-          <div>
-            <Label>Número da O.S</Label>
-            <Input placeholder="Digite o número" />
-          </div>
-          <div>
-            <Label>Status</Label>
-            <Select>
-              <option>Orçamento</option>
-              <option>Aprovado</option>
-              <option>Em execução</option>
-              <option>Finalizado</option>
-            </Select>
-          </div>
-          <div>
-            <Label>Entrada do veículo</Label>
-            <Input type="date" />
-          </div>
-          <div>
-            <Label>Previsão de entrega</Label>
-            <Input type="date" />
-          </div>
-          <div>
-            <Label>Colaborador</Label>
-            <Input placeholder="Digite o colaborador" />
-          </div>
-        </FormGrid>
-      </Section>
-
-      {/* CLIENTE */}
-      <Section>
-        <SectionHeader>👤 Cliente</SectionHeader>
-        <FormGrid>
-          <div>
-            <Label>Nome</Label>
-            <Input placeholder="Nome do cliente" />
-          </div>
-          <div>
-            <Label>CPF/CNPJ</Label>
-            <Input placeholder="000.000.000-00" />
-          </div>
-          <div>
-            <Label>Telefone</Label>
-            <Input placeholder="(00) 00000-0000" />
-          </div>
-          <div>
-            <Label>Email</Label>
-            <Input placeholder="exemplo@email.com" />
-          </div>
-          <div>
-            <Label>Endereço</Label>
-            <Input placeholder="Rua/Avenida" />
-          </div>
-          <div>
-            <Label>Número</Label>
-            <Input placeholder="Nº" />
-          </div>
-          <div>
-            <Label>Município</Label>
-            <Input placeholder="Cidade" />
-          </div>
-        </FormGrid>
-      </Section>
-
-      {/* VEÍCULO */}
-      <Section>
-        <SectionHeader>🚗 Dados do veículo</SectionHeader>
-        <FormGrid>
-          <div>
-            <Label>Marca</Label>
-            <Input placeholder="Marca" />
-          </div>
-          <div>
-            <Label>Modelo</Label>
-            <Input placeholder="Modelo" />
-          </div>
-          <div>
-            <Label>Placa</Label>
-            <Input placeholder="XXX-0000" />
-          </div>
-          <div>
-            <Label>Ano</Label>
-            <Input placeholder="Ano do veículo" />
-          </div>
-          <div>
-            <Label>Cor</Label>
-            <Input placeholder="Cor do veículo" />
-          </div>
-          <div>
-            <Label>Quilometragem</Label>
-            <Input placeholder="KM rodados" />
-          </div>
-        </FormGrid>
+        <SectionHeader>🛠️ Serviços</SectionHeader>
+        {servicos.map((_, index) => (
+          <FormWrapper key={index}>
+            <RemoveButton onClick={() => removerServico(index)}>×</RemoveButton>
+            <FormGrid>
+              <Field>
+                <Label>Título do serviço</Label>
+                <Select>
+                  <option>Lista de serviços cadastrados</option>
+                </Select>
+              </Field>
+              <Field>
+                <Label>Horas de trabalho</Label>
+                <Input disabled placeholder="Puxado da área de serviços" />
+              </Field>
+              <Field>
+                <Label>Quantidade</Label>
+                <Input placeholder="Editável" />
+              </Field>
+              <Field>
+                <Label>Valor hora</Label>
+                <Input disabled placeholder="Puxado da área de serviços" />
+              </Field>
+              <Field>
+                <Label>Valor unitário</Label>
+                <Input disabled placeholder="Puxado da área de serviços" />
+              </Field>
+              <Field>
+                <Label>Tipo de Desconto</Label>
+                <Select>
+                  <option>Desconto %</option>
+                  <option>Desconto R$</option>
+                </Select>
+              </Field>
+              <Field>
+                <Label>Desconto</Label>
+                <Input placeholder="Editável" />
+              </Field>
+              <Field>
+                <Label>Subtotal sem desconto</Label>
+                <Input disabled placeholder="unitário x quantidade" />
+              </Field>
+              <Field>
+                <Label>Valor total</Label>
+                <Input disabled placeholder="cálculo final" />
+              </Field>
+            </FormGrid>
+          </FormWrapper>
+        ))}
+        <AddButton onClick={adicionarServico}>+</AddButton>
       </Section>
 
       {/* PRODUTOS */}
       <Section>
-        <SectionHeader>🛠️ Produtos</SectionHeader>
-        <FormGrid>
-          <div>
-            <Label>Nome do Produto</Label>
-            <Input placeholder="Digite o nome" />
-          </div>
-          <div>
-            <Label>Quantidade</Label>
-            <Input type="number" placeholder="Ex.: 1" />
-          </div>
-          <div>
-            <Label>Valor Unitário</Label>
-            <Input type="text" placeholder="Ex.: R$ 100,00" />
-          </div>
-          <div>
-            <Label>Código</Label>
-            <Input placeholder="Digite o código" />
-          </div>
-        </FormGrid>
+        <SectionHeader>📦 Produtos</SectionHeader>
+        <RequestButton>+ Solicitar Produto</RequestButton>
+        {produtos.map((_, index) => (
+          <FormWrapper key={index}>
+            <RemoveButton onClick={() => removerProduto(index)}>×</RemoveButton>
+            <FormGrid>
+              <Field>
+                <Label>Descrição</Label>
+                <Select>
+                  <option>Lista de produtos cadastrados</option>
+                </Select>
+              </Field>
+              <Field>
+                <Label>UN</Label>
+                <Input disabled placeholder="Puxado da área de produtos" />
+              </Field>
+              <Field>
+                <Label>Estoque</Label>
+                <Input disabled placeholder="Puxado da área de produtos" />
+              </Field>
+              <Field>
+                <Label>Quantidade</Label>
+                <Input placeholder="Editável" />
+              </Field>
+              <Field>
+                <Label>Valor unitário</Label>
+                <Input disabled placeholder="Puxado da área de produtos" />
+              </Field>
+              <Field>
+                <Label>Tipo de Desconto</Label>
+                <Select>
+                  <option>Desconto %</option>
+                  <option>Desconto R$</option>
+                </Select>
+              </Field>
+              <Field>
+                <Label>Desconto</Label>
+                <Input placeholder="Editável" />
+              </Field>
+              <Field>
+                <Label>Subtotal sem desconto</Label>
+                <Input disabled placeholder="unitário x quantidade" />
+              </Field>
+              <Field>
+                <Label>Valor total</Label>
+                <Input disabled placeholder="cálculo final" />
+              </Field>
+            </FormGrid>
+          </FormWrapper>
+        ))}
+        <AddButton onClick={adicionarProduto}>+</AddButton>
       </Section>
-
-      {/* SOLICITAÇÃO DO CLIENTE */}
-      <DescriptionSection>
-        <DescriptionHeader>📩 Solicitação do cliente</DescriptionHeader>
-        <Label>Descrição do problema relatado</Label>
-        <DescriptionInput placeholder="Descreva o problema relatado..." />
-      </DescriptionSection>
-
-      {/* ANÁLISE INICIAL / DIAGNÓSTICO */}
-      <DescriptionSection>
-        <DescriptionHeader>🔍 Análise Inicial / Diagnóstico</DescriptionHeader>
-        <Label>Descrição do diagnóstico</Label>
-        <DescriptionInput placeholder="Descreva o diagnóstico..." />
-      </DescriptionSection>
     </Container>
   );
 }
