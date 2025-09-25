@@ -38,7 +38,12 @@ const TelaClientes = () => {
 
   return (
     <div>
-      <Header title="Clientes" children="+ Novo Cliente" />
+      <Header
+        title="Clientes"
+        onNew={() => setIsModalOpen(true)}
+      >
+        + Novo Cliente
+      </Header>
       <Table
         columns={columns}
         data={data}

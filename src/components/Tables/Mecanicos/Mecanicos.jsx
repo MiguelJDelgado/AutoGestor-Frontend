@@ -50,7 +50,11 @@ const TelaMecanicos = () => {
 
   return (
     <div>
-      <Header title="Mecânicos" children="+ Adicionar Mecânico">
+      <Header
+        title="Mecânicos"
+        onNew={() => setIsModalOpen(true)}
+      >
+        + Novo Mecânico
       </Header>
       <Table 
         columns={columns} 
