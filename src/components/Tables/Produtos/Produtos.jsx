@@ -40,7 +40,6 @@ const TelaProdutos = () => {
 
   const handleSaveProduct = (produto) => {
     console.log("Novo produto salvo:", produto);
-    // Aqui você pode chamar o createProduct do service
   };
 
   return (

@@ -36,7 +36,12 @@ const TelaFornecedores = () => {
 
   return (
     <div>
-      <Header title="Fornecedores" children="+ Novo Fornecedor" />
+      <Header
+        title="Fornecedores"
+        onNew={() => setIsModalOpen(true)}
+      >
+        + Novo Fornecedor
+      </Header>
       <Table
         columns={columns}
         data={data}
