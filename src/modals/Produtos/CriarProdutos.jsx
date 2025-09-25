@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import LayoutModal from "../Layout";
+import PesquisaIcon from "../../assets/pesquisa.png";
 
 const FormGrid = styled.div`
   display: grid;
@@ -47,8 +48,8 @@ const IconButton = styled.button`
   height: 36px;
   width: 36px;
   border-radius: 6px;
-  border: 1px solid #d5dde3;
-  background: #eef3f6;
+  border: 1px solid #dee3e6;
+  background: #dee3e6;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,7 +150,6 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
   return (
     <LayoutModal title="Adicionar Novo Produto" onClose={onClose} onSave={handleSave}>
       <FormGrid>
-        {/* Descrição */}
         <Full>
           <Label>Descrição</Label>
           <InputWrapper>
@@ -160,14 +160,16 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
               onChange={handleChange("descricao")}
               aria-invalid={!!errors.descricao}
             />
-            <IconButton title="Pesquisar descrição">🔍</IconButton>
+            <IconButton title="Pesquisar descrição">
+              <img src={PesquisaIcon} alt="Pesquisar" style={{ width: 18, height: 18 }} />
+            </IconButton>
+
           </InputWrapper>
           {errors.descricao && (
             <small style={{ color: "crimson" }}>{errors.descricao}</small>
           )}
         </Full>
 
-        {/* Fornecedor */}
         <Full>
           <Label>Fornecedor</Label>
           <InputWrapper>
@@ -178,15 +180,15 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
               aria-invalid={!!errors.fornecedor}
             />
             <IconButton title="Selecionar fornecedor" onClick={handleOpenSupplierPicker}>
-              🔎
+              <img src={PesquisaIcon} alt="Selecionar fornecedor" style={{ width: 18, height: 18 }} />
             </IconButton>
+
           </InputWrapper>
           {errors.fornecedor && (
             <small style={{ color: "crimson" }}>{errors.fornecedor}</small>
           )}
         </Full>
 
-        {/* Valor Pago */}
         <div>
           <Label>Valor Unit. Pago</Label>
           <InputWrapper>
@@ -206,7 +208,6 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
           )}
         </div>
 
-        {/* Margem */}
         <div>
           <Label>Margem Bruta</Label>
           <InputWrapper>
@@ -222,7 +223,6 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
           </InputWrapper>
         </div>
 
-        {/* Valor de Venda */}
         <Full>
           <Label>Valor Unit. Venda (calculado)</Label>
           <InputWrapper>
@@ -236,7 +236,6 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
           </InputWrapper>
         </Full>
 
-        {/* Unidade */}
         <div>
           <Label>Unidade de Medida</Label>
           <Input
@@ -246,7 +245,6 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
           />
         </div>
 
-        {/* Data */}
         <div>
           <Label>Data</Label>
           <Input
@@ -256,7 +254,6 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
           />
         </div>
 
-        {/* Estoque */}
         <Full>
           <Label>Estoque Disponível</Label>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
