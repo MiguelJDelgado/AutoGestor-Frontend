@@ -17,6 +17,7 @@ const Full = styled.div`
 const Label = styled.label`
   font-size: 14px;
   font-weight: 500;
+  margin-right: 10px;
 `;
 
 const InputWrapper = styled.div`
