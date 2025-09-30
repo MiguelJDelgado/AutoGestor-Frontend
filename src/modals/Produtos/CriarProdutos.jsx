@@ -29,7 +29,17 @@ const Input = styled.input`
   flex: 1;
   padding: 8px;
   border-radius: 6px;
-  border: 1px solid #d5dde3;
+  text-align: center;
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &[type=number] {
+    -moz-appearance: textfield;
+  }
 `;
 
 const SmallInput = styled(Input)`
