@@ -7,7 +7,7 @@ import {jwtDecode} from 'jwt-decode';
 
 
 const Container = styled.div`
-  background-color: #222;
+  background-color: #f9f8fb;
   min-height: 100vh;
   display: flex;
   justify-content: center;

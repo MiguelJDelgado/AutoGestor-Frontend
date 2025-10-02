@@ -5,7 +5,7 @@ import logo from '../../assets/logo.png';
 import * as API from '../../services/CadastroService';
 
 const Container = styled.div`
-  background-color: #222;
+  background-color: #f9f8fb;
   height: 100vh;
   display: flex;
   justify-content: center;
