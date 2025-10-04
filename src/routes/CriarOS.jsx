@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import Layout from "../components/Layout/Layout";
-import CriarOSComponent from '../components/OS/CriarOS'
+import CriarOSComponent from '../components/OS/CriarOS/CriarOS'
 
 const AppContainer = styled.div`
   width: 100vw;
