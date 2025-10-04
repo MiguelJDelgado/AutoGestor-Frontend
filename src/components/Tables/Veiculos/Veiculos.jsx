@@ -31,12 +31,7 @@ const columns = ["Marca", "Modelo", "Placa", "Ano", "Tipo de Combustível", "Cha
 
   return (
     <div>
-      <Header
-        title="Veículos"
-        onNew={() => setIsModalOpen(true)}
-      >
-        + Novo Veículo
-      </Header>
+      <Header title="Veículos" />
       <Table 
         columns={columns} 
         data={data} 
