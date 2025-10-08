@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
+import ProdutoIcon from "./icons/ProdutoOS.png";
 import xIcon from '../../../assets/XIcon.png';
 
 const Section = styled.div`
@@ -8,6 +9,12 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+`;
+
+const Icon = styled.img`
+  width: 23px;
+  height: 25px;
+  vertical-align: middle;
 `;
 
 const SectionHeader = styled.h3`
@@ -140,9 +147,12 @@ function ProdutosSection() {
 
   return (
     <Section>
-      <SectionHeader>📦 Produtos</SectionHeader>
-      <RequestButton>+ Solicitar Produto</RequestButton>
+      <SectionHeader>
+        <Icon src={ProdutoIcon} alt="Produto" />
+        Produtos
+      </SectionHeader>
 
+      <RequestButton>+ Solicitar Produto</RequestButton>
       {produtos.map((_, index) => (
         <FormWrapper key={index}>
           <RemoveButton onClick={() => removerProduto(index)}>

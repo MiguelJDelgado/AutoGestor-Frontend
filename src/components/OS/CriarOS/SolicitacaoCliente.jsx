@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import SolIcon from "./icons/SClienteOS.png"
 
 const Section = styled.div`
   background: #fff;
@@ -6,6 +7,13 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+`;
+
+const Icon = styled.img`
+  width: 20px;
+  height: 25px;
+  vertical-align: middle;
+  margin-right: 5px;
 `;
 
 const SectionHeader = styled.h3`
@@ -30,7 +38,10 @@ const TextArea = styled.textarea`
 const SolicitacaoCliente = ({ value, onChange }) => {
   return (
     <Section>
-      <SectionHeader>📋 Solicitação do Cliente</SectionHeader>
+      <SectionHeader>
+        <Icon src={SolIcon} alt="Solicitação Cliente" />
+        Solicitação do Cliente
+      </SectionHeader>
       <TextArea
         placeholder="Descrição do problema relatado"
         value={value}

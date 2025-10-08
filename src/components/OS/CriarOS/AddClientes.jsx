@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import ClienteIcon from "./icons/ClienteOS.png";
 
 const Section = styled.div`
   background: #fff;
@@ -7,6 +8,13 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+`;
+
+const Icon = styled.img`
+  width: 20px;
+  height: 25px;
+  vertical-align: middle;
+  margin-right: 5px;
 `;
 
 const SectionHeader = styled.h3`
@@ -94,7 +102,10 @@ const ClienteOS = () => {
 
   return (
     <Section>
-      <SectionHeader>👤 Cliente</SectionHeader>
+      <SectionHeader>
+        <Icon src={ClienteIcon} alt="Cliente" />
+        Cliente
+      </SectionHeader>
 
       <FormGrid>
         <Field>
