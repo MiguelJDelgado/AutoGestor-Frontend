@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import DadosIcon from "./icons/DadosOS.png";
 
 const Section = styled.div`
   background: #fff;
@@ -6,6 +7,12 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+`;
+
+const Icon = styled.img`
+  width: 20px;
+  height: 25px;
+  vertical-align: middle;
 `;
 
 const SectionHeader = styled.h3`
@@ -66,7 +73,10 @@ const Select = styled.select`
 function DadosOSSection() {
   return (
     <Section>
-      <SectionHeader>📋 Dados da OS</SectionHeader>
+      <SectionHeader> 
+        <Icon src={DadosIcon} alt="Dados OS" />
+        Dados da OS
+      </SectionHeader>
 
       <FormGrid>
         <Field>

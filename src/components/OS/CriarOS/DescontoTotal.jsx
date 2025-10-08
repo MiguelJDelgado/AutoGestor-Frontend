@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import DescontoIcon from "./icons/DescontoOS.png";
 
 const Section = styled.div`
   background: #fff;
@@ -6,6 +7,13 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+`;
+
+const Icon = styled.img`
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+  margin-right: 5px;
 `;
 
 const SectionHeader = styled.h3`
@@ -61,7 +69,10 @@ const DescontoTotal = ({ descontoData, setDescontoData }) => {
 
   return (
     <Section>
-      <SectionHeader>💰 Desconto Total</SectionHeader>
+      <SectionHeader>
+        <Icon src={DescontoIcon} alt="Desconto" />
+        Desconto Total
+      </SectionHeader>
       <Grid>
         <Field>
           <Label>Tipo de Desconto</Label>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
+import ServicoIcon from "./icons/ServicoOS.png";
 import xIcon from '../../../assets/XIcon.png';
 
 const Section = styled.div`
@@ -8,6 +9,12 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+`;
+
+const Icon = styled.img`
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
 `;
 
 const SectionHeader = styled.h3`
@@ -123,7 +130,10 @@ function ServicosSection() {
 
   return (
     <Section>
-      <SectionHeader>🛠️ Serviços</SectionHeader>
+      <SectionHeader>
+        <Icon src={ServicoIcon} alt="Serviço" />
+        Serviços
+      </SectionHeader>
 
       {servicos.map((_, index) => (
         <FormWrapper key={index}>

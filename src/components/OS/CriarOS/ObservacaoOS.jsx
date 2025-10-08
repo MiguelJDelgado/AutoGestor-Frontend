@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import ObservacaoIcon from "./icons/ObservacaoOS.png";
 
 const Section = styled.div`
   background: #fff;
@@ -6,6 +7,13 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+`;
+
+const Icon = styled.img`
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+  margin-right: 5px;
 `;
 
 const SectionHeader = styled.h3`
@@ -30,7 +38,10 @@ const TextArea = styled.textarea`
 const ObservacaoOS = ({ value, onChange }) => {
   return (
     <Section>
-      <SectionHeader>📝 Observação</SectionHeader>
+      <SectionHeader>
+        <Icon src={ObservacaoIcon} alt="Observação" />
+        Observação
+      </SectionHeader>
       <TextArea
         placeholder="Descrição da observação"
         value={value}

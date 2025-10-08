@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import VeiculoIcon from "./icons/VeiculoOS.png";
 
 const Section = styled.div`
   background: #fff;
@@ -7,6 +8,13 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+`;
+
+const Icon = styled.img`
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+  margin-right: 5px;
 `;
 
 const SectionHeader = styled.h3`
@@ -102,7 +110,10 @@ const VeiculoOS = () => {
 
   return (
     <Section>
-      <SectionHeader>🚗 Dados do Veículo</SectionHeader>
+      <SectionHeader>
+        <Icon src={VeiculoIcon} alt="Veículo" />
+        Dados do Veículo
+      </SectionHeader>
 
       <FormGrid>
         <Field>

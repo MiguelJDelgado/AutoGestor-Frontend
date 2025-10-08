@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
+import NovaOSIcon from "./icons/NovaOS.png";
 
 import ServicosSection from "./AddServicos";
 import ProdutosSection from "./AddProdutos";
@@ -12,17 +13,23 @@ import DescontoTotal from "./DescontoTotal";
 import ObservacaoOS from "./ObservacaoOS";
 
 const Container = styled.div`
-  background: #f5f7fa;
+  background: #7f929d;
   border-radius: 8px;
   padding: 16px;
   margin-top: 20px;
   font-family: "Segoe UI", sans-serif;
 `;
 
+const Icon = styled.img`
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+`;
+
 const Title = styled.h2`
   font-size: 20px;
   font-weight: bold;
-  color: #2b3e50;
+  color: #ffffffff;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -79,8 +86,10 @@ function CriarOS() {
 
   return (
     <Container>
-      <Title>➕ Nova Ordem de Serviço</Title>
-
+      <Title>
+        <Icon src={NovaOSIcon} alt="Nova OS" />
+        Nova Ordem de Serviço
+      </Title>
       <DadosOSSection />
       <ClientesSection />
       <VeiculosSection />
