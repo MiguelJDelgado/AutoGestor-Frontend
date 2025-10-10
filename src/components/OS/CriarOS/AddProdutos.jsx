@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styled from "styled-components";
+import SolicitarProdutoModal from "./SolicitarProdutos";
 import ProdutoIcon from "./icons/ProdutoOS.png";
 import xIcon from '../../../assets/XIcon.png';
 
@@ -140,10 +141,15 @@ const AddButton = styled.button`
 
 function ProdutosSection() {
   const [produtos, setProdutos] = useState([{}]);
+  const [modalAberto, setModalAberto] = useState(false);
 
   const adicionarProduto = () => setProdutos([...produtos, {}]);
   const removerProduto = (index) =>
     setProdutos(produtos.filter((_, i) => i !== index));
+
+  const handleAddProduto = (novoProduto) => {
+    setProdutos([...produtos, novoProduto]);
+  };
 
   return (
     <Section>
@@ -152,7 +158,17 @@ function ProdutosSection() {
         Produtos
       </SectionHeader>
 
-      <RequestButton>+ Solicitar Produto</RequestButton>
+      <RequestButton onClick={() => setModalAberto(true)}>
+        + Solicitar Produto
+      </RequestButton>
+
+      {modalAberto && (
+        <SolicitarProdutoModal
+          onClose={() => setModalAberto(false)}
+          onAdd={handleAddProduto}
+        />
+      )}
+
       {produtos.map((_, index) => (
         <FormWrapper key={index}>
           <RemoveButton onClick={() => removerProduto(index)}>
@@ -204,6 +220,7 @@ function ProdutosSection() {
           </FormGrid>
         </FormWrapper>
       ))}
+
       <AddButton onClick={adicionarProduto}>+</AddButton>
     </Section>
   );

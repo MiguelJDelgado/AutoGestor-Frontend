@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import { useNavigate } from "react-router-dom";
 import editarIcon from '../../assets/editar.png'
 import excluirIcon from '../../assets/excluir.png'
 import olhoIcon from '../../assets/olho.png'
@@ -215,12 +216,15 @@ function Os({
     }
   }
 
+  const navigate = useNavigate();
+
+
   return (     
 
         <MainContent>
           <Header
             title="Ordem de Serviço"
-            onNew={() => setIsModalOpen(true)}
+            onNew={() => navigate("/criar-ordem-de-serviço")}
           >     
             + Nova Ordem de Serviço
           </Header>
