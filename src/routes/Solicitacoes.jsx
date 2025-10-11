@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import Layout from "../components/Layout/Layout";
-import TelaComprasComponent from '../components/Tables/Compras/Compras'
+import TelaSolicitacoesComponent from '../components/Tables/Solicitacoes/Solicitacoes'
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -8,14 +8,14 @@ const AppContainer = styled.div`
   background-color: #ffffff
 `
 
-function TelaCompras() {
+function TelaSolicitacoes() {
   return (
     <AppContainer>
       <Layout>
-        <TelaComprasComponent />
+        <TelaSolicitacoesComponent />
       </Layout>
     </AppContainer>
   )
 }
 
-export default TelaCompras
+export default TelaSolicitacoes

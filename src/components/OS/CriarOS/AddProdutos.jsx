@@ -63,7 +63,7 @@ const RemoveButton = styled.button`
 
 
 const RequestButton = styled.button`
-  background: #52ffa0ff;
+  background: #1e862cff;
   border: none;
   border-radius: 4px;
   color: #fff;
