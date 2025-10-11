@@ -16,7 +16,6 @@ const Container = styled.div`
   background: #7f929d;
   border-radius: 8px;
   padding: 16px;
-  margin-top: 20px;
   font-family: "Segoe UI", sans-serif;
 `;
 
