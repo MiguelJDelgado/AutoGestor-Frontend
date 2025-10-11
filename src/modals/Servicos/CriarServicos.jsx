@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import LayoutModal from "../Layout";
+import { createService } from "../../services/ServicoService";
 
 const FormGrid = styled.div`
   display: grid;
@@ -93,8 +94,8 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
     valorHora: "",
     valorTotal: "",
   });
-
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const firstInputRef = useRef(null);
 
   useEffect(() => {
@@ -106,6 +107,7 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
     };
   }, []);
 
+  // Calcula valor total
   useEffect(() => {
     const vh = parseFloat(String(form.valorHora).replace(",", "."));
     if (!isNaN(vh)) {
@@ -120,10 +122,7 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
   }, [form.valorHora, form.horas]);
 
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   const handleInc = (val) => {
@@ -135,7 +134,7 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
 
   const formatHoras = () => {
     const horas = form.horas;
-    if (horas < 1) return `${horas * 60} min`;
+    if (horas < 1) return `${horas * 60}min`;
     if (horas % 1 === 0) return `${horas} h`;
     return `${Math.floor(horas)}h ${Math.round((horas % 1) * 60)}min`;
   };
@@ -155,14 +154,33 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
     return Object.keys(err).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    onSave(form);
-    onClose();
+
+    setLoading(true);
+    try {
+      const novoServico = {
+        title: form.titulo,
+        description: form.descricao,
+        workHours: String(form.horas),
+        hourValue: String(form.valorHora),
+        totalValue: parseFloat(form.valorTotal),
+      };
+
+      const response = await createService(novoServico);
+
+      onSave(response || novoServico); 
+      onClose();
+    } catch (error) {
+      console.error("Erro ao criar serviço:", error);
+      alert("Erro ao salvar serviço. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <LayoutModal title="Adicionar Serviço" onClose={onClose} onSave={handleSave}>
+    <LayoutModal title="Adicionar Serviço" onClose={onClose} onSave={handleSave} disableSave={loading}>
       <FormGrid>
         <Full>
           <Label>Título</Label>
@@ -172,10 +190,9 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
             value={form.titulo}
             onChange={handleChange("titulo")}
             aria-invalid={!!errors.titulo}
+            disabled={loading}
           />
-          {errors.titulo && (
-            <small style={{ color: "crimson" }}>{errors.titulo}</small>
-          )}
+          {errors.titulo && <small style={{ color: "crimson" }}>{errors.titulo}</small>}
         </Full>
 
         <Full>
@@ -185,26 +202,17 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
             value={form.descricao}
             onChange={handleChange("descricao")}
             aria-invalid={!!errors.descricao}
+            disabled={loading}
           />
-          {errors.descricao && (
-            <small style={{ color: "crimson" }}>{errors.descricao}</small>
-          )}
+          {errors.descricao && <small style={{ color: "crimson" }}>{errors.descricao}</small>}
         </Full>
 
         <div>
           <Label>Horas de Trabalho</Label>
           <InputWrapper>
-            <IconButton onClick={() => handleInc(-1)} aria-label="Diminuir horas">
-              −
-            </IconButton>
-            <Input
-              readOnly
-              value={formatHoras()}
-              style={{ textAlign: "center", width: 120 }}
-            />
-            <IconButton onClick={() => handleInc(1)} aria-label="Aumentar horas">
-              +
-            </IconButton>
+            <IconButton onClick={() => handleInc(-1)} aria-label="Diminuir horas" disabled={loading}>−</IconButton>
+            <Input readOnly value={formatHoras()} style={{ textAlign: "center", width: 120 }} />
+            <IconButton onClick={() => handleInc(1)} aria-label="Aumentar horas" disabled={loading}>+</IconButton>
           </InputWrapper>
         </div>
 
@@ -220,11 +228,10 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.valorHora}
               onChange={handleChange("valorHora")}
               aria-invalid={!!errors.valorHora}
+              disabled={loading}
             />
           </InputWrapper>
-          {errors.valorHora && (
-            <small style={{ color: "crimson" }}>{errors.valorHora}</small>
-          )}
+          {errors.valorHora && <small style={{ color: "crimson" }}>{errors.valorHora}</small>}
         </div>
 
         <div>

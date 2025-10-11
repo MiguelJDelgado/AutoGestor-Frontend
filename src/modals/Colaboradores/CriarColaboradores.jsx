@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import LayoutModal from "../Layout";
+import { createMechanic } from "../../services/ColaboradorService";
+import { getAddressByCep } from "../../services/CepService";
 
 const FormGrid = styled.div`
   display: flex;
@@ -84,11 +86,11 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const firstInputRef = useRef(null);
 
   useEffect(() => {
     firstInputRef.current?.focus();
-
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -96,32 +98,80 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchAddress = async () => {
+      const cep = form.cep.replace(/\D/g, ""); 
+      if (cep.length === 8) {
+        try {
+          const data = await getAddressByCep(cep);
+          setForm((prev) => ({
+            ...prev,
+            endereco: data.logradouro || "",
+            municipio: data.localidade || "",
+            uf: data.uf || "",
+          }));
+        } catch (err) {
+          console.error("Erro ao buscar endereço pelo CEP:", err);
+        }
+      }
+    };
+
+    fetchAddress();
+  }, [form.cep]); 
+
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   const validate = () => {
     const err = {};
-
     if (!form.nome.trim()) err.nome = "Nome é obrigatório";
     if (!form.cpf.trim()) err.cpf = "CPF é obrigatório";
     if (!form.cargo.trim()) err.cargo = "Cargo é obrigatório";
     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email))
       err.email = "E-mail válido é obrigatório";
     if (!form.telefone.trim()) err.telefone = "Telefone é obrigatório";
-
     setErrors(err);
     return Object.keys(err).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    onSave(form);
-    onClose();
+
+    setLoading(true);
+    try {
+      const novoColaborador = {
+        name: form.nome,
+        cpf: form.cpf,
+        position: form.cargo,
+        cep: form.cep,
+        address: form.endereco,
+        number: form.numero,
+        city: form.municipio,
+        state: form.uf,
+        email: form.email,
+        cellphone: form.telefone,
+        notes: form.anotacao,
+      };
+
+      const response = await createMechanic(novoColaborador);
+      onSave(response.data || novoColaborador);
+      onClose();
+    } catch (error) {
+      console.error("Erro ao criar colaborador:", error);
+      alert("Erro ao salvar colaborador. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <LayoutModal title="Adicionar Novo Colaborador" onClose={onClose} onSave={handleSave}>
+    <LayoutModal
+      title="Adicionar Novo Colaborador"
+      onClose={onClose}
+      onSave={handleSave}
+      disableSave={loading}
+    >
       <FormGrid>
         <Row>
           <Field>
@@ -131,6 +181,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.nome}
               onChange={handleChange("nome")}
               placeholder="Nome completo"
+              disabled={loading}
             />
             {errors.nome && <ErrorMsg>{errors.nome}</ErrorMsg>}
           </Field>
@@ -140,6 +191,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.cpf}
               onChange={handleChange("cpf")}
               placeholder="000.000.000-00"
+              disabled={loading}
             />
             {errors.cpf && <ErrorMsg>{errors.cpf}</ErrorMsg>}
           </Field>
@@ -149,6 +201,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.cargo}
               onChange={handleChange("cargo")}
               placeholder="Cargo do colaborador"
+              disabled={loading}
             />
             {errors.cargo && <ErrorMsg>{errors.cargo}</ErrorMsg>}
           </Field>
@@ -161,6 +214,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.cep}
               onChange={handleChange("cep")}
               placeholder="00000-000"
+              disabled={loading}
             />
           </Field>
           <Field style={{ flex: 2 }}>
@@ -169,6 +223,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.endereco}
               onChange={handleChange("endereco")}
               placeholder="Rua, Avenida..."
+              disabled={loading}
             />
           </Field>
           <Field style={{ maxWidth: "120px" }}>
@@ -177,6 +232,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.numero}
               onChange={handleChange("numero")}
               placeholder="Nº"
+              disabled={loading}
             />
           </Field>
         </Row>
@@ -188,6 +244,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.municipio}
               onChange={handleChange("municipio")}
               placeholder="Cidade"
+              disabled={loading}
             />
           </Field>
           <Field style={{ maxWidth: "100px" }}>
@@ -197,6 +254,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               onChange={handleChange("uf")}
               placeholder="SP"
               maxLength={2}
+              disabled={loading}
             />
           </Field>
           <Field>
@@ -205,6 +263,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.telefone}
               onChange={handleChange("telefone")}
               placeholder="(11) 99999-9999"
+              disabled={loading}
             />
             {errors.telefone && <ErrorMsg>{errors.telefone}</ErrorMsg>}
           </Field>
@@ -214,6 +273,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.email}
               onChange={handleChange("email")}
               placeholder="email@empresa.com"
+              disabled={loading}
             />
             {errors.email && <ErrorMsg>{errors.email}</ErrorMsg>}
           </Field>
@@ -225,6 +285,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
             value={form.anotacao}
             onChange={handleChange("anotacao")}
             placeholder="Observações adicionais..."
+            disabled={loading}
           />
         </Field>
       </FormGrid>

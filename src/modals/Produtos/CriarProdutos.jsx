@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import LayoutModal from "../Layout";
 import PesquisaIcon from "../../assets/pesquisa.png";
+import { createProduct } from "../../services/ProdutoService";
 
 const FormGrid = styled.div`
   display: grid;
@@ -80,6 +81,7 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false); 
   const firstInputRef = useRef(null);
 
   useEffect(() => {
@@ -90,14 +92,6 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
       document.body.style.overflow = prev;
     };
   }, []);
-
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   useEffect(() => {
     const vp = parseFloat(String(form.valorPago).replace(",", "."));
@@ -115,17 +109,11 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
   }, [form.valorPago, form.margem]);
 
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   const handleInc = (val) => {
-    setForm((prev) => ({
-      ...prev,
-      estoque: Math.max(0, prev.estoque + val),
-    }));
+    setForm((prev) => ({ ...prev, estoque: Math.max(0, prev.estoque + val) }));
   };
 
   const validate = () => {
@@ -143,17 +131,37 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
     return Object.keys(err).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    onSave(form);
-    onClose();
+
+    setLoading(true);
+    try {
+      const novoProduto = {
+        name: form.descricao,
+        quantity: form.estoque,
+        costUnitPrice: parseFloat(String(form.valorPago).replace(",", ".")),
+        salePrice: form.valorVenda ? parseFloat(String(form.valorVenda).replace(",", ".")) : undefined,
+        grossProfitMargin: form.margem ? parseFloat(String(form.margem).replace(",", ".")) : undefined,
+        unitMeasure: form.unidade || undefined,
+        providerIds: form.fornecedor ? [form.fornecedor] : [], 
+      };
+
+      const response = await createProduct(novoProduto);
+
+      onSave(response || novoProduto);
+      onClose();
+    } catch (error) {
+      console.error("Erro ao criar produto:", error);
+      alert("Erro ao salvar produto. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOpenSupplierPicker = () => {
     if (typeof onOpenSupplierPicker === "function") {
       onOpenSupplierPicker({
-        onSelect: (fornecedor) =>
-          setForm((prev) => ({ ...prev, fornecedor })),
+        onSelect: (fornecedor) => setForm((prev) => ({ ...prev, fornecedor })),
       });
     }
   };
