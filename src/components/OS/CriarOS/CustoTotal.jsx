@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import DescontoIcon from "./icons/DescontoOS.png";
+import CalculadoraIcon from "./icons/Calculadora.png";
 
 const Section = styled.div`
   background: #fff;
@@ -10,8 +10,8 @@ const Section = styled.div`
 `;
 
 const Icon = styled.img`
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 30px;
   vertical-align: middle;
   margin-right: 5px;
 `;
@@ -53,15 +53,6 @@ const Input = styled.input`
   font-size: 14px;
 `;
 
-const Select = styled.select`
-  height: 36px;
-  padding: 0 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: #f3f6f9;
-  font-size: 14px;
-`;
-
 const DescontoTotal = ({ descontoData, setDescontoData }) => {
   const handleChange = (field) => (e) => {
     setDescontoData({ ...descontoData, [field]: e.target.value });
@@ -70,26 +61,25 @@ const DescontoTotal = ({ descontoData, setDescontoData }) => {
   return (
     <Section>
       <SectionHeader>
-        <Icon src={DescontoIcon} alt="Desconto" />
-        Desconto Total
+        <Icon src={CalculadoraIcon} alt="Desconto" />
+        Valores Totais
       </SectionHeader>
       <Grid>
         <Field>
-          <Label>Tipo de Desconto</Label>
-          <Select value={descontoData.tipo} onChange={handleChange('tipo')}>
-            <option value="%">Desconto %</option>
-            <option value="R$">Desconto R$</option>
-          </Select>
+          <Label>Valor Produtos</Label>
+          <Input/>
         </Field>
-
         <Field>
-          <Label>Desconto</Label>
-          <Input
-            type="number"
-            value={descontoData.valor}
-            onChange={handleChange('valor')}
-            placeholder="Valor do desconto"
-          />
+          <Label>Valor Serviços</Label>
+          <Input/>
+        </Field>
+        <Field>
+          <Label>Valor Total</Label>
+          <Input/>
+          </Field>
+        <Field>
+          <Label>Total com Desconto</Label>
+          <Input/>
         </Field>
       </Grid>
     </Section>

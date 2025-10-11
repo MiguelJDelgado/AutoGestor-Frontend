@@ -11,6 +11,7 @@ import SolicitacaoCliente from "./SolicitacaoCliente";
 import AnaliseInicial from "./AnaliseInicial";
 import DescontoTotal from "./DescontoTotal";
 import ObservacaoOS from "./ObservacaoOS";
+import CustoTotal from "./CustoTotal";
 
 const Container = styled.div`
   background: #7f929d;
@@ -97,6 +98,7 @@ function CriarOS() {
       <ServicosSection />
       <ProdutosSection />
       <DescontoTotal descontoData={descontoData} setDescontoData={setDescontoData} />
+      <CustoTotal />
       <ObservacaoOS />
 
       <ButtonsWrapper>

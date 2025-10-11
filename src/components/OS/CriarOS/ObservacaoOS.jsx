@@ -24,7 +24,7 @@ const SectionHeader = styled.h3`
 `;
 
 const TextArea = styled.textarea`
-  width: 100%;
+  width: 98.5%;
   min-height: 120px;
   padding: 10px;
   border-radius: 6px;
