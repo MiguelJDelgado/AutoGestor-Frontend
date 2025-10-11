@@ -10,7 +10,7 @@ import Produtos from '../../../assets/produtos.png';
 import Servicos from '../../../assets/servicos.png';
 import Compras from '../../../assets/compras.png';
 import Fornecedor from '../../../assets/fornecedor.png';
-import Mecanico from '../../../assets/mecanico.png';
+import Colaborador from '../../../assets/mecanico.png';
 import sidebar from '../../../assets/sidebar.png';
 import profile from '../../../assets/profile.svg';
 
@@ -23,7 +23,7 @@ const opcoesMenu = [
   { texto: 'Serviços', icone: Servicos },
   { texto: 'Compras', icone: Compras },
   { texto: 'Fornecedores', icone: Fornecedor },
-  { texto: 'Mecânicos', icone: Mecanico },
+  { texto: 'Colaboradores', icone: Colaborador },
 ];
 
 const SidebarContainer = styled.aside`

@@ -10,7 +10,7 @@ import Servicos from './routes/Servicos.jsx'
 import Os from './routes/OS.jsx'
 import CriarOS from './routes/CriarOS.jsx'
 import TelaCompras from './routes/Compras.jsx'
-import TelaMecanicos from './routes/Mecanicos.jsx'
+import TelaColaboradores from './routes/Colaboradores.jsx'
 import TelaVeiculos from './routes/Veiculos.jsx'
 import TelaClientes from './routes/Clientes.jsx'
 import TelaFornecedores from './routes/Fornecedores.jsx'
@@ -101,7 +101,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/ordem-de-serviço' element={<Os />}/>
         <Route path='/criar-ordem-de-serviço' element={<CriarOS />}/>
         <Route path='/compras' element={<TelaCompras />}/>
-        <Route path='/mecânicos' element={<TelaMecanicos />}/>
+        <Route path='/mecânicos' element={<TelaColaboradores />}/>
         <Route path='/veículos' element={<TelaVeiculos />}/>
         <Route path='/clientes' element={<TelaClientes />}/>
         <Route path='/fornecedores' element={<TelaFornecedores />}/>
