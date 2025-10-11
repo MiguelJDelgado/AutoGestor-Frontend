@@ -5,7 +5,7 @@ import { getSuppliers } from "../../../services/FornecedorService";
 import CriarFornecedor from "../../../modals/Fornecedores/CriarFornecedores"; // importe o modal
 
 const TelaFornecedores = () => {
-  const columns = ["Nome", "Endereço", "Celular", "CNPJ"];
+  const columns = ["Nome / Razão Social", "CPF / CNPJ", "Telefone", "Email", "Endereço", "Número", "Município", "CEP", "Inscrição Estadual", "Anotação"];
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 

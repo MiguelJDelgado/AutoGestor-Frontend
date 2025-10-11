@@ -3,51 +3,74 @@ import styled from "styled-components";
 import LayoutModal from "../Layout";
 
 const FormGrid = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 600px;
-  width: 100%;
-`;
-
-const Field = styled.div`
   display: grid;
-  grid-template-columns: 120px 1fr;
-  align-items: center;
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px 12px;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 const Label = styled.label`
   font-size: 14px;
   font-weight: 500;
-  text-align: right;
+  display: block;
+  margin-bottom: 4px;
 `;
 
 const Input = styled.input`
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
   padding: 8px;
-  border-radius: 6px;
+  border-radius: 4px;
   border: 1px solid #d5dde3;
 
   &:focus {
     outline: none;
-    border-color: #999;
+    border-color: #666;
   }
 `;
 
-const ErrorMsg = styled.small`
-  color: crimson;
-  grid-column: 2;
+const BigInput = styled.input`
+  width: 100%;
+  height: 80px;
+  box-sizing: border-box;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #d5dde3;
+
+  &:focus {
+    outline: none;
+    border-color: #666;
+  }
+`;
+
+const FullWidth = styled.div`
+  grid-column: span 4;
+`;
+
+const HalfWidth = styled.div`
+  grid-column: span 2;
+`;
+
+const ThirdWidth = styled.div`
+  grid-column: span 1;
 `;
 
 const CriarFornecedor = ({ onClose = () => {}, onSave = () => {} }) => {
   const [form, setForm] = useState({
     nome: "",
+    cpfCnpj: "",
+    inscricaoEstadual: "",
+    cep: "",
     endereco: "",
-    celular: "",
-    cnpj: "",
+    numero: "",
+    municipio: "",
+    uf: "",
+    email: "",
+    telefone: "",
+    anotacao: "",
   });
-  const [errors, setErrors] = useState({});
+
   const firstInputRef = useRef(null);
 
   useEffect(() => {
@@ -63,77 +86,82 @@ const CriarFornecedor = ({ onClose = () => {}, onSave = () => {} }) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const validate = () => {
-    const err = {};
-    if (!form.nome || form.nome.trim().length < 2)
-      err.nome = "Nome é obrigatório";
-    if (!form.endereco || form.endereco.trim().length < 5)
-      err.endereco = "Endereço é obrigatório";
-    if (!form.celular || form.celular.trim().length < 8)
-      err.celular = "Celular é obrigatório";
-    if (!form.cnpj || form.cnpj.trim().length < 11)
-      err.cnpj = "CNPJ é obrigatório";
-    setErrors(err);
-    return Object.keys(err).length === 0;
-  };
-
   const handleSave = () => {
-    if (!validate()) return;
     onSave(form);
     onClose();
   };
 
   return (
     <LayoutModal
-      title="Adicionar Fornecedor"
+      title="Adicionar Novo Fornecedor"
       onClose={onClose}
       onSave={handleSave}
     >
       <FormGrid>
-        <Field>
-          <Label>Nome</Label>
+        <HalfWidth>
+          <Label>Nome/Razão Social</Label>
           <Input
             ref={firstInputRef}
-            placeholder="Nome do fornecedor"
             value={form.nome}
             onChange={handleChange("nome")}
-            aria-invalid={!!errors.nome}
           />
-          {errors.nome && <ErrorMsg>{errors.nome}</ErrorMsg>}
-        </Field>
+        </HalfWidth>
 
-        <Field>
+        <HalfWidth>
+          <Label>CPF/CNPJ</Label>
+          <Input value={form.cpfCnpj} onChange={handleChange("cpfCnpj")} />
+        </HalfWidth>
+
+        <FullWidth>
+          <Label>Inscrição Estadual</Label>
+          <Input
+            value={form.inscricaoEstadual}
+            onChange={handleChange("inscricaoEstadual")}
+          />
+        </FullWidth>
+
+        <ThirdWidth>
+          <Label>CEP</Label>
+          <Input value={form.cep} onChange={handleChange("cep")} />
+        </ThirdWidth>
+
+        <HalfWidth>
           <Label>Endereço</Label>
-          <Input
-            placeholder="Endereço"
-            value={form.endereco}
-            onChange={handleChange("endereco")}
-            aria-invalid={!!errors.endereco}
-          />
-          {errors.endereco && <ErrorMsg>{errors.endereco}</ErrorMsg>}
-        </Field>
+          <Input value={form.endereco} onChange={handleChange("endereco")} />
+        </HalfWidth>
 
-        <Field>
-          <Label>Celular</Label>
-          <Input
-            placeholder="Telefone"
-            value={form.celular}
-            onChange={handleChange("celular")}
-            aria-invalid={!!errors.celular}
-          />
-          {errors.celular && <ErrorMsg>{errors.celular}</ErrorMsg>}
-        </Field>
+        <ThirdWidth>
+          <Label>Número</Label>
+          <Input value={form.numero} onChange={handleChange("numero")} />
+        </ThirdWidth>
 
-        <Field>
-          <Label>CNPJ</Label>
-          <Input
-            placeholder="CNPJ"
-            value={form.cnpj}
-            onChange={handleChange("cnpj")}
-            aria-invalid={!!errors.cnpj}
+        <ThirdWidth>
+          <Label>Município</Label>
+          <Input value={form.municipio} onChange={handleChange("municipio")} />
+        </ThirdWidth>
+
+        <ThirdWidth>
+          <Label>UF</Label>
+          <Input value={form.uf} onChange={handleChange("uf")} />
+        </ThirdWidth>
+
+        <HalfWidth>
+          <Label>Email</Label>
+          <Input value={form.email} onChange={handleChange("email")} />
+        </HalfWidth>
+
+        <HalfWidth>
+          <Label>Telefone</Label>
+          <Input value={form.telefone} onChange={handleChange("telefone")} />
+        </HalfWidth>
+
+        <FullWidth>
+          <Label>Anotação</Label>
+          <BigInput
+            value={form.anotacao}
+            onChange={handleChange("anotacao")}
           />
-          {errors.cnpj && <ErrorMsg>{errors.cnpj}</ErrorMsg>}
-        </Field>
+        </FullWidth>
       </FormGrid>
     </LayoutModal>
   );
