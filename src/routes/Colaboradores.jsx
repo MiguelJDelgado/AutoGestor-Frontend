@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import Layout from "../components/Layout/Layout";
-import TelaMecanicosComponent from '../components/Tables/Mecanicos/Mecanicos'
+import TelaColaboradoresComponent from '../components/Tables/Colaboradores/Colaboradores'
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -8,14 +8,14 @@ const AppContainer = styled.div`
   background-color: #ffffff
 `
 
-function TelaMecanicos() {
+function TelaColaboradores() {
   return (
     <AppContainer>
       <Layout>
-        <TelaMecanicosComponent />
+        <TelaColaboradoresComponent />
       </Layout>
     </AppContainer>
   )
 }
 
-export default TelaMecanicos
+export default TelaColaboradores

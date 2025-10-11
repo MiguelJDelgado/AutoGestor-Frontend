@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import olhoIcon from '../../assets/olho.png';
 import editarIcon from '../../assets/editar.png';
 import excluirIcon from '../../assets/excluir.png';
-import pesquisarIcon from '../../assets/pesquisa.png'
+import pesquisarIcon from '../../assets/pesquisa.png';
 
 const Container = styled.div`
   background: #fff;
@@ -38,7 +38,7 @@ const Select = styled.select`
   padding: 0 36px 0 12px;
   border-radius: 6px;
   background-color: #00273d;
-  color: #ffffffff;
+  color: #fff;
   font-size: 14px;
   background-position: right 10px center;
   background-size: 18px;
@@ -77,8 +77,17 @@ const SearchButton = styled.button`
   }
 `;
 
+/* NOVO WRAPPER PARA ROLAGEM */
+const TableWrapper = styled.div`
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+`;
+
+/* TABELA COM LARGURA MÍNIMA */
 const TableContainer = styled.table`
   width: 100%;
+  min-width: 1200px; /* largura mínima total da tabela */
   border-collapse: collapse;
   font-size: 14px;
 `;
@@ -90,6 +99,7 @@ const TableHeader = styled.th`
   text-align: left;
   font-weight: 600;
   border-bottom: 2px solid #dee2e6;
+  min-width: 150px; /* largura mínima por coluna */
 `;
 
 const TableRow = styled.tr`
@@ -102,6 +112,7 @@ const TableCell = styled.td`
   padding: 12px;
   border-bottom: 1px solid #dee2e6;
   color: #333;
+  min-width: 150px; /* garante espaço fixo para cada célula */
 `;
 
 const IconButton = styled.button`
@@ -124,14 +135,14 @@ const IconButton = styled.button`
   }
 `;
 
-const DataTableWithSearch = ({ 
-  columns, 
-  data, 
-  searchOptions, 
-  onSearch, 
-  onView, 
-  onEdit, 
-  onDelete 
+const DataTableWithSearch = ({
+  columns,
+  data,
+  searchOptions,
+  onSearch,
+  onView,
+  onEdit,
+  onDelete
 }) => {
   return (
     <Container>
@@ -144,48 +155,52 @@ const DataTableWithSearch = ({
             ))}
           </Select>
           <Input type="text" placeholder="Digite para buscar..." />
-          <SearchButton onClick={onSearch}><img src={pesquisarIcon}></img></SearchButton>
+          <SearchButton onClick={onSearch}>
+            <img src={pesquisarIcon} alt="Pesquisar" />
+          </SearchButton>
         </ControlsRow>
       </SearchSection>
 
-      <TableContainer>
-        <thead>
-          <tr>
-            {columns.map((col, index) => (
-              <TableHeader key={index}>{col}</TableHeader>
-            ))}
-            <TableHeader>Ações</TableHeader>
-          </tr>
-        </thead>
-        <tbody>
-          {data.length > 0 ? (
-            data.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {columns.map((col, colIndex) => (
-                  <TableCell key={colIndex}>{row[col]}</TableCell>
-                ))}
-                <TableCell>
-                  <IconButton onClick={() => onView(row)}>
-                    <img src={olhoIcon} alt="Ver" />
-                  </IconButton>
-                  <IconButton onClick={() => onEdit(row)}>
-                    <img src={editarIcon} alt="Editar" />
-                  </IconButton>
-                  <IconButton onClick={() => onDelete(row)}>
-                    <img src={excluirIcon} alt="Excluir" />
-                  </IconButton>
+      <TableWrapper>
+        <TableContainer>
+          <thead>
+            <tr>
+              {columns.map((col, index) => (
+                <TableHeader key={index}>{col}</TableHeader>
+              ))}
+              <TableHeader>Ações</TableHeader>
+            </tr>
+          </thead>
+          <tbody>
+            {data.length > 0 ? (
+              data.map((row, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {columns.map((col, colIndex) => (
+                    <TableCell key={colIndex}>{row[col]}</TableCell>
+                  ))}
+                  <TableCell>
+                    <IconButton onClick={() => onView(row)}>
+                      <img src={olhoIcon} alt="Ver" />
+                    </IconButton>
+                    <IconButton onClick={() => onEdit(row)}>
+                      <img src={editarIcon} alt="Editar" />
+                    </IconButton>
+                    <IconButton onClick={() => onDelete(row)}>
+                      <img src={excluirIcon} alt="Excluir" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length + 1} style={{ textAlign: "center" }}>
+                  Nenhum registro encontrado.
                 </TableCell>
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length + 1} style={{ textAlign: "center" }}>
-                Nenhum registro encontrado.
-              </TableCell>
-            </TableRow>
-          )}
-        </tbody>
-      </TableContainer>
+            )}
+          </tbody>
+        </TableContainer>
+      </TableWrapper>
     </Container>
   );
 };
