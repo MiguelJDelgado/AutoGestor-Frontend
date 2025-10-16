@@ -82,7 +82,11 @@ const Input = styled.input`
   border-radius: 5px;
   border: none;
   background-color: #061a1fff;
-  color: #fff;
+  color: #ffffff;
+
+  &::placeholder {
+  color: #ffffff;
+  }
 `;
 
 const CheckboxContainer = styled.div`
