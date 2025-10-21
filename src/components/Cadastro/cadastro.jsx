@@ -61,6 +61,10 @@ const Input = styled.input`
   color: #fff;
   width: 100%;
   max-width: 300px;
+  
+  &::placeholder {
+  color: #ffffff;
+  }
 `;
 
 const Botao = styled.button`
