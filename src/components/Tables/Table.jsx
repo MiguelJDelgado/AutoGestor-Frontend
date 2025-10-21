@@ -1,13 +1,14 @@
-import styled from 'styled-components';
-import olhoIcon from '../../assets/olho.png';
-import editarIcon from '../../assets/editar.png';
-import excluirIcon from '../../assets/excluir.png';
-import pesquisarIcon from '../../assets/pesquisa.png';
+import styled from "styled-components";
+import olhoIcon from "../../assets/olho.png";
+import excluirIcon from "../../assets/excluir.png";
+import gerenciarIcon from "../../assets/settings.svg";
+import checkIcon from "../../assets/aprovar.png";
+import pesquisarIcon from "../../assets/pesquisa.png";
 
 const Container = styled.div`
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-top: 20px;
   overflow: hidden;
 `;
@@ -40,8 +41,6 @@ const Select = styled.select`
   background-color: #00273d;
   color: #fff;
   font-size: 14px;
-  background-position: right 10px center;
-  background-size: 18px;
   width: 100%;
 `;
 
@@ -63,31 +62,25 @@ const SearchButton = styled.button`
   align-items: center;
   justify-content: center;
   background: #dee3e6;
-  color: #0f2f43;
   border: 1px solid #d5dde3;
   border-radius: 6px;
-  font-size: 16px;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s;
 
   img {
     width: 18px;
     height: 18px;
-    object-fit: contain;
   }
 `;
 
-/* NOVO WRAPPER PARA ROLAGEM */
 const TableWrapper = styled.div`
   width: 100%;
   overflow-x: auto;
-  overflow-y: hidden;
 `;
 
-/* TABELA COM LARGURA MÍNIMA */
 const TableContainer = styled.table`
   width: 100%;
-  min-width: 1200px; /* largura mínima total da tabela */
+  min-width: 1200px;
   border-collapse: collapse;
   font-size: 14px;
 `;
@@ -99,7 +92,6 @@ const TableHeader = styled.th`
   text-align: left;
   font-weight: 600;
   border-bottom: 2px solid #dee2e6;
-  min-width: 150px; /* largura mínima por coluna */
 `;
 
 const TableRow = styled.tr`
@@ -112,7 +104,6 @@ const TableCell = styled.td`
   padding: 12px;
   border-bottom: 1px solid #dee2e6;
   color: #333;
-  min-width: 150px; /* garante espaço fixo para cada célula */
 `;
 
 const IconButton = styled.button`
@@ -123,6 +114,9 @@ const IconButton = styled.button`
   padding: 6px;
   border-radius: 4px;
   transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
     background-color: #f8f9fa;
@@ -131,31 +125,22 @@ const IconButton = styled.button`
   img {
     width: 18px;
     height: 18px;
-    object-fit: contain;
   }
 `;
 
-const DataTableWithSearch = ({
-  columns,
-  data,
-  searchOptions,
-  onSearch,
-  onView,
-  onEdit,
-  onDelete
-}) => {
+const DataTable = ({ columns, data, onView, onManage, onAccept, onDelete }) => {
   return (
     <Container>
       <SearchSection>
         <Label>Buscar</Label>
         <ControlsRow>
           <Select>
-            {searchOptions.map((opt, i) => (
-              <option key={i} value={opt}>{opt}</option>
+            {columns.map((col, i) => (
+              <option key={i}>{col}</option>
             ))}
           </Select>
-          <Input type="text" placeholder="Digite para buscar..." />
-          <SearchButton onClick={onSearch}>
+          <Input placeholder="Digite para buscar..." />
+          <SearchButton>
             <img src={pesquisarIcon} alt="Pesquisar" />
           </SearchButton>
         </ControlsRow>
@@ -165,8 +150,8 @@ const DataTableWithSearch = ({
         <TableContainer>
           <thead>
             <tr>
-              {columns.map((col, index) => (
-                <TableHeader key={index}>{col}</TableHeader>
+              {columns.map((col, i) => (
+                <TableHeader key={i}>{col}</TableHeader>
               ))}
               <TableHeader>Ações</TableHeader>
             </tr>
@@ -176,25 +161,51 @@ const DataTableWithSearch = ({
               data.map((row, rowIndex) => (
                 <TableRow key={rowIndex}>
                   {columns.map((col, colIndex) => (
-                    <TableCell key={colIndex}>{row[col]}</TableCell>
+                    <TableCell key={colIndex}>
+                      {row[col]} {/* Status e demais campos vêm prontos da tela */}
+                    </TableCell>
                   ))}
                   <TableCell>
-                    <IconButton onClick={() => onView(row)}>
-                      <img src={olhoIcon} alt="Ver" />
-                    </IconButton>
-                    <IconButton onClick={() => onEdit(row)}>
-                      <img src={editarIcon} alt="Editar" />
-                    </IconButton>
-                    <IconButton onClick={() => onDelete(row)}>
-                      <img src={excluirIcon} alt="Excluir" />
-                    </IconButton>
+                    {row.Status === "Pendente" && (
+                      <IconButton onClick={() => onManage(row)}>
+                        <img src={gerenciarIcon} alt="Gerenciar" />
+                      </IconButton>
+                    )}
+                    {row.Status === "Rejeitada" && (
+                      <>
+                        <IconButton onClick={() => onView(row)}>
+                          <img src={olhoIcon} alt="Ver" />
+                        </IconButton>
+                        <IconButton onClick={() => onDelete(row)}>
+                          <img src={excluirIcon} alt="Excluir" />
+                        </IconButton>
+                      </>
+                    )}
+                    {row.Status === "Aceita" && (
+                      <>
+                        <IconButton onClick={() => onAccept(row)}>
+                          <img src={checkIcon} alt="Aceitar" />
+                        </IconButton>
+                        <IconButton onClick={() => onDelete(row)}>
+                          <img src={excluirIcon} alt="Excluir" />
+                        </IconButton>
+                      </>
+                    )}
+                    {row.Status === "Finalizada" && (
+                      <IconButton onClick={() => onView(row)}>
+                        <img src={olhoIcon} alt="Ver" />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} style={{ textAlign: "center" }}>
-                  Nenhum registro encontrado.
+                <TableCell
+                  colSpan={columns.length + 1}
+                  style={{ textAlign: "center" }}
+                >
+                  Nenhuma solicitação encontrada.
                 </TableCell>
               </TableRow>
             )}
@@ -205,4 +216,4 @@ const DataTableWithSearch = ({
   );
 };
 
-export default DataTableWithSearch;
+export default DataTable;

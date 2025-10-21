@@ -1,12 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
+
+import pesquisaIcon from "../../../assets/pesquisa.png";
+import aprovarIcon from "../../../assets/aprovar.png";
+import settingsIcon from "../../../assets/settings.svg";
+import excluirIcon from "../../../assets/excluir.png";
+import olhoIcon from "../../../assets/olho.png";
+
 import ModalNovaSolicitacao from "../../../modals/Solicitacoes/CriarSolicitacao";
 
 const TelaSolicitacoes = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
 
   const columns = [
     "OS",
@@ -16,30 +21,185 @@ const TelaSolicitacoes = () => {
     "Status",
     "Data Solicitação",
     "Data Finalização",
-    "Fornecedor",
-    "Valor Pago",
+    "Ações",
   ];
 
-  useEffect(() => {
-    const fetchSolicitacoes = async () => {
-      try {
-        setLoading(true);
-        // const response = await fetch("http://seu-endpoint/api/solicitacoes");
-        // const json = await response.json();
-        // setData(json);
-      } catch (error) {
-        console.error("Erro ao buscar solicitações:", error);
-      } finally {
-        setLoading(false);
-      }
+  const renderStatus = (status) => {
+    const style = {
+      padding: "6px 0",
+      borderRadius: "8px",
+      color: "white",
+      fontWeight: "bold",
+      display: "inline-block",
+      width: "110px",
+      textAlign: "center",
     };
 
-    fetchSolicitacoes();
-  }, []);
+    switch (status?.toLowerCase()) {
+      case "pendente":
+        style.backgroundColor = "#ef4444";
+        break;
+      case "aceita":
+        style.backgroundColor = "#facc15";
+        break;
+      case "rejeitada":
+        style.backgroundColor = "#ee8f00ff";
+        break;
+      case "finalizada":
+        style.backgroundColor = "#22c55e";
+        break;
+      default:
+        style.backgroundColor = "#9ca3af";
+    }
 
-  const handleView = (row) => console.log("Visualizar Solicitação", row);
-  const handleEdit = (row) => console.log("Editar Solicitação", row);
-  const handleDelete = (row) => console.log("Excluir Solicitação", row);
+    return <span style={style}>{status || "—"}</span>;
+  };
+
+  // Função que renderiza as ações conforme o status
+  const renderActions = (status, row) => {
+    const lowerStatus = status.toLowerCase();
+    const actionStyle = {
+      display: "flex",
+      gap: "8px",
+      justifyContent: "center",
+      alignItems: "center",
+    };
+
+    switch (lowerStatus) {
+      case "pendente":
+        return (
+          <div style={actionStyle}>
+            <img
+              src={settingsIcon}
+              alt="Gerenciar"
+              title="Gerenciar"
+              style={{ width: "22px", cursor: "pointer" }}
+              onClick={() => handleManage(row)}
+            />
+          </div>
+        );
+      case "rejeitada":
+        return (
+          <div style={actionStyle}>
+            <img
+              src={olhoIcon}
+              alt="Visualizar"
+              title="Visualizar"
+              style={{ width: "22px", cursor: "pointer" }}
+              onClick={() => handleView(row)}
+            />
+            <img
+              src={excluirIcon}
+              alt="Excluir"
+              title="Excluir"
+              style={{ width: "22px", cursor: "pointer" }}
+              onClick={() => handleDelete(row)}
+            />
+          </div>
+        );
+      case "aceita":
+        return (
+          <div style={actionStyle}>
+            <img
+              src={excluirIcon}
+              alt="Excluir"
+              title="Excluir"
+              style={{ width: "22px", cursor: "pointer" }}
+              onClick={() => handleDelete(row)}
+            />
+            <img
+              src={aprovarIcon}
+              alt="Aprovar"
+              title="Aprovar"
+              style={{ width: "22px", cursor: "pointer" }}
+              onClick={() => handleApprove(row)}
+            />
+          </div>
+        );
+      case "finalizada":
+        return (
+          <div style={actionStyle}>
+            <img
+              src={olhoIcon}
+              alt="Visualizar"
+              title="Visualizar"
+              style={{ width: "22px", cursor: "pointer" }}
+              onClick={() => handleView(row)}
+            />
+          </div>
+        );
+      default:
+        return (
+          <div style={actionStyle}>
+            <img
+              src={pesquisaIcon}
+              alt="Detalhes"
+              title="Detalhes"
+              style={{ width: "22px", cursor: "pointer" }}
+              onClick={() => handleView(row)}
+            />
+          </div>
+        );
+    }
+  };
+
+  // Dados mockados de exemplo (um para cada status)
+  const data = [
+    {
+      OS: "001",
+      "Produto Solicitado": "Monitor 24''",
+      Quantidade: "10 un",
+      Solicitante: "Carlos Almeida",
+      Status: renderStatus("Pendente"),
+      "Data Solicitação": "05/09/2025",
+      "Data Finalização": "—",
+      Fornecedor: "TechDistribuidora",
+      "Valor Pago": "—",
+      Ações: renderActions("Pendente", {}),
+    },
+    {
+      OS: "002",
+      "Produto Solicitado": "Notebook Dell",
+      Quantidade: "5 un",
+      Solicitante: "Mariana Silva",
+      Status: renderStatus("Rejeitada"),
+      "Data Solicitação": "01/09/2025",
+      "Data Finalização": "03/09/2025",
+      Fornecedor: "Dell Oficial",
+      "Valor Pago": "—",
+      Ações: renderActions("Rejeitada", {}),
+    },
+    {
+      OS: "003",
+      "Produto Solicitado": "Cadeiras Escritório",
+      Quantidade: "20 un",
+      Solicitante: "João Pedro",
+      Status: renderStatus("Aceita"),
+      "Data Solicitação": "10/09/2025",
+      "Data Finalização": "—",
+      Fornecedor: "MoveisCo",
+      "Valor Pago": "R$ 12.500,00",
+      Ações: renderActions("aceita", {}),
+    },
+    {
+      OS: "004",
+      "Produto Solicitado": "Mesa de Reunião",
+      Quantidade: "2 un",
+      Solicitante: "Beatriz Rocha",
+      Status: renderStatus("Finalizada"),
+      "Data Solicitação": "01/08/2025",
+      "Data Finalização": "05/08/2025",
+      Fornecedor: "OfficeDesign",
+      "Valor Pago": "R$ 5.000,00",
+      Ações: renderActions("Finalizada", {}),
+    },
+  ];
+
+  // Handlers
+  const handleView = (row) => console.log("Visualizar:", row);
+  const handleManage = (row) => console.log("Gerenciar:", row);
+  const handleDelete = (row) => console.log("Excluir:", row);
+  const handleApprove = (row) => console.log("Aprovar:", row);
 
   return (
     <div>
@@ -51,16 +211,10 @@ const TelaSolicitacoes = () => {
         columns={columns}
         data={data}
         searchOptions={columns}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
         onSearch={() => console.log("Buscar solicitação...")}
-        loading={loading}
       />
 
-      {isModalOpen && (
-        <ModalNovaSolicitacao onClose={() => setIsModalOpen(false)} />
-      )}
+      {isModalOpen && <ModalNovaSolicitacao onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 };
