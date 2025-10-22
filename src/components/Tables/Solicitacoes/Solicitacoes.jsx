@@ -4,7 +4,7 @@ import Header from "../../Header/Header";
 
 import pesquisaIcon from "../../../assets/pesquisa.png";
 import aprovarIcon from "../../../assets/aprovar.png";
-import settingsIcon from "../../../assets/settings.svg";
+import settingsIcon from "../../../assets/gerenciar.png";
 import excluirIcon from "../../../assets/excluir.png";
 import olhoIcon from "../../../assets/olho.png";
 
@@ -20,8 +20,7 @@ const TelaSolicitacoes = () => {
     "Solicitante",
     "Status",
     "Data Solicitação",
-    "Data Finalização",
-    "Ações",
+    "Data Finalização"
   ];
 
   const renderStatus = (status) => {
@@ -55,10 +54,10 @@ const TelaSolicitacoes = () => {
     return <span style={style}>{status || "—"}</span>;
   };
 
-  // Função que renderiza as ações conforme o status
-  const renderActions = (status, row) => {
-    const lowerStatus = status.toLowerCase();
-    const actionStyle = {
+  const renderIcons = (status, row) => {
+    const lowerStatus = status?.toLowerCase();
+    const iconStyle = { width: "22px", cursor: "pointer" };
+    const wrapperStyle = {
       display: "flex",
       gap: "8px",
       justifyContent: "center",
@@ -68,74 +67,74 @@ const TelaSolicitacoes = () => {
     switch (lowerStatus) {
       case "pendente":
         return (
-          <div style={actionStyle}>
+          <div style={wrapperStyle}>
             <img
               src={settingsIcon}
               alt="Gerenciar"
               title="Gerenciar"
-              style={{ width: "22px", cursor: "pointer" }}
+              style={{ width: "100px", cursor: "pointer" }}
               onClick={() => handleManage(row)}
             />
           </div>
         );
       case "rejeitada":
         return (
-          <div style={actionStyle}>
+          <div style={wrapperStyle}>
             <img
               src={olhoIcon}
               alt="Visualizar"
               title="Visualizar"
-              style={{ width: "22px", cursor: "pointer" }}
+              style={iconStyle}
               onClick={() => handleView(row)}
             />
             <img
               src={excluirIcon}
               alt="Excluir"
               title="Excluir"
-              style={{ width: "22px", cursor: "pointer" }}
+              style={iconStyle}
               onClick={() => handleDelete(row)}
             />
           </div>
         );
       case "aceita":
         return (
-          <div style={actionStyle}>
+          <div style={wrapperStyle}>
             <img
               src={excluirIcon}
               alt="Excluir"
               title="Excluir"
-              style={{ width: "22px", cursor: "pointer" }}
+              style={iconStyle}
               onClick={() => handleDelete(row)}
             />
             <img
               src={aprovarIcon}
               alt="Aprovar"
               title="Aprovar"
-              style={{ width: "22px", cursor: "pointer" }}
+              style={iconStyle}
               onClick={() => handleApprove(row)}
             />
           </div>
         );
       case "finalizada":
         return (
-          <div style={actionStyle}>
+          <div style={wrapperStyle}>
             <img
               src={olhoIcon}
               alt="Visualizar"
               title="Visualizar"
-              style={{ width: "22px", cursor: "pointer" }}
+              style={iconStyle}
               onClick={() => handleView(row)}
             />
           </div>
         );
       default:
         return (
-          <div style={actionStyle}>
+          <div style={wrapperStyle}>
             <img
               src={pesquisaIcon}
               alt="Detalhes"
               title="Detalhes"
-              style={{ width: "22px", cursor: "pointer" }}
+              style={iconStyle}
               onClick={() => handleView(row)}
             />
           </div>
@@ -143,7 +142,11 @@ const TelaSolicitacoes = () => {
     }
   };
 
-  // Dados mockados de exemplo (um para cada status)
+  const handleView = (row) => console.log("Visualizar:", row);
+  const handleManage = (row) => console.log("Gerenciar:", row);
+  const handleDelete = (row) => console.log("Excluir:", row);
+  const handleApprove = (row) => console.log("Aprovar:", row);
+
   const data = [
     {
       OS: "001",
@@ -153,9 +156,7 @@ const TelaSolicitacoes = () => {
       Status: renderStatus("Pendente"),
       "Data Solicitação": "05/09/2025",
       "Data Finalização": "—",
-      Fornecedor: "TechDistribuidora",
-      "Valor Pago": "—",
-      Ações: renderActions("Pendente", {}),
+      rawStatus: "Pendente"
     },
     {
       OS: "002",
@@ -165,9 +166,7 @@ const TelaSolicitacoes = () => {
       Status: renderStatus("Rejeitada"),
       "Data Solicitação": "01/09/2025",
       "Data Finalização": "03/09/2025",
-      Fornecedor: "Dell Oficial",
-      "Valor Pago": "—",
-      Ações: renderActions("Rejeitada", {}),
+      rawStatus: "Rejeitada"
     },
     {
       OS: "003",
@@ -177,9 +176,7 @@ const TelaSolicitacoes = () => {
       Status: renderStatus("Aceita"),
       "Data Solicitação": "10/09/2025",
       "Data Finalização": "—",
-      Fornecedor: "MoveisCo",
-      "Valor Pago": "R$ 12.500,00",
-      Ações: renderActions("aceita", {}),
+      rawStatus: "Aceita"
     },
     {
       OS: "004",
@@ -189,17 +186,9 @@ const TelaSolicitacoes = () => {
       Status: renderStatus("Finalizada"),
       "Data Solicitação": "01/08/2025",
       "Data Finalização": "05/08/2025",
-      Fornecedor: "OfficeDesign",
-      "Valor Pago": "R$ 5.000,00",
-      Ações: renderActions("Finalizada", {}),
+      rawStatus: "Finalizada"
     },
   ];
-
-  // Handlers
-  const handleView = (row) => console.log("Visualizar:", row);
-  const handleManage = (row) => console.log("Gerenciar:", row);
-  const handleDelete = (row) => console.log("Excluir:", row);
-  const handleApprove = (row) => console.log("Aprovar:", row);
 
   return (
     <div>
@@ -212,9 +201,12 @@ const TelaSolicitacoes = () => {
         data={data}
         searchOptions={columns}
         onSearch={() => console.log("Buscar solicitação...")}
+        renderActions={(row) => renderIcons(row.rawStatus, row)}
       />
 
-      {isModalOpen && <ModalNovaSolicitacao onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <ModalNovaSolicitacao onClose={() => setIsModalOpen(false)} />
+      )}
     </div>
   );
 };

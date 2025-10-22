@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import olhoIcon from "../../assets/olho.png";
 import excluirIcon from "../../assets/excluir.png";
-import gerenciarIcon from "../../assets/settings.svg";
+import gerenciarIcon from "../../assets/gerenciar.png";
 import checkIcon from "../../assets/aprovar.png";
 import pesquisarIcon from "../../assets/pesquisa.png";
 
@@ -128,19 +128,19 @@ const IconButton = styled.button`
   }
 `;
 
-const DataTable = ({ columns, data, onView, onManage, onAccept, onDelete }) => {
+const DataTable = ({ columns, data, searchOptions, onSearch, renderActions }) => {
   return (
     <Container>
       <SearchSection>
         <Label>Buscar</Label>
         <ControlsRow>
           <Select>
-            {columns.map((col, i) => (
+            {searchOptions?.map((col, i) => (
               <option key={i}>{col}</option>
             ))}
           </Select>
           <Input placeholder="Digite para buscar..." />
-          <SearchButton>
+          <SearchButton onClick={onSearch}>
             <img src={pesquisarIcon} alt="Pesquisar" />
           </SearchButton>
         </ControlsRow>
@@ -153,7 +153,7 @@ const DataTable = ({ columns, data, onView, onManage, onAccept, onDelete }) => {
               {columns.map((col, i) => (
                 <TableHeader key={i}>{col}</TableHeader>
               ))}
-              <TableHeader>Ações</TableHeader>
+              <TableHeader style={{ textAlign: "center", width: "150px" }}>Ações</TableHeader>
             </tr>
           </thead>
           <tbody>
@@ -162,49 +162,17 @@ const DataTable = ({ columns, data, onView, onManage, onAccept, onDelete }) => {
                 <TableRow key={rowIndex}>
                   {columns.map((col, colIndex) => (
                     <TableCell key={colIndex}>
-                      {row[col]} {/* Status e demais campos vêm prontos da tela */}
+                      {row[col] ?? "—"}
                     </TableCell>
                   ))}
-                  <TableCell>
-                    {row.Status === "Pendente" && (
-                      <IconButton onClick={() => onManage(row)}>
-                        <img src={gerenciarIcon} alt="Gerenciar" />
-                      </IconButton>
-                    )}
-                    {row.Status === "Rejeitada" && (
-                      <>
-                        <IconButton onClick={() => onView(row)}>
-                          <img src={olhoIcon} alt="Ver" />
-                        </IconButton>
-                        <IconButton onClick={() => onDelete(row)}>
-                          <img src={excluirIcon} alt="Excluir" />
-                        </IconButton>
-                      </>
-                    )}
-                    {row.Status === "Aceita" && (
-                      <>
-                        <IconButton onClick={() => onAccept(row)}>
-                          <img src={checkIcon} alt="Aceitar" />
-                        </IconButton>
-                        <IconButton onClick={() => onDelete(row)}>
-                          <img src={excluirIcon} alt="Excluir" />
-                        </IconButton>
-                      </>
-                    )}
-                    {row.Status === "Finalizada" && (
-                      <IconButton onClick={() => onView(row)}>
-                        <img src={olhoIcon} alt="Ver" />
-                      </IconButton>
-                    )}
+                  <TableCell style={{ textAlign: "center" }}>
+                    {renderActions ? renderActions(row) : null}
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length + 1}
-                  style={{ textAlign: "center" }}
-                >
+                <TableCell colSpan={columns.length + 1} style={{ textAlign: "center" }}>
                   Nenhuma solicitação encontrada.
                 </TableCell>
               </TableRow>
