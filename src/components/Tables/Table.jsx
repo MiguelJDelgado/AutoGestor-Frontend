@@ -1,8 +1,7 @@
 import styled from "styled-components";
 import olhoIcon from "../../assets/olho.png";
 import excluirIcon from "../../assets/excluir.png";
-import gerenciarIcon from "../../assets/gerenciar.png";
-import checkIcon from "../../assets/aprovar.png";
+import editarIcon from "../../assets/editar.png";
 import pesquisarIcon from "../../assets/pesquisa.png";
 
 const Container = styled.div`
@@ -71,6 +70,10 @@ const SearchButton = styled.button`
     width: 18px;
     height: 18px;
   }
+
+  &:hover {
+    background: #cfd4d7;
+  }
 `;
 
 const TableWrapper = styled.div`
@@ -80,7 +83,7 @@ const TableWrapper = styled.div`
 
 const TableContainer = styled.table`
   width: 100%;
-  min-width: 1200px;
+  min-width: 900px;
   border-collapse: collapse;
   font-size: 14px;
 `;
@@ -128,7 +131,33 @@ const IconButton = styled.button`
   }
 `;
 
-const DataTable = ({ columns, data, searchOptions, onSearch, renderActions }) => {
+/* 🔹 Ícones padrão de ação (visualizar, editar, excluir) */
+const DefaultActions = ({ row, onView, onEdit, onDelete }) => (
+  <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
+    <IconButton title="Visualizar" onClick={() => onView?.(row)}>
+      <img src={olhoIcon} alt="Visualizar" />
+    </IconButton>
+
+    <IconButton title="Editar" onClick={() => onEdit?.(row)}>
+      <img src={editarIcon} alt="Editar" />
+    </IconButton>
+
+    <IconButton title="Excluir" onClick={() => onDelete?.(row)}>
+      <img src={excluirIcon} alt="Excluir" />
+    </IconButton>
+  </div>
+);
+
+const DataTable = ({
+  columns,
+  data,
+  searchOptions,
+  onSearch,
+  renderActions,
+  onView,
+  onEdit,
+  onDelete,
+}) => {
   return (
     <Container>
       <SearchSection>
@@ -153,27 +182,41 @@ const DataTable = ({ columns, data, searchOptions, onSearch, renderActions }) =>
               {columns.map((col, i) => (
                 <TableHeader key={i}>{col}</TableHeader>
               ))}
-              <TableHeader style={{ textAlign: "center", width: "150px" }}>Ações</TableHeader>
+              <TableHeader style={{ textAlign: "center", width: "150px" }}>
+                Ações
+              </TableHeader>
             </tr>
           </thead>
+
           <tbody>
             {data.length > 0 ? (
               data.map((row, rowIndex) => (
                 <TableRow key={rowIndex}>
                   {columns.map((col, colIndex) => (
-                    <TableCell key={colIndex}>
-                      {row[col] ?? "—"}
-                    </TableCell>
+                    <TableCell key={colIndex}>{row[col] ?? "—"}</TableCell>
                   ))}
                   <TableCell style={{ textAlign: "center" }}>
-                    {renderActions ? renderActions(row) : null}
+                    {/* Se o usuário quiser sobrescrever as ações, ele pode passar renderActions */}
+                    {renderActions ? (
+                      renderActions(row)
+                    ) : (
+                      <DefaultActions
+                        row={row}
+                        onView={onView}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                      />
+                    )}
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length + 1} style={{ textAlign: "center" }}>
-                  Nenhuma solicitação encontrada.
+                <TableCell
+                  colSpan={columns.length + 1}
+                  style={{ textAlign: "center" }}
+                >
+                  Nenhum registro encontrado.
                 </TableCell>
               </TableRow>
             )}
