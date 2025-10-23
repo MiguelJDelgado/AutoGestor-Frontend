@@ -14,6 +14,7 @@ import TelaColaboradores from './routes/Colaboradores.jsx'
 import TelaVeiculos from './routes/Veiculos.jsx'
 import TelaClientes from './routes/Clientes.jsx'
 import TelaFornecedores from './routes/Fornecedores.jsx'
+import TelaConfiguracoes from './routes/Configuracoes.jsx'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -105,6 +106,7 @@ createRoot(document.getElementById('root')).render(
         <Route path='/veículos' element={<TelaVeiculos />}/>
         <Route path='/clientes' element={<TelaClientes />}/>
         <Route path='/fornecedores' element={<TelaFornecedores />}/>
+        <Route path='/configurações' element={<TelaConfiguracoes />}/>
       </Routes>
     </BrowserRouter>
   </StrictMode>,
