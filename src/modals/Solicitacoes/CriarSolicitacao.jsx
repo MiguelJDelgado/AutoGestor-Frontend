@@ -2,37 +2,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import xIcon from "../../assets/XIcon.png";
 import { getProducts } from "../../services/ProdutoService"
-
-
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-`;
-
-const Title = styled.h2`
-  color: #333;
-  margin: 0;
-  font-size: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  img {
-    width: 24px;
-    height: 24px;
-  }
-`;
-
-const CloseButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 22px;
-  cursor: pointer;
-  color: #444;
-`;
+import LayoutModal from "../Layout";
 
 const Content = styled.div`
   padding: 10px 0;
@@ -218,29 +188,6 @@ const Footer = styled.div`
   margin-top: 20px;
 `;
 
-const ModalContainer = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  width: 700px;
-  max-width: 95%;
-  padding: 20px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 0.2s ease-in-out;
-  max-height: 90vh;
-  overflow-y: auto;
-
-  @keyframes fadeIn {
-    from {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-`;
-
 const CancelButton = styled.button`
   background: #ccc;
   color: #333;
@@ -326,81 +273,67 @@ const ModalNovaSolicitacao = ({ onClose }) => {
   };
 
   return (
-      <ModalContainer>
-        <Header>
-          <Title>
-            Nova Solicitação
-          </Title>
-          <CloseButton onClick={onClose}>×</CloseButton>
-        </Header>
-        <Content>
-          {produtos.map((produto, index) => (
-            <Section key={index}>
-              <RemoveButton onClick={() => removerProduto(index)}>
-                <img src={xIcon} alt="Remover" />
-              </RemoveButton>
+  <LayoutModal title="Adicionar Nova Solicitação" onClose={onClose} onSave={handleSave}>
+    <Content>
+      {produtos.map((produto, index) => (
+        <Section key={index}>
+          <RemoveButton onClick={() => removerProduto(index)}>
+            <img src={xIcon} alt="Remover" />
+          </RemoveButton>
 
-              <FormGrid>
-                <Field>
-                  <Label>Produto</Label>
-                  <SelectWrapper>
-                    <SearchInput
-                      type="text"
-                      placeholder="Digite para buscar..."
-                      value={produto.produtoNome}
-                      onChange={(e) => handleSearch(index, e.target.value)}
-                      onFocus={() => setShowOptions(true)}
-                      onBlur={() => setTimeout(() => setShowOptions(false), 150)}
-                    />
-                    {showOptions && filtro.trim().length > 0 && (
-                      <OptionsList>
-                        {listaProdutos
-                          .filter((p) =>
-                            p.name.toLowerCase().includes(filtro.toLowerCase())
-                          )
-                          .map((p) => (
-                            <li key={p.id} onClick={() => handleSelectProduto(index, p)}>
-                              {p.name}
-                            </li>
-                          ))}
-                      </OptionsList>
-                    )}
-                  </SelectWrapper>
-                </Field>
-
-                <FieldQtd>
-                  <Label>Quantidade</Label>
-                  <InputWrapper>
-                    <IconButton onClick={() => handleInc(index, -1)}>−</IconButton>
-                    <Input readOnly value={produto.quantidade} />
-                    <IconButton onClick={() => handleInc(index, 1)}>+</IconButton>
-                  </InputWrapper>
-                </FieldQtd>
-              </FormGrid>
-
-              <Field>
-                <Label>Observação</Label>
-                <TextArea
-                  placeholder="Adicione uma observação (opcional)"
-                  value={produto.observacao}
-                  onChange={(e) =>
-                    handleChange(index, "observacao", e.target.value)
-                  }
+          <FormGrid>
+            <Field>
+              <Label>Produto</Label>
+              <SelectWrapper>
+                <SearchInput
+                  type="text"
+                  placeholder="Digite para buscar..."
+                  value={produto.produtoNome}
+                  onChange={(e) => handleSearch(index, e.target.value)}
+                  onFocus={() => setShowOptions(true)}
+                  onBlur={() => setTimeout(() => setShowOptions(false), 150)}
                 />
-              </Field>
-            </Section>
-          ))}
+                {showOptions && filtro.trim().length > 0 && (
+                  <OptionsList>
+                    {listaProdutos
+                      .filter((p) =>
+                        p.name.toLowerCase().includes(filtro.toLowerCase())
+                      )
+                      .map((p) => (
+                        <li key={p.id} onClick={() => handleSelectProduto(index, p)}>
+                          {p.name}
+                        </li>
+                      ))}
+                  </OptionsList>
+                )}
+              </SelectWrapper>
+            </Field>
 
-          <AddButton onClick={adicionarProduto}>+</AddButton>
-        </Content>
+            <FieldQtd>
+              <Label>Quantidade</Label>
+              <InputWrapper>
+                <IconButton onClick={() => handleInc(index, -1)}>−</IconButton>
+                <Input readOnly value={produto.quantidade} />
+                <IconButton onClick={() => handleInc(index, 1)}>+</IconButton>
+              </InputWrapper>
+            </FieldQtd>
+          </FormGrid>
 
-        <Footer>
-          <CancelButton onClick={onClose}>Cancelar</CancelButton>
-          <ConfirmButton onClick={handleSave}>Salvar</ConfirmButton>
-        </Footer>
-      </ModalContainer>
-    
-  );
+          <Field>
+            <Label>Observação</Label>
+            <TextArea
+              placeholder="Adicione uma observação (opcional)"
+              value={produto.observacao}
+              onChange={(e) => handleChange(index, "observacao", e.target.value)}
+            />
+          </Field>
+        </Section>
+      ))}
+
+      <AddButton onClick={adicionarProduto}>+</AddButton>
+    </Content>
+  </LayoutModal>
+);
 };
 
 export default ModalNovaSolicitacao;
