@@ -87,9 +87,12 @@ function DadosOSSection() {
         <Field>
           <Label>Status</Label>
           <Select defaultValue="analise">
-            <option value="analise">Análise / Orçamento</option>
-            <option value="pendente">Pendente</option>
-            <option value="finalizado">Finalizado</option>
+            <option value="analise">Solicitação</option>
+            <option value="pendente">Orçamento</option>
+            <option value="finalizado">Em Progresso</option>
+            <option value="finalizado">Pendente de Produto</option>
+            <option value="finalizado">Cancelado</option>
+            <option value="finalizado">Concluído</option>
           </Select>
         </Field>
 
