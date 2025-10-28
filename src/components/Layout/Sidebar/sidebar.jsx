@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 
 import logo from '../../../assets/logo.png';
 import OS from '../../../assets/OS.png';
@@ -53,6 +53,12 @@ const Header = styled.div`
 const UserIcon = styled.img`
   width: 35px;
   height: 35px;
+  cursor: pointer;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.2);
+  }
 `;
 
 const UserInfo = styled.div`
@@ -140,7 +146,9 @@ function Sidebar({ isOpen, onToggle }) {
     <SidebarContainer isOpen={isOpen}>
       <Header isOpen={isOpen}>
         <UserSection>
-          <UserIcon src={profile} alt="Usuário" />
+          <Link to="/perfil">
+            <UserIcon src={profile} alt="Usuário" />
+          </Link>
           <UserInfo isOpen={isOpen}>
             <strong>João Pedro</strong>
             <span>Administrador</span>
@@ -168,4 +176,3 @@ function Sidebar({ isOpen, onToggle }) {
   );
 }
 export default Sidebar;
-2
