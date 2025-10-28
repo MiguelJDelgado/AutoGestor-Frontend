@@ -1,6 +1,9 @@
-// src/components/FinanceSummary.jsx
+// src/components/CardsFinancas.jsx
 import styled from 'styled-components';
 import { useMemo, useState } from 'react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts';
 
 const Block = styled.section`
   padding: 16px 20px;
@@ -17,8 +20,8 @@ const MonthSelect = styled.select`
   padding: 8px 10px;
   border: 1px solid #d0d7de;
   border-radius: 8px;
-  background: #ffffffff;
-  color: #000
+  background: #fff;
+  color: #000;
 `;
 
 const Cards = styled.div`
@@ -28,11 +31,11 @@ const Cards = styled.div`
 `;
 
 const Card = styled.div`
-  flex: 1 1 240px; /* cresce, mas tem base mínima */
+  flex: 1 1 240px;
   min-width: 220px;
   border-radius: 14px;
   padding: 16px 18px;
-  color: #ffffffff;
+  color: #fff;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -48,11 +51,22 @@ const Value = styled.strong`
   letter-spacing: 0.3px;
 `;
 
+const ChartWrapper = styled.div`
+  margin-top: 40px;
+  display: flex;
+  justify-content: flex-start; /* deixa o gráfico alinhado à esquerda */
+`;
+
+const ChartContainer = styled.div`
+  width: 50%; /* ocupa apenas 70% da largura do container */
+  height: 280px; /* altura do gráfico */
+`;
+
 const cardBg = {
-  faturado: 'linear-gradient(135deg, #5ecf68, #9ad84d)',   // verde
-  servicos: 'linear-gradient(135deg, #0aa1dd, #1864ab)',   // azul
-  pecas:    'linear-gradient(135deg, #ffd452, #f0b429)',   // amarelo
-  custos:   'linear-gradient(135deg, #ff6b6b, #f06543)',   // vermelho
+  faturado: 'linear-gradient(135deg, #5ecf68, #9ad84d)',
+  servicos: 'linear-gradient(135deg, #0aa1dd, #1864ab)',
+  pecas: 'linear-gradient(135deg, #ffd452, #f0b429)',
+  custos: 'linear-gradient(135deg, #ff6b6b, #f06543)',
 };
 
 const months = [
@@ -82,6 +96,16 @@ function FinanceSummary({
   const mdata = useMemo(
     () => dataByMonth[month] || { faturado: 0, servicos: 0, pecas: 0, custos: 0 },
     [month, dataByMonth]
+  );
+
+  // Dados do gráfico anual
+  const chartData = useMemo(
+    () =>
+      Object.entries(dataByMonth).map(([mes, valores]) => ({
+        month: mes.substring(0, 3), // "Jan", "Fev", etc.
+        faturado: valores.faturado,
+      })),
+    [dataByMonth]
   );
 
   return (
@@ -116,6 +140,25 @@ function FinanceSummary({
           <Value>{formatBRL(mdata.custos)}</Value>
         </Card>
       </Cards>
+
+      {/* Gráfico de faturamento anual */}
+      <ChartWrapper>
+        <ChartContainer>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
+              barSize={50} // 🔹 controla a espessura das barras
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v) => formatBRL(v)} />
+              <Bar dataKey="faturado" fill="#5ecf68" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </ChartWrapper>
     </Block>
   );
 }
