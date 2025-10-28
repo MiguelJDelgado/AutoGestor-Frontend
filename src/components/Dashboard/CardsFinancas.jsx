@@ -58,8 +58,8 @@ const ChartWrapper = styled.div`
 `;
 
 const ChartContainer = styled.div`
-  width: 50%; /* ocupa apenas 70% da largura do container */
-  height: 280px; /* altura do gráfico */
+  width: 50%; /* ocupa apenas metade da largura do container */
+  height: 280px;
 `;
 
 const cardBg = {
@@ -67,6 +67,8 @@ const cardBg = {
   servicos: 'linear-gradient(135deg, #0aa1dd, #1864ab)',
   pecas: 'linear-gradient(135deg, #ffd452, #f0b429)',
   custos: 'linear-gradient(135deg, #ff6b6b, #f06543)',
+  osEmitidas: 'linear-gradient(135deg, #003b73, #007bff)',
+  novosClientes: 'linear-gradient(135deg, #004d40, #26a69a)',
 };
 
 const months = [
@@ -81,20 +83,20 @@ function formatBRL(n) {
 function FinanceSummary({
   initialMonthIndex = new Date().getMonth(),
   dataByMonth = {
-    Janeiro:   { faturado: 250000, servicos: 110000, pecas:  80000, custos: 120000 },
-    Fevereiro: { faturado: 210000, servicos:  90000, pecas:  70000, custos: 110000 },
-    Março:     { faturado: 420000, servicos: 180000, pecas: 130000, custos: 160000 },
-    Abril:     { faturado: 470000, servicos: 200000, pecas: 145000, custos: 170000 },
-    Maio:      { faturado: 390000, servicos: 175000, pecas: 120000, custos: 150000 },
-    Junho:     { faturado: 360000, servicos: 160000, pecas: 115000, custos: 140000 },
-    Julho:     { faturado: 410000, servicos: 185000, pecas: 125000, custos: 155000 },
-    Agosto:    { faturado: 520000, servicos: 220000, pecas: 300000, custos: 200000 },
+    Janeiro:   { faturado: 250000, servicos: 110000, pecas:  80000, custos: 120000, osEmitidas: 45, novosClientes: 8 },
+    Fevereiro: { faturado: 210000, servicos:  90000, pecas:  70000, custos: 110000, osEmitidas: 50, novosClientes: 10 },
+    Março:     { faturado: 420000, servicos: 180000, pecas: 130000, custos: 160000, osEmitidas: 70, novosClientes: 12 },
+    Abril:     { faturado: 470000, servicos: 200000, pecas: 145000, custos: 170000, osEmitidas: 65, novosClientes: 18 },
+    Maio:      { faturado: 390000, servicos: 175000, pecas: 120000, custos: 150000, osEmitidas: 75, novosClientes: 14 },
+    Junho:     { faturado: 360000, servicos: 160000, pecas: 115000, custos: 140000, osEmitidas: 80, novosClientes: 20 },
+    Julho:     { faturado: 410000, servicos: 185000, pecas: 125000, custos: 155000, osEmitidas: 78, novosClientes: 22 },
+    Agosto:    { faturado: 520000, servicos: 220000, pecas: 300000, custos: 200000, osEmitidas: 85, novosClientes: 25 },
   }
 }) {
   const [month, setMonth] = useState(months[initialMonthIndex] || 'Agosto');
 
   const mdata = useMemo(
-    () => dataByMonth[month] || { faturado: 0, servicos: 0, pecas: 0, custos: 0 },
+    () => dataByMonth[month] || { faturado: 0, servicos: 0, pecas: 0, custos: 0, osEmitidas: 0, novosClientes: 0 },
     [month, dataByMonth]
   );
 
@@ -102,7 +104,7 @@ function FinanceSummary({
   const chartData = useMemo(
     () =>
       Object.entries(dataByMonth).map(([mes, valores]) => ({
-        month: mes.substring(0, 3), // "Jan", "Fev", etc.
+        month: mes.substring(0, 3),
         faturado: valores.faturado,
       })),
     [dataByMonth]
@@ -119,6 +121,7 @@ function FinanceSummary({
         </MonthSelect>
       </RowHead>
 
+      {/* Cards principais */}
       <Cards>
         <Card style={{ background: cardBg.faturado }}>
           <Label>Faturado no mês</Label>
@@ -141,6 +144,19 @@ function FinanceSummary({
         </Card>
       </Cards>
 
+      {/* 🔹 Novos indicadores (segunda linha) */}
+      <Cards style={{ marginTop: '18px' }}>
+        <Card style={{ background: cardBg.osEmitidas }}>
+          <Label>O.S Emitidas</Label>
+          <Value>{mdata.osEmitidas}</Value>
+        </Card>
+
+        <Card style={{ background: cardBg.novosClientes }}>
+          <Label>Novos Clientes</Label>
+          <Value>{mdata.novosClientes}</Value>
+        </Card>
+      </Cards>
+
       {/* Gráfico de faturamento anual */}
       <ChartWrapper>
         <ChartContainer>
@@ -148,7 +164,7 @@ function FinanceSummary({
             <BarChart
               data={chartData}
               margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
-              barSize={50} // 🔹 controla a espessura das barras
+              barSize={40}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
