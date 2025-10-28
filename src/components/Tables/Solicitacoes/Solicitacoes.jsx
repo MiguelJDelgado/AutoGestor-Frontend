@@ -2,12 +2,6 @@ import { useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
 
-import pesquisaIcon from "../../../assets/pesquisa.png";
-import aprovarIcon from "../../../assets/aprovar.png";
-import settingsIcon from "../../../assets/gerenciar.png";
-import excluirIcon from "../../../assets/excluir.png";
-import olhoIcon from "../../../assets/olho.png";
-
 import ModalNovaSolicitacao from "../../../modals/Solicitacoes/CriarSolicitacao";
 
 const TelaSolicitacoes = () => {
@@ -53,99 +47,6 @@ const TelaSolicitacoes = () => {
 
     return <span style={style}>{status || "—"}</span>;
   };
-
-  const renderIcons = (status, row) => {
-    const lowerStatus = status?.toLowerCase();
-    const iconStyle = { width: "22px", cursor: "pointer" };
-    const wrapperStyle = {
-      display: "flex",
-      gap: "8px",
-      justifyContent: "center",
-      alignItems: "center",
-    };
-
-    switch (lowerStatus) {
-      case "pendente":
-        return (
-          <div style={wrapperStyle}>
-            <img
-              src={settingsIcon}
-              alt="Gerenciar"
-              title="Gerenciar"
-              style={{ width: "100px", cursor: "pointer" }}
-              onClick={() => handleManage(row)}
-            />
-          </div>
-        );
-      case "rejeitada":
-        return (
-          <div style={wrapperStyle}>
-            <img
-              src={olhoIcon}
-              alt="Visualizar"
-              title="Visualizar"
-              style={iconStyle}
-              onClick={() => handleView(row)}
-            />
-            <img
-              src={excluirIcon}
-              alt="Excluir"
-              title="Excluir"
-              style={iconStyle}
-              onClick={() => handleDelete(row)}
-            />
-          </div>
-        );
-      case "aceita":
-        return (
-          <div style={wrapperStyle}>
-            <img
-              src={excluirIcon}
-              alt="Excluir"
-              title="Excluir"
-              style={iconStyle}
-              onClick={() => handleDelete(row)}
-            />
-            <img
-              src={aprovarIcon}
-              alt="Aprovar"
-              title="Aprovar"
-              style={iconStyle}
-              onClick={() => handleApprove(row)}
-            />
-          </div>
-        );
-      case "finalizada":
-        return (
-          <div style={wrapperStyle}>
-            <img
-              src={olhoIcon}
-              alt="Visualizar"
-              title="Visualizar"
-              style={iconStyle}
-              onClick={() => handleView(row)}
-            />
-          </div>
-        );
-      default:
-        return (
-          <div style={wrapperStyle}>
-            <img
-              src={pesquisaIcon}
-              alt="Detalhes"
-              title="Detalhes"
-              style={iconStyle}
-              onClick={() => handleView(row)}
-            />
-          </div>
-        );
-    }
-  };
-
-  const handleView = (row) => console.log("Visualizar:", row);
-  const handleManage = (row) => console.log("Gerenciar:", row);
-  const handleDelete = (row) => console.log("Excluir:", row);
-  const handleApprove = (row) => console.log("Aprovar:", row);
 
   const data = [
     {
@@ -201,7 +102,6 @@ const TelaSolicitacoes = () => {
         data={data}
         searchOptions={columns}
         onSearch={() => console.log("Buscar solicitação...")}
-        renderActions={(row) => renderIcons(row.rawStatus, row)}
       />
 
       {isModalOpen && (

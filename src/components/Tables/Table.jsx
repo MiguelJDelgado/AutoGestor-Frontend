@@ -131,7 +131,6 @@ const IconButton = styled.button`
   }
 `;
 
-/* 🔹 Ícones padrão de ação (visualizar, editar, excluir) */
 const DefaultActions = ({ row, onView, onEdit, onDelete }) => (
   <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
     <IconButton title="Visualizar" onClick={() => onView?.(row)}>
