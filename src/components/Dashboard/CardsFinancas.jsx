@@ -54,12 +54,50 @@ const Value = styled.strong`
 const ChartWrapper = styled.div`
   margin-top: 40px;
   display: flex;
-  justify-content: flex-start; /* deixa o gráfico alinhado à esquerda */
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
 `;
 
 const ChartContainer = styled.div`
-  width: 50%; /* ocupa apenas metade da largura do container */
+  flex: 1 1 50%;
   height: 280px;
+`;
+
+const OrdersContainer = styled.div`
+  flex: 1 1 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+const OrderCard = styled.div`
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  padding: 14px 16px;
+`;
+
+const OrderTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  font-size: 15px;
+  color: ${(props) => props.color || '#000'};
+  margin-bottom: 8px;
+`;
+
+const OrderItem = styled.div`
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 6px;
+
+  span {
+    color: #888;
+    font-weight: 500;
+  }
 `;
 
 const cardBg = {
@@ -110,6 +148,17 @@ function FinanceSummary({
     [dataByMonth]
   );
 
+  // 🔹 Dados simulados de ordens
+  const ordensProximas = [
+    { id: '25081501', cliente: 'Transportadora Carrion', veiculo: 'Montana', data: '18/08/25' },
+    { id: '25081502', cliente: 'Transportadora Delgado', veiculo: 'Montana', data: '19/08/25' },
+  ];
+
+  const ordensVencidas = [
+    { id: '25031204', cliente: 'Transportadora Dimas', veiculo: 'Montana', data: '14/08/25' },
+    { id: '25041503', cliente: 'Transportadora Fekete', veiculo: 'Montana', data: '13/07/25' },
+  ];
+
   return (
     <Block>
       <RowHead>
@@ -157,8 +206,9 @@ function FinanceSummary({
         </Card>
       </Cards>
 
-      {/* Gráfico de faturamento anual */}
+      {/* 🔹 Gráfico + Ordens de Serviço */}
       <ChartWrapper>
+        {/* Gráfico */}
         <ChartContainer>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
@@ -174,6 +224,27 @@ function FinanceSummary({
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
+
+        {/* Cards de ordens */}
+        <OrdersContainer>
+          <OrderCard>
+            <OrderTitle color="#1864ab">📅 Próximas do vencimento</OrderTitle>
+            {ordensProximas.map((o) => (
+              <OrderItem key={o.id}>
+                <span>{o.id}</span> | {o.cliente} | {o.veiculo} | {o.data}
+              </OrderItem>
+            ))}
+          </OrderCard>
+
+          <OrderCard>
+            <OrderTitle color="#c92a2a">⛔ Vencidas</OrderTitle>
+            {ordensVencidas.map((o) => (
+              <OrderItem key={o.id}>
+                <span>{o.id}</span> | {o.cliente} | {o.veiculo} | {o.data}
+              </OrderItem>
+            ))}
+          </OrderCard>
+        </OrdersContainer>
       </ChartWrapper>
     </Block>
   );
