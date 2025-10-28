@@ -1,27 +1,32 @@
 import { useState, useEffect } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
-import ModalCliente from "../../../modals/Clientes/CriarClientes"; 
+import ModalCliente from "../../../modals/Clientes/CriarClientes";
+import { getAllClients } from "../../../services/ClienteService";
 
 const TelaClientes = () => {
-  const columns = ["Nome", "E-mail", "Endereço", "Celular", "Veículos", "CPF/CNPJ"];
+  const columns = ["Nome", "CPF/CNPJ", "Telefone", "E-mail", "Endereço", "Número", "Município", "Veículos", "CEP"];
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        // Exemplo de futura integração com API
-        // const response = await getClients({ page: 1, limit: 10 });
-        // const formattedData = response.data.map((client) => ({
-        //   Nome: client.name,
-        //   "E-mail": client.email,
-        //   Endereço: client.address,
-        //   Celular: client.phone,
-        //   Veículos: client.vehicles ? client.vehicles.join(", ") : "-",
-        //   "CPF/CNPJ": client.cpfCnpj,
-        // }));
-        // setData(formattedData);
+        const response = await getAllClients();
+
+        const formattedData = response.map((client) => ({
+          Nome: client.name,
+          "CPF/CNPJ": client.cpf || client.cnpj || "-",
+          Telefone: client.cellphone || "-",
+          "E-mail": client.email || "-",
+          Endereço: client.address || "-",
+          Número: client.number || "-",
+          Município: client.city || "-",
+          Veículos: client.vehicleIds ? client.vehicleIds.length : 0,
+          CEP: client.cep || "-",
+        }));
+
+        setData(formattedData);
       } catch (error) {
         console.error("Erro ao carregar clientes:", error.message);
       }
