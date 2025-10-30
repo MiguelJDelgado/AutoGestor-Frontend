@@ -1,10 +1,12 @@
 import styled from 'styled-components'
+import { useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import editarIcon from '../../assets/editar.png'
 import excluirIcon from '../../assets/excluir.png'
 import olhoIcon from '../../assets/olho.png'
 import aprovarIcon from '../../assets/aprovar.png'
 import imprimirIcon from '../../assets/imprimir.png'
+import clockIcon from '../../assets/clock.png'  // 🕒 novo ícone
 import Header from '../Header/Header'
 
 const MainContent = styled.div`
@@ -15,6 +17,77 @@ const MainContent = styled.div`
   width: 100%;
   box-sizing: border-box;
 `
+
+// ======== NOVO: Estilos para o ícone e modal ========
+const ClockButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 10px;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  &:hover {
+    opacity: 0.8;
+  }
+`
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+`
+
+const ModalTitle = styled.h3`
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+`
+
+const ModalActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+`
+
+const ModalButton = styled.button`
+  padding: 8px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+
+  &.cancel {
+    background-color: #ddd;
+  }
+
+  &.save {
+    background-color: #007bff;
+    color: white;
+  }
+
+  &:hover {
+    opacity: 0.9;
+  }
+`
+// ====================================================
 
 const Title = styled.h1`
   font-size: 24px;
@@ -172,11 +245,6 @@ const ActionButton = styled.button`
   }
 `
 
-const ActionIcon = styled.span`
-  font-size: 16px;
-  color: #6c757d;
-`
-
 const IconImage = styled.img`
   width: 18px;
   height: 18px;
@@ -192,6 +260,17 @@ function Os({
   onDelete = () => {},
   onView = () => {}
 }) {
+  const navigate = useNavigate()
+  const [showModal, setShowModal] = useState(false)
+  const [hour, setHour] = useState('')
+  const [minute, setMinute] = useState('')
+
+  const handleSaveTime = () => {
+    // Aqui futuramente você chama sua rota do back-end
+    console.log(`Horário configurado: ${hour}:${minute}`)
+    setShowModal(false)
+  }
+
   const formatCurrencyBRL = (value) => {
     if (value === null || value === undefined) return ''
     try {
@@ -206,7 +285,7 @@ function Os({
   const formatDateTimeBR = (value) => {
     if (!value) return ''
     try {
-      const date = typeof value === 'string' || typeof value === 'number' ? new Date(value) : value
+      const date = new Date(value)
       if (Number.isNaN(date.getTime())) return String(value)
       const datePart = date.toLocaleDateString('pt-BR')
       const timePart = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -216,135 +295,167 @@ function Os({
     }
   }
 
-  const navigate = useNavigate();
+  return (
+    <MainContent>
+      <Header
+        title={
+          <>
+            Ordem de Serviço
+            <ClockButton onClick={() => setShowModal(true)}>
+              <img src={clockIcon} alt="Configurar horário" />
+            </ClockButton>
+          </>
+        }
+        onNew={() => navigate("/criar-ordem-de-serviço")}
+      >
+        + Nova Ordem de Serviço
+      </Header>
 
+      {showModal && (
+        <ModalOverlay>
+          <ModalContent>
+            <ModalTitle>Configurar horário do disparo</ModalTitle>
 
-  return (     
+            <Label>Hora</Label>
+            <Input
+              type="number"
+              placeholder="HH"
+              min="0"
+              max="23"
+              value={hour}
+              onChange={(e) => setHour(e.target.value)}
+            />
 
-        <MainContent>
-          <Header
-            title="Ordem de Serviço"
-            onNew={() => navigate("/criar-ordem-de-serviço")}
-          >     
-            + Nova Ordem de Serviço
-          </Header>
-          <SearchSection>
-            <SearchTitle>Buscar</SearchTitle>
-            <SearchForm>
-              <FormGroup>
-                <Label>Cliente</Label>
-                <Input type="text" placeholder="Nome do cliente" />
-              </FormGroup>
-              
-              <FormGroup>
-                <Label>Código</Label>
-                <Input type="text" placeholder="Código" />
-              </FormGroup>
-              
-              <FormGroup>
-                <Label>O.S</Label>
-                <Input type="text" placeholder="Número da OS" />
-              </FormGroup>
-              
-              <FormGroup>
-                <Label>Data</Label>
-                <Input type="date" />
-              </FormGroup>
-              
-              <FormGroup>
-                <Label>Status</Label>
-                <Select className="status-select">
-                  <option value="analise">Análise/Orçamento</option>
-                  <option value="pendente">Pendente</option>
-                  <option value="finalizado">Finalizado</option>
-                </Select>
-              </FormGroup>
-              
-              <FormGroup>
-                <Label>Valor</Label>
-                <Input type="number" placeholder="Valor" />
-              </FormGroup>
-              
-              <FormGroup>
-                <FilterButton>
-                  Filtrar
-                </FilterButton>
-              </FormGroup>
-            </SearchForm>
-          </SearchSection>
+            <Label>Minuto</Label>
+            <Input
+              type="number"
+              placeholder="MM"
+              min="0"
+              max="59"
+              value={minute}
+              onChange={(e) => setMinute(e.target.value)}
+            />
 
-          <TableSection>
-            <TableTitle>Ordens de Serviço</TableTitle>
-            <Table>
-              <thead>
-                <tr>
-                  <Th>Código</Th>
-                  <Th>O.S</Th>
-                  <Th>Cliente</Th>
-                  <Th>Veículo</Th>
-                  <Th>Placa</Th>
-                  <Th>Status</Th>
-                  <Th>Data</Th>
-                  <Th>Valor</Th>
-                  <Th>Ações</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id ?? order.codigo ?? order.osNumero}>
-                    <Td>{order.codigo}</Td>
-                    <Td>{order.osNumero}</Td>
-                    <Td>{order.clienteNome}</Td>
-                    <Td>{order.veiculoDescricao}</Td>
-                    <Td>{order.placa}</Td>
-                    <Td>
-                      <StatusBadge className={order.status}>
-                        {order.statusLabel ?? order.status}
-                      </StatusBadge>
-                    </Td>
-                    <Td>
-                      {formatDateTimeBR(order.dataCriacao)}
-                      <br/>
-                      <small>
-                        {order.dataFinalizacao
-                          ? `Finalizada em ${formatDateTimeBR(order.dataFinalizacao)}`
-                          : 'Finalizada em 00/00/0000 00:00'}
-                      </small>
-                    </Td>
-                    <Td>{formatCurrencyBRL(order.valor)}</Td>
-                    <Td>
-                      {order.status !== 'finalizado' && (
-                        <ActionButton title="Aprovar" onClick={() => onApprove(order)}>
-                          <IconImage src={aprovarIcon} alt="Aprovar" />
-                        </ActionButton>
-                      )}
-                      <ActionButton title="Imprimir" onClick={() => onPrint(order)}>
-                        <IconImage src={imprimirIcon} alt="Imprimir" />
-                      </ActionButton>
-                      <ActionButton title="Editar" onClick={() => onEdit(order)}>
-                        <IconImage src={editarIcon} alt="Editar" />
-                      </ActionButton>
-                      <ActionButton title="Excluir" onClick={() => onDelete(order)}>
-                        <IconImage src={excluirIcon} alt="Excluir" />
-                      </ActionButton>
-                      <ActionButton title="Visualizar" onClick={() => onView(order)}>
-                        <IconImage src={olhoIcon} alt="Visualizar" />
-                      </ActionButton>
-                    </Td>
-                  </tr>
-                ))}
-                {orders.length === 0 && (
-                  <tr>
-                    <Td colSpan="9">Nenhuma ordem encontrada.</Td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-          </TableSection>
-        </MainContent>
-      
+            <ModalActions>
+              <ModalButton className="cancel" onClick={() => setShowModal(false)}>
+                Cancelar
+              </ModalButton>
+              <ModalButton className="save" onClick={handleSaveTime}>
+                Salvar
+              </ModalButton>
+            </ModalActions>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* resto do seu componente igual */}
+      <SearchSection>
+        <SearchTitle>Buscar</SearchTitle>
+        <SearchForm>
+          <FormGroup>
+            <Label>Cliente</Label>
+            <Input type="text" placeholder="Nome do cliente" />
+          </FormGroup>
+          <FormGroup>
+            <Label>Código</Label>
+            <Input type="text" placeholder="Código" />
+          </FormGroup>
+          <FormGroup>
+            <Label>O.S</Label>
+            <Input type="text" placeholder="Número da OS" />
+          </FormGroup>
+          <FormGroup>
+            <Label>Data</Label>
+            <Input type="date" />
+          </FormGroup>
+          <FormGroup>
+            <Label>Status</Label>
+            <Select className="status-select">
+              <option value="analise">Análise/Orçamento</option>
+              <option value="pendente">Pendente</option>
+              <option value="finalizado">Finalizado</option>
+            </Select>
+          </FormGroup>
+          <FormGroup>
+            <Label>Valor</Label>
+            <Input type="number" placeholder="Valor" />
+          </FormGroup>
+          <FormGroup>
+            <FilterButton>Filtrar</FilterButton>
+          </FormGroup>
+        </SearchForm>
+      </SearchSection>
+
+      <TableSection>
+        <TableTitle>Ordens de Serviço</TableTitle>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Código</Th>
+              <Th>O.S</Th>
+              <Th>Cliente</Th>
+              <Th>Veículo</Th>
+              <Th>Placa</Th>
+              <Th>Status</Th>
+              <Th>Data</Th>
+              <Th>Valor</Th>
+              <Th>Ações</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((order) => (
+              <tr key={order.id ?? order.codigo ?? order.osNumero}>
+                <Td>{order.codigo}</Td>
+                <Td>{order.osNumero}</Td>
+                <Td>{order.clienteNome}</Td>
+                <Td>{order.veiculoDescricao}</Td>
+                <Td>{order.placa}</Td>
+                <Td>
+                  <StatusBadge className={order.status}>
+                    {order.statusLabel ?? order.status}
+                  </StatusBadge>
+                </Td>
+                <Td>
+                  {formatDateTimeBR(order.dataCriacao)}
+                  <br/>
+                  <small>
+                    {order.dataFinalizacao
+                      ? `Finalizada em ${formatDateTimeBR(order.dataFinalizacao)}`
+                      : 'Finalizada em 00/00/0000 00:00'}
+                  </small>
+                </Td>
+                <Td>{formatCurrencyBRL(order.valor)}</Td>
+                <Td>
+                  {order.status !== 'finalizado' && (
+                    <ActionButton title="Aprovar" onClick={() => onApprove(order)}>
+                      <IconImage src={aprovarIcon} alt="Aprovar" />
+                    </ActionButton>
+                  )}
+                  <ActionButton title="Imprimir" onClick={() => onPrint(order)}>
+                    <IconImage src={imprimirIcon} alt="Imprimir" />
+                  </ActionButton>
+                  <ActionButton title="Editar" onClick={() => onEdit(order)}>
+                    <IconImage src={editarIcon} alt="Editar" />
+                  </ActionButton>
+                  <ActionButton title="Excluir" onClick={() => onDelete(order)}>
+                    <IconImage src={excluirIcon} alt="Excluir" />
+                  </ActionButton>
+                  <ActionButton title="Visualizar" onClick={() => onView(order)}>
+                    <IconImage src={olhoIcon} alt="Visualizar" />
+                  </ActionButton>
+                </Td>
+              </tr>
+            ))}
+            {orders.length === 0 && (
+              <tr>
+                <Td colSpan="9">Nenhuma ordem encontrada.</Td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </TableSection>
+    </MainContent>
   )
 }
 
 export default Os
-
