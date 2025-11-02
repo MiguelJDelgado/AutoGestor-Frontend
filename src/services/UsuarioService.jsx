@@ -61,3 +61,18 @@ export const deleteUser = async (id) => {
 
   return res.json();
 };
+
+export const changeUserPassword = async (id, currentPassword, newPassword) => {
+  const res = await fetch(`${API_URL}/change-password/${id}`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Erro ao alterar senha do usuário");
+  }
+
+  return res.json();
+};
