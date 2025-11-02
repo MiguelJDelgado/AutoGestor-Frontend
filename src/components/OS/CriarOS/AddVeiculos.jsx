@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import VeiculoIcon from "./icons/VeiculoOS.png";
+import { getAllVehicles } from '../../../services/VeiculoService';
 
 const Section = styled.div`
   background: #fff;
@@ -42,6 +43,7 @@ const Field = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
 `;
 
 const Label = styled.label`
@@ -67,45 +69,90 @@ const Input = styled.input`
   }
 `;
 
+/* 🔽 Dropdown estilizado igual ao ClienteOS */
+const Dropdown = styled.ul`
+  position: absolute;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+`;
+
+const DropdownItem = styled.li`
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #0f2f43;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f3f6f9;
+  }
+`;
+
 const VeiculoOS = () => {
-  const [placaSelecionada, setPlacaSelecionada] = useState('');
   const [veiculos, setVeiculos] = useState([]);
+  const [filteredVeiculos, setFilteredVeiculos] = useState([]);
+  const [busca, setBusca] = useState("");
+  const [veiculoSelecionado, setVeiculoSelecionado] = useState(null);
+
   const [dadosVeiculo, setDadosVeiculo] = useState({
-    marca: '',
-    modelo: '',
-    placa: '',
-    ano: '',
-    tipoCombustivel: '',
-    chassi: '',
-    km: '',
+    marca: "—",
+    modelo: "—",
+    placa: "—",
+    ano: "—",
+    tipoCombustivel: "—",
+    chassi: "—",
+    km: "—",
   });
 
+  // 🔹 Buscar veículos do backend
   useEffect(() => {
-    setVeiculos([
-      { id: 1, marca: 'Toyota', modelo: 'Corolla', placa: 'ABC-1234', ano: '2019', tipoCombustivel: 'Gasolina', chassi: '9BWZZZ377VT004251', km: '45000' },
-      { id: 2, marca: 'Honda', modelo: 'Civic', placa: 'XYZ-5678', ano: '2020', tipoCombustivel: 'Flex', chassi: '19XFC2F59LE000001', km: '30000' },
-      { id: 3, marca: 'Ford', modelo: 'Ka', placa: 'DEF-4321', ano: '2018', tipoCombustivel: 'Etanol', chassi: '9BFZZZ377VT123456', km: '60000' },
-    ]);
+    const fetchVeiculos = async () => {
+      try {
+        const res = await getAllVehicles();
+        setVeiculos(res);
+        setFilteredVeiculos(res);
+      } catch (err) {
+        console.error("Erro ao buscar veículos:", err);
+      }
+    };
+    fetchVeiculos();
   }, []);
 
-  const handlePlacaChange = (e) => {
-    const placa = e.target.value;
-    setPlacaSelecionada(placa);
+  // 🔹 Filtra veículos conforme texto digitado
+  useEffect(() => {
+    const termo = busca.toLowerCase();
+    const filtrados = veiculos.filter(
+      (v) =>
+        v.name.toLowerCase().includes(termo)
+    );
+    setFilteredVeiculos(filtrados);
+  }, [busca, veiculos]);
 
-    const veiculoEncontrado = veiculos.find(v => v.placa.toLowerCase() === placa.toLowerCase());
-    if (veiculoEncontrado) {
-      setDadosVeiculo({ ...veiculoEncontrado });
-    } else {
-      setDadosVeiculo({
-        marca: '',
-        modelo: '',
-        placa: '',
-        ano: '',
-        tipoCombustivel: '',
-        chassi: '',
-        km: '',
-      });
-    }
+  // 🔹 Quando veículo é selecionado
+  const handleSelectVeiculo = (veiculo) => {
+    setVeiculoSelecionado(veiculo);
+    setBusca(`${veiculo.name} - ${veiculo.licensePlate ?? ""}`);
+
+    setDadosVeiculo({
+      marca: veiculo.brand || "—",
+      modelo: veiculo.name || "—",
+      placa: veiculo.licensePlate || "—",
+      ano: veiculo.year || "—",
+      tipoCombustivel: veiculo.fuel || "—",
+      chassi: veiculo.chassi || "—",
+      km: veiculo.km?.toLocaleString() || "—",
+    });
   };
 
   return (
@@ -116,19 +163,33 @@ const VeiculoOS = () => {
       </SectionHeader>
 
       <FormGrid>
+        {/* Campo de busca com dropdown */}
         <Field>
-          <Label>Placa</Label>
+          <Label>Veículo / Placa</Label>
           <Input
-            list="veiculosList"
-            value={placaSelecionada}
-            onChange={handlePlacaChange}
-            placeholder="Digite ou selecione a placa"
+            type="text"
+            value={busca}
+            onChange={(e) => {
+              setBusca(e.target.value);
+              setVeiculoSelecionado(null);
+            }}
+            placeholder="Digite o nome ou placa..."
+            autoComplete="off"
           />
-          <datalist id="veiculosList">
-            {veiculos.map(v => (
-              <option key={v.id} value={v.placa} />
-            ))}
-          </datalist>
+
+          {/* 🔽 Lista dropdown dinâmica */}
+          {busca && !veiculoSelecionado && filteredVeiculos.length > 0 && (
+            <Dropdown>
+              {filteredVeiculos.slice(0, 8).map((v) => (
+                <DropdownItem
+                  key={v._id}
+                  onClick={() => handleSelectVeiculo(v)}
+                >
+                  {v.name} — {v.licensePlate}
+                </DropdownItem>
+              ))}
+            </Dropdown>
+          )}
         </Field>
 
         <Field>
@@ -139,6 +200,11 @@ const VeiculoOS = () => {
         <Field>
           <Label>Modelo</Label>
           <Input value={dadosVeiculo.modelo} disabled />
+        </Field>
+
+        <Field>
+          <Label>Placa</Label>
+          <Input value={dadosVeiculo.placa} disabled />
         </Field>
 
         <Field>
