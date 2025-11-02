@@ -1,6 +1,6 @@
 import { getAuthHeaders } from "../utils/Token";
 
-const API_URL = import.meta.env.VITE_API + "/auth/suppliers";
+const API_URL = import.meta.env.VITE_API + "/auth/providers";
 
 // Buscar todos com paginação
 export const getSuppliers = async ({ page = 1, limit = 10, date, identifier, search } = {}) => {
