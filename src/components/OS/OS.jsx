@@ -1,5 +1,5 @@
 import styled from 'styled-components'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom";
 import editarIcon from '../../assets/editar.png'
 import excluirIcon from '../../assets/excluir.png'
@@ -8,6 +8,9 @@ import aprovarIcon from '../../assets/aprovar.png'
 import imprimirIcon from '../../assets/imprimir.png'
 import clockIcon from '../../assets/clock.png'  // 🕒 novo ícone
 import Header from '../Header/Header'
+import { getAllServiceOrders } from '../../services/OrdemServicoService.jsx'
+import { getClientById } from '../../services/ClienteService.jsx'
+import { getVehicleById } from '../../services/VeiculoService.jsx'
 
 const MainContent = styled.div`
   background-color:rgb(253, 253, 253);
@@ -253,47 +256,129 @@ const IconImage = styled.img`
 `
 
 function Os({
-  orders = [],
   onApprove = () => {},
   onPrint = () => {},
   onEdit = () => {},
   onDelete = () => {},
   onView = () => {}
 }) {
-  const navigate = useNavigate()
-  const [showModal, setShowModal] = useState(false)
-  const [hour, setHour] = useState('')
-  const [minute, setMinute] = useState('')
+  const navigate = useNavigate();
+
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [hour, setHour] = useState("");
+  const [minute, setMinute] = useState("");
 
   const handleSaveTime = () => {
-    // Aqui futuramente você chama sua rota do back-end
-    console.log(`Horário configurado: ${hour}:${minute}`)
-    setShowModal(false)
-  }
+    console.log(`Horário configurado: ${hour}:${minute}`);
+    setShowModal(false);
+  };
 
   const formatCurrencyBRL = (value) => {
-    if (value === null || value === undefined) return ''
+    if (value === null || value === undefined) return "";
     try {
-      const numeric = typeof value === 'number' ? value : Number(value)
-      if (Number.isNaN(numeric)) return String(value)
-      return numeric.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+      const numeric = typeof value === "number" ? value : Number(value);
+      if (Number.isNaN(numeric)) return String(value);
+      return numeric.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
     } catch {
-      return String(value)
+      return String(value);
     }
-  }
+  };
 
   const formatDateTimeBR = (value) => {
-    if (!value) return ''
+    if (!value) return "";
     try {
-      const date = new Date(value)
-      if (Number.isNaN(date.getTime())) return String(value)
-      const datePart = date.toLocaleDateString('pt-BR')
-      const timePart = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-      return `${datePart} ${timePart}`
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value);
+      const datePart = date.toLocaleDateString("pt-BR");
+      const timePart = date.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      return `${datePart} ${timePart}`;
     } catch {
-      return String(value)
+      return String(value);
     }
-  }
+  };
+
+  // 🧠 Buscar todas as ordens e montar os dados completos
+  const fetchServiceOrders = async () => {
+    try {
+      setLoading(true);
+      const serviceOrders = await getAllServiceOrders();
+
+      // busca cliente e veículo para cada OS
+      const fullOrders = await Promise.all(
+        serviceOrders.map(async (order) => {
+          let clientName = "—";
+          let vehicleDescription = "—";
+          let vehiclePlate = "—";
+
+          try {
+            if (order.clientId) {
+              const client = await getClientById(order.clientId);
+              clientName = client.name || "Sem nome";
+            }
+          } catch {
+            clientName = "Cliente não encontrado";
+          }
+
+          try {
+            if (order.vehicleId) {
+              const vehicle = await getVehicleById(order.vehicleId);
+              vehicleDescription = vehicle.name || "—";
+              vehiclePlate = vehicle.licensePlate || "—";
+            }
+          } catch {
+            vehicleDescription = "Veículo não encontrado";
+          }
+
+          return {
+            id: order._id,
+            codigo: order.code,
+            osNumero: order.code?.split("-")[1]?.trim() || "—",
+            clienteNome: clientName,
+            veiculoDescricao: vehicleDescription,
+            placa: vehiclePlate,
+            status: order.status,
+            statusLabel:
+              order.status === "budget"
+                ? "Análise/Orçamento"
+                : order.status === "pending"
+                ? "Pendente"
+                : order.status === "finalized"
+                ? "Finalizado"
+                : order.status === "canceled"
+                ? "Cancelado"
+                : order.status === "request"
+                ? "Solicitação"
+                : order.status,
+            dataCriacao: order.createdAt,
+            dataFinalizacao: order.deadline,
+            valor: order.totalValueWithDiscount ?? order.totalValueGeneral,
+          };
+        })
+      );
+
+      setOrders(fullOrders);
+      setError(null);
+    } catch (err) {
+      console.error("Erro ao carregar ordens de serviço:", err);
+      setError("Erro ao carregar ordens de serviço");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchServiceOrders();
+  }, []);
 
   return (
     <MainContent>
@@ -348,7 +433,6 @@ function Os({
         </ModalOverlay>
       )}
 
-      {/* resto do seu componente igual */}
       <SearchSection>
         <SearchTitle>Buscar</SearchTitle>
         <SearchForm>
@@ -371,9 +455,9 @@ function Os({
           <FormGroup>
             <Label>Status</Label>
             <Select className="status-select">
-              <option value="analise">Análise/Orçamento</option>
-              <option value="pendente">Pendente</option>
-              <option value="finalizado">Finalizado</option>
+              <option value="budget">Análise/Orçamento</option>
+              <option value="pending">Pendente</option>
+              <option value="finalized">Finalizado</option>
             </Select>
           </FormGroup>
           <FormGroup>
@@ -388,74 +472,82 @@ function Os({
 
       <TableSection>
         <TableTitle>Ordens de Serviço</TableTitle>
-        <Table>
-          <thead>
-            <tr>
-              <Th>Código</Th>
-              <Th>O.S</Th>
-              <Th>Cliente</Th>
-              <Th>Veículo</Th>
-              <Th>Placa</Th>
-              <Th>Status</Th>
-              <Th>Data</Th>
-              <Th>Valor</Th>
-              <Th>Ações</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id ?? order.codigo ?? order.osNumero}>
-                <Td>{order.codigo}</Td>
-                <Td>{order.osNumero}</Td>
-                <Td>{order.clienteNome}</Td>
-                <Td>{order.veiculoDescricao}</Td>
-                <Td>{order.placa}</Td>
-                <Td>
-                  <StatusBadge className={order.status}>
-                    {order.statusLabel ?? order.status}
-                  </StatusBadge>
-                </Td>
-                <Td>
-                  {formatDateTimeBR(order.dataCriacao)}
-                  <br/>
-                  <small>
-                    {order.dataFinalizacao
-                      ? `Finalizada em ${formatDateTimeBR(order.dataFinalizacao)}`
-                      : 'Finalizada em 00/00/0000 00:00'}
-                  </small>
-                </Td>
-                <Td>{formatCurrencyBRL(order.valor)}</Td>
-                <Td>
-                  {order.status !== 'finalizado' && (
-                    <ActionButton title="Aprovar" onClick={() => onApprove(order)}>
-                      <IconImage src={aprovarIcon} alt="Aprovar" />
-                    </ActionButton>
-                  )}
-                  <ActionButton title="Imprimir" onClick={() => onPrint(order)}>
-                    <IconImage src={imprimirIcon} alt="Imprimir" />
-                  </ActionButton>
-                  <ActionButton title="Editar" onClick={() => onEdit(order)}>
-                    <IconImage src={editarIcon} alt="Editar" />
-                  </ActionButton>
-                  <ActionButton title="Excluir" onClick={() => onDelete(order)}>
-                    <IconImage src={excluirIcon} alt="Excluir" />
-                  </ActionButton>
-                  <ActionButton title="Visualizar" onClick={() => onView(order)}>
-                    <IconImage src={olhoIcon} alt="Visualizar" />
-                  </ActionButton>
-                </Td>
-              </tr>
-            ))}
-            {orders.length === 0 && (
+
+        {loading ? (
+          <p>Carregando ordens de serviço...</p>
+        ) : error ? (
+          <p style={{ color: "red" }}>{error}</p>
+        ) : (
+          <Table>
+            <thead>
               <tr>
-                <Td colSpan="9">Nenhuma ordem encontrada.</Td>
+                <Th>Código</Th>
+                <Th>O.S</Th>
+                <Th>Cliente</Th>
+                <Th>Veículo</Th>
+                <Th>Placa</Th>
+                <Th>Status</Th>
+                <Th>Data</Th>
+                <Th>Valor</Th>
+                <Th>Ações</Th>
               </tr>
-            )}
-          </tbody>
-        </Table>
+            </thead>
+            <tbody>
+              {orders.length > 0 ? (
+                orders.map((order) => (
+                  <tr key={order.id}>
+                    <Td>{order.codigo}</Td>
+                    <Td>{order.osNumero}</Td>
+                    <Td>{order.clienteNome}</Td>
+                    <Td>{order.veiculoDescricao}</Td>
+                    <Td>{order.placa}</Td>
+                    <Td>
+                      <StatusBadge className={order.status}>
+                        {order.statusLabel}
+                      </StatusBadge>
+                    </Td>
+                    <Td>
+                      {formatDateTimeBR(order.dataCriacao)}
+                      <br />
+                      <small>
+                        {order.dataFinalizacao
+                          ? `Finaliza em ${formatDateTimeBR(order.dataFinalizacao)}`
+                          : "Sem data"}
+                      </small>
+                    </Td>
+                    <Td>{formatCurrencyBRL(order.valor)}</Td>
+                    <Td>
+                      {order.status !== "finalized" && (
+                        <ActionButton title="Aprovar" onClick={() => onApprove(order)}>
+                          <IconImage src={aprovarIcon} alt="Aprovar" />
+                        </ActionButton>
+                      )}
+                      <ActionButton title="Imprimir" onClick={() => onPrint(order)}>
+                        <IconImage src={imprimirIcon} alt="Imprimir" />
+                      </ActionButton>
+                      <ActionButton title="Editar" onClick={() => onEdit(order)}>
+                        <IconImage src={editarIcon} alt="Editar" />
+                      </ActionButton>
+                      <ActionButton title="Excluir" onClick={() => onDelete(order)}>
+                        <IconImage src={excluirIcon} alt="Excluir" />
+                      </ActionButton>
+                      <ActionButton title="Visualizar" onClick={() => onView(order)}>
+                        <IconImage src={olhoIcon} alt="Visualizar" />
+                      </ActionButton>
+                    </Td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <Td colSpan="9">Nenhuma ordem encontrada.</Td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        )}
       </TableSection>
     </MainContent>
-  )
+  );
 }
 
-export default Os
+export default Os;
