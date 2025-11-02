@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ClienteIcon from "./icons/ClienteOS.png";
+import { getAllClients } from '../../../services/ClienteService';
 
 const Section = styled.div`
   background: #fff;
@@ -67,37 +68,92 @@ const Input = styled.input`
   }
 `;
 
+const Dropdown = styled.ul`
+  position: absolute;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+`;
+
+const DropdownItem = styled.li`
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #0f2f43;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f3f6f9;
+  }
+`;
+
+
 const ClienteOS = () => {
-  const [clienteSelecionado, setClienteSelecionado] = useState('');
   const [clientes, setClientes] = useState([]);
+  const [filteredClientes, setFilteredClientes] = useState([]);
+  const [clienteSelecionado, setClienteSelecionado] = useState(null);
+  const [busca, setBusca] = useState("");
+
   const [dadosCliente, setDadosCliente] = useState({
-    nome: '',
-    cpfCnpj: '',
-    telefone: '',
-    email: '',
-    endereco: '',
-    numero: '',
-    municipio: '',
-    uf: '',
+    nome: "",
+    cpfCnpj: "",
+    telefone: "",
+    email: "",
+    endereco: "",
+    numero: "",
+    municipio: "",
+    uf: "",
   });
 
+  // 🔹 Buscar clientes do backend
   useEffect(() => {
-    setClientes([
-      { id: 1, nome: 'João da Silva', cpfCnpj: '123.456.789-00', telefone: '(15) 99999-9999', email: 'joao@email.com', endereco: 'Rua das Flores', numero: '123', municipio: 'Sorocaba', uf: 'SP' },
-      { id: 2, nome: 'Empresa XPTO LTDA', cpfCnpj: '12.345.678/0001-90', telefone: '(11) 4002-8922', email: 'contato@xpto.com.br', endereco: 'Av. Central', numero: '500', municipio: 'São Paulo', uf: 'SP' },
-    ]);
+    const fetchClientes = async () => {
+      try {
+        const res = await getAllClients();
+        setClientes(res);
+        setFilteredClientes(res);
+      } catch (err) {
+        console.error("Erro ao buscar clientes:", err);
+      }
+    };
+
+    fetchClientes();
   }, []);
 
-  const handleClienteChange = (e) => {
-    const nomeSelecionado = e.target.value;
-    setClienteSelecionado(nomeSelecionado);
+  // 🔹 Filtra clientes conforme o texto digitado
+  useEffect(() => {
+    const termo = busca.toLowerCase();
+    const filtrados = clientes.filter((c) =>
+      c.name.toLowerCase().includes(termo)
+    );
+    setFilteredClientes(filtrados);
+  }, [busca, clientes]);
 
-    const clienteEncontrado = clientes.find((c) => c.nome.toLowerCase() === nomeSelecionado.toLowerCase());
-    if (clienteEncontrado) {
-      setDadosCliente({ ...clienteEncontrado });
-    } else {
-      setDadosCliente({ nome: '', cpfCnpj: '', telefone: '', email: '', endereco: '', numero: '', municipio: '', uf: '' });
-    }
+  // 🔹 Quando cliente é selecionado
+  const handleSelectCliente = (cliente) => {
+    setClienteSelecionado(cliente);
+    setBusca(cliente.name);
+
+    setDadosCliente({
+      nome: cliente.name || "",
+      cpfCnpj: cliente.cpf || cliente.cnpj || "",
+      telefone: cliente.cellphone || "",
+      email: cliente.email || "",
+      endereco: cliente.address || "",
+      numero: cliente.number || "",
+      municipio: cliente.city || "",
+      uf: cliente.state || "",
+    });
   };
 
   return (
@@ -108,19 +164,33 @@ const ClienteOS = () => {
       </SectionHeader>
 
       <FormGrid>
-        <Field>
+        {/* Campo de busca com dropdown */}
+        <Field style={{ position: "relative" }}>
           <Label>Nome / Razão Social</Label>
-          <Input 
-            list="clientesList" 
-            value={clienteSelecionado} 
-            onChange={handleClienteChange} 
+          <Input
+            type="text"
+            value={busca}
+            onChange={(e) => {
+              setBusca(e.target.value);
+              setClienteSelecionado(null);
+            }}
             placeholder="Digite para buscar..."
+            autoComplete="off"
           />
-          <datalist id="clientesList">
-            {clientes.map(c => (
-              <option key={c.id} value={c.nome} />
-            ))}
-          </datalist>
+
+          {/* 🔽 Lista dropdown dinâmica */}
+          {busca && !clienteSelecionado && filteredClientes.length > 0 && (
+            <Dropdown>
+              {filteredClientes.slice(0, 8).map((cliente) => (
+                <DropdownItem
+                  key={cliente._id}
+                  onClick={() => handleSelectCliente(cliente)}
+                >
+                  {cliente.name}
+                </DropdownItem>
+              ))}
+            </Dropdown>
+          )}
         </Field>
 
         <Field>
