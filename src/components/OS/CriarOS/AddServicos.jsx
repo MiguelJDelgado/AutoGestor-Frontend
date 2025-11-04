@@ -1,7 +1,9 @@
 import { useState } from "react";
 import styled from "styled-components";
 import ServicoIcon from "./icons/ServicoOS.png";
-import xIcon from '../../../assets/XIcon.png';
+import xIcon from "../../../assets/XIcon.png";
+import plusIcon from "../../../assets/plusIcon.png";
+import ColaboradoresModal from "../../../modals/Colaboradores/AdicionarColaboradorOS";
 
 const Section = styled.div`
   background: #fff;
@@ -121,12 +123,68 @@ const AddButton = styled.button`
   }
 `;
 
-function ServicosSection() {
-  const [servicos, setServicos] = useState([{}]);
+const ChipsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  background: #f3f6f9;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  min-height: 36px;
+`;
 
-  const adicionarServico = () => setServicos([...servicos, {}]);
+const Chip = styled.span`
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 4px 10px;
+`;
+
+const AddColabButton = styled.button`
+  background: transparent;
+  border: none;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover img {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+`;
+
+
+function ServicosSection() {
+  const [servicos, setServicos] = useState([{ colaboradores: [] }]);
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [isColabModalOpen, setIsColabModalOpen] = useState(false);
+
+  const adicionarServico = () =>
+    setServicos([...servicos, { colaboradores: [] }]);
+
   const removerServico = (index) =>
     setServicos(servicos.filter((_, i) => i !== index));
+
+  const handleSaveColaboradores = (colabs) => {
+    setServicos((prev) =>
+      prev.map((srv, i) =>
+        i === selectedIndex ? { ...srv, colaboradores: colabs } : srv
+      )
+    );
+    setIsColabModalOpen(false);
+  };
 
   return (
     <Section>
@@ -135,33 +193,40 @@ function ServicosSection() {
         Serviços
       </SectionHeader>
 
-      {servicos.map((_, index) => (
+      {servicos.map((servico, index) => (
         <FormWrapper key={index}>
           <RemoveButton onClick={() => removerServico(index)}>
             <img src={xIcon} alt="Remover" />
-          </RemoveButton><FormGrid>
+          </RemoveButton>
+
+          <FormGrid>
             <Field>
               <Label>Título do serviço</Label>
               <Select>
                 <option>Lista de serviços cadastrados</option>
               </Select>
             </Field>
+
             <Field>
               <Label>Horas de trabalho</Label>
               <Input disabled placeholder="Puxado da área de serviços" />
             </Field>
+
             <Field>
               <Label>Quantidade</Label>
               <Input placeholder="Editável" />
             </Field>
+
             <Field>
               <Label>Valor hora</Label>
               <Input disabled placeholder="Puxado da área de serviços" />
             </Field>
+
             <Field>
               <Label>Valor unitário</Label>
               <Input disabled placeholder="Puxado da área de serviços" />
             </Field>
+
             <Field>
               <Label>Tipo de Desconto</Label>
               <Select>
@@ -169,22 +234,55 @@ function ServicosSection() {
                 <option>Desconto R$</option>
               </Select>
             </Field>
+
             <Field>
               <Label>Desconto</Label>
               <Input placeholder="Editável" />
             </Field>
+
             <Field>
               <Label>Subtotal sem desconto</Label>
               <Input disabled placeholder="unitário x quantidade" />
             </Field>
+
             <Field>
               <Label>Valor total</Label>
               <Input disabled placeholder="cálculo final" />
             </Field>
+
+            <Field>
+              <Label>Colaboradores</Label>
+              <ChipsContainer>
+                {servico.colaboradores.map((colab, i) => (
+                  <Chip key={i}>{colab}</Chip>
+                ))}
+                <AddColabButton
+                  onClick={() => {
+                    setSelectedIndex(index);
+                    setIsColabModalOpen(true);
+                  }}
+                  title="Adicionar colaborador"
+                >
+                  <img src={plusIcon} alt="Adicionar colaborador" />
+                </AddColabButton>
+              </ChipsContainer>
+            </Field>
+
           </FormGrid>
         </FormWrapper>
       ))}
+
       <AddButton onClick={adicionarServico}>+</AddButton>
+
+      {isColabModalOpen && (
+        <ColaboradoresModal
+          onClose={() => setIsColabModalOpen(false)}
+          onSave={handleSaveColaboradores}
+          colaboradoresIniciais={
+            servicos[selectedIndex]?.colaboradores || []
+          }
+        />
+      )}
     </Section>
   );
 }

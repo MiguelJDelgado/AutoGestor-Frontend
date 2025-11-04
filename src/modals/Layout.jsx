@@ -99,7 +99,7 @@ const LayoutModal = ({ title, onClose, onSave, children }) => {
 
         <Actions>
           <CancelBtn onClick={onClose}>Cancelar</CancelBtn>
-          <SaveBtn onClick={onSave}>Adicionar</SaveBtn>
+          <SaveBtn onClick={onSave}>Salvar</SaveBtn>
         </Actions>
       </Modal>
     </Overlay>
