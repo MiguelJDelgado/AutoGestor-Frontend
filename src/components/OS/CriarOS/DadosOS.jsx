@@ -105,13 +105,6 @@ function DadosOSSection() {
           <Label>Previsão de entrega</Label>
           <Input type="date" />
         </Field>
-
-        <Field>
-          <Label>Colaborador</Label>
-          <Select>
-            <option>Selecione o colaborador</option>
-          </Select>
-        </Field>
       </FormGrid>
     </Section>
   );
