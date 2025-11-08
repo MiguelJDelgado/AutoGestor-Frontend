@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import CalculadoraIcon from "./icons/Calculadora.png";
+import { calculateServiceOrderTotals } from '../../../services/OrdemServicoService';
 
 const Section = styled.div`
   background: #fff;
@@ -53,9 +54,66 @@ const Input = styled.input`
   font-size: 14px;
 `;
 
-const CustoTotal = ({ value, onChange }) => {
-  const handleChange = (field) => (e) => {
-    if (onChange) onChange({ ...value, [field]: e.target.value });
+const ButtonsWrapper = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+`;
+
+const SaveButton = styled.button`
+  background-color: #2b3e50;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background-color: #1f2a38;
+  }
+`;
+
+// Novo botão para calcular totais
+const CalculateButton = styled(SaveButton)`
+  background-color: #007bff;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
+
+const CustoTotal = ({ value, onChange, products = [], services = [], descontoData }) => {
+
+  const handleCalcularTotais = async () => {
+    try {
+      const payload = {
+        discountType: descontoData?.tipo || "none",
+        discountValue: descontoData?.valor || 0,
+        services: services.map((s) => ({ totalValue: s.totalValue || 0 })),
+        products: products.map((p) => ({
+          totalValue: (p.totalValue ?? p.quantity * (p.salePrice || 0)) || 0,
+        })),
+      };
+
+      const res = await calculateServiceOrderTotals(payload);
+      
+      if (onChange) {
+        onChange({
+          valorProdutos: res.totalValue.totalValueProducts || 0,
+          valorServicos: res.totalValue.totalValueServices || 0,
+          valorTotal: res.totalValue.totalValueGeneral || 0,
+          totalComDesconto: res.totalValue.totalValueWithDiscount || 0,
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao calcular totais:", err);
+      alert("Erro ao calcular totais: " + err.message);
+    }
   };
 
   return (
@@ -71,8 +129,8 @@ const CustoTotal = ({ value, onChange }) => {
           <Input
             type="number"
             value={value?.valorProdutos || ""}
-            onChange={handleChange("valorProdutos")}
             placeholder="0,00"
+            disabled
           />
         </Field>
 
@@ -81,8 +139,8 @@ const CustoTotal = ({ value, onChange }) => {
           <Input
             type="number"
             value={value?.valorServicos || ""}
-            onChange={handleChange("valorServicos")}
             placeholder="0,00"
+            disabled
           />
         </Field>
 
@@ -91,8 +149,8 @@ const CustoTotal = ({ value, onChange }) => {
           <Input
             type="number"
             value={value?.valorTotal || ""}
-            onChange={handleChange("valorTotal")}
             placeholder="0,00"
+            disabled
           />
         </Field>
 
@@ -101,11 +159,17 @@ const CustoTotal = ({ value, onChange }) => {
           <Input
             type="number"
             value={value?.totalComDesconto || ""}
-            onChange={handleChange("totalComDesconto")}
             placeholder="0,00"
+            disabled
           />
         </Field>
       </Grid>
+
+      <ButtonsWrapper>
+        <CalculateButton type="button" onClick={handleCalcularTotais}>
+          CALCULAR TOTAIS
+        </CalculateButton>
+      </ButtonsWrapper>
     </Section>
   );
 };

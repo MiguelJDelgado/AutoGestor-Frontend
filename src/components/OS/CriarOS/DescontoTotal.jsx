@@ -64,8 +64,19 @@ const Select = styled.select`
 
 const DescontoTotal = ({ value, onChange }) => {
   const handleChange = (field) => (e) => {
-    if (onChange) onChange({ ...value, [field]: e.target.value });
+    let val = e.target.value;
+
+    // 🔹 Converte para o formato que o backend espera
+    if (field === "tipo") {
+      if (val === "%") val = "percent";
+      if (val === "R$") val = "real";
+    }
+
+    if (onChange) onChange({ ...value, [field]: val });
   };
+
+  // 🔹 Mostra no Select o valor no formato amigável
+  const displayTipo = value?.tipo === "percent" ? "%" : value?.tipo === "real" ? "R$" : "%";
 
   return (
     <Section>
@@ -77,10 +88,7 @@ const DescontoTotal = ({ value, onChange }) => {
       <Grid>
         <Field>
           <Label>Tipo de Desconto</Label>
-          <Select
-            value={value?.tipo || "%"}
-            onChange={handleChange("tipo")}
-          >
+          <Select value={displayTipo} onChange={handleChange("tipo")}>
             <option value="%">Desconto %</option>
             <option value="R$">Desconto R$</option>
           </Select>

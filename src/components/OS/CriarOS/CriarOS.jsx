@@ -78,6 +78,15 @@ const SaveExitButton = styled.button`
 
 
 function CriarOS() {
+  const statusMap = {
+    analise: "request",
+    pendente: "budget",
+    emprogresso: "in_progress",
+    "pendente-produto": "pending_product",
+    cancelado: "canceled",
+    concluido: "completed",
+  };
+
   // 🔹 Estados principais
   const [dadosOS, setDadosOS] = useState({
     description: "",
@@ -117,11 +126,10 @@ const [custoTotal, setCustoTotal] = useState({
       const payload = {
         clientId: clientId,
         vehicleId: vehicleId,
-        description: dadosOS.description,
         technicalAnalysis: dadosOS.technicalAnalysis,
-        status: dadosOS.status,
+        status: statusMap[dadosOS.status] || "request",
         descriptionClient: dadosOS.descriptionClient,
-        notes: dadosOS.notes,
+        notes: observacao,
         entryDate: dadosOS.entryDate,
         deadline: dadosOS.deadline,
         paymentType: dadosOS.paymentType,
@@ -129,7 +137,6 @@ const [custoTotal, setCustoTotal] = useState({
         discountType: descontoData.tipo,
         discountValue: descontoData.valor,
 
-        // 🔸 Monta os serviços no formato que o backend espera
         services: servicos.map((s) => ({
           serviceId: s.serviceId,
           title: s.title,
@@ -141,7 +148,6 @@ const [custoTotal, setCustoTotal] = useState({
           mechanicIds: s.colaboradores || [],
         })),
 
-        // 🔸 Monta os produtos no formato esperado
         products: products.map((p) => ({
           productId: p.productId,
           code: p.code,
@@ -149,6 +155,7 @@ const [custoTotal, setCustoTotal] = useState({
           quantity: p.quantity,
           costUnitPrice: p.costUnitPrice,
           salePrice: p.salePrice,
+          totalValue: p.totalValue || 0,
           grossProfitMargin: p.grossProfitMargin,
           providerIds: p.providerIds || [],
         })),
@@ -192,7 +199,14 @@ const [custoTotal, setCustoTotal] = useState({
         onChange={(novo) => setDescontoData(novo)}
       />
 
-      <CustoTotal value={custoTotal} onChange={setCustoTotal} />
+      <CustoTotal
+        value={custoTotal}
+        onChange={setCustoTotal}
+        products={products}
+        services={servicos}
+        descontoData={descontoData}
+      />
+
       <ObservacaoOS value={observacao} onChange={setObservacao} />
 
       <ButtonsWrapper>

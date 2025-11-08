@@ -33,6 +33,21 @@ export const createServiceOrder = async (ServiceOrderData) => {
   return res.json();
 };
 
+export const calculateServiceOrderTotals = async (ServiceOrderData) => {
+  const res = await fetch(`${API_URL}/calculate-totals`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(ServiceOrderData),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Erro ao calcular totais");
+  }
+
+  return res.json();
+};
+
 export const updateServiceOrder = async (id, ServiceOrderData) => {
   const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",

@@ -71,7 +71,6 @@ const Select = styled.select`
 `;
 
 function DadosOSSection({ dadosOS = {}, setDadosOS }) {
-  // handler genérico
   const handleChange = (field) => (e) => {
     const value = e.target.value;
     setDadosOS({ ...dadosOS, [field]: value });
@@ -111,7 +110,6 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
 
         <Field>
           <Label>Entrada do veículo</Label>
-          {/* armazenamos a data como YYYY-MM-DD (string). Se quiser ISO, convertemos no CriarOS antes de enviar */}
           <Input
             type="date"
             value={dadosOS.entryDate || ""}

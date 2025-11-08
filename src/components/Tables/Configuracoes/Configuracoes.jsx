@@ -22,7 +22,7 @@ const TelaConfiguracoes = () => {
         "Perfil de acesso": user.role === "admin"
           ? "Administrador"
           : user.role === "employer" && user.manager === false
-          ? "Funcionário"
+          ? "Usuário"
           : user.role === "employer" && user.manager === true
           ? "Gerente"
           : user.role,
