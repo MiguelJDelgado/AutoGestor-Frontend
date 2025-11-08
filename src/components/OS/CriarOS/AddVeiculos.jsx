@@ -99,7 +99,7 @@ const DropdownItem = styled.li`
   }
 `;
 
-const VeiculoOS = () => {
+const VeiculoOS = ({ value, onChange }) => {
   const [veiculos, setVeiculos] = useState([]);
   const [filteredVeiculos, setFilteredVeiculos] = useState([]);
   const [busca, setBusca] = useState("");
@@ -132,9 +132,8 @@ const VeiculoOS = () => {
   // 🔹 Filtra veículos conforme texto digitado
   useEffect(() => {
     const termo = busca.toLowerCase();
-    const filtrados = veiculos.filter(
-      (v) =>
-        v.name.toLowerCase().includes(termo)
+    const filtrados = veiculos.filter((v) =>
+      v.name.toLowerCase().includes(termo)
     );
     setFilteredVeiculos(filtrados);
   }, [busca, veiculos]);
@@ -144,7 +143,7 @@ const VeiculoOS = () => {
     setVeiculoSelecionado(veiculo);
     setBusca(`${veiculo.name} - ${veiculo.licensePlate ?? ""}`);
 
-    setDadosVeiculo({
+    const dados = {
       marca: veiculo.brand || "—",
       modelo: veiculo.name || "—",
       placa: veiculo.licensePlate || "—",
@@ -152,7 +151,10 @@ const VeiculoOS = () => {
       tipoCombustivel: veiculo.fuel || "—",
       chassi: veiculo.chassi || "—",
       km: veiculo.km?.toLocaleString() || "—",
-    });
+    };
+
+    setDadosVeiculo(dados); // mantém autopreenchimento interno
+    onChange && onChange(dados); // notifica o pai
   };
 
   return (
@@ -163,7 +165,6 @@ const VeiculoOS = () => {
       </SectionHeader>
 
       <FormGrid>
-        {/* Campo de busca com dropdown */}
         <Field>
           <Label>Veículo / Placa</Label>
           <Input
@@ -177,7 +178,6 @@ const VeiculoOS = () => {
             autoComplete="off"
           />
 
-          {/* 🔽 Lista dropdown dinâmica */}
           {busca && !veiculoSelecionado && filteredVeiculos.length > 0 && (
             <Dropdown>
               {filteredVeiculos.slice(0, 8).map((v) => (

@@ -53,37 +53,61 @@ const Input = styled.input`
   font-size: 14px;
 `;
 
-const DescontoTotal = ({ descontoData, setDescontoData }) => {
+const CustoTotal = ({ value, onChange }) => {
   const handleChange = (field) => (e) => {
-    setDescontoData({ ...descontoData, [field]: e.target.value });
+    if (onChange) onChange({ ...value, [field]: e.target.value });
   };
 
   return (
     <Section>
       <SectionHeader>
-        <Icon src={CalculadoraIcon} alt="Desconto" />
+        <Icon src={CalculadoraIcon} alt="Cálculo Total" />
         Valores Totais
       </SectionHeader>
+
       <Grid>
         <Field>
           <Label>Valor Produtos</Label>
-          <Input/>
+          <Input
+            type="number"
+            value={value?.valorProdutos || ""}
+            onChange={handleChange("valorProdutos")}
+            placeholder="0,00"
+          />
         </Field>
+
         <Field>
           <Label>Valor Serviços</Label>
-          <Input/>
+          <Input
+            type="number"
+            value={value?.valorServicos || ""}
+            onChange={handleChange("valorServicos")}
+            placeholder="0,00"
+          />
         </Field>
+
         <Field>
           <Label>Valor Total</Label>
-          <Input/>
-          </Field>
+          <Input
+            type="number"
+            value={value?.valorTotal || ""}
+            onChange={handleChange("valorTotal")}
+            placeholder="0,00"
+          />
+        </Field>
+
         <Field>
           <Label>Total com Desconto</Label>
-          <Input/>
+          <Input
+            type="number"
+            value={value?.totalComDesconto || ""}
+            onChange={handleChange("totalComDesconto")}
+            placeholder="0,00"
+          />
         </Field>
       </Grid>
     </Section>
   );
 };
 
-export default DescontoTotal;
+export default CustoTotal;

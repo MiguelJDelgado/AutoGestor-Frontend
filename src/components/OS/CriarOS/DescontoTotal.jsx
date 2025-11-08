@@ -62,9 +62,9 @@ const Select = styled.select`
   font-size: 14px;
 `;
 
-const DescontoTotal = ({ descontoData, setDescontoData }) => {
+const DescontoTotal = ({ value, onChange }) => {
   const handleChange = (field) => (e) => {
-    setDescontoData({ ...descontoData, [field]: e.target.value });
+    if (onChange) onChange({ ...value, [field]: e.target.value });
   };
 
   return (
@@ -73,22 +73,26 @@ const DescontoTotal = ({ descontoData, setDescontoData }) => {
         <Icon src={DescontoIcon} alt="Desconto" />
         Desconto Total
       </SectionHeader>
+
       <Grid>
         <Field>
           <Label>Tipo de Desconto</Label>
-          <Select value={descontoData.tipo} onChange={handleChange('tipo')}>
+          <Select
+            value={value?.tipo || "%"}
+            onChange={handleChange("tipo")}
+          >
             <option value="%">Desconto %</option>
             <option value="R$">Desconto R$</option>
           </Select>
         </Field>
 
         <Field>
-          <Label>Desconto</Label>
+          <Label>Valor do Desconto</Label>
           <Input
             type="number"
-            value={descontoData.valor}
-            onChange={handleChange('valor')}
-            placeholder="Valor do desconto"
+            value={value?.valor || ""}
+            onChange={handleChange("valor")}
+            placeholder="0,00"
           />
         </Field>
       </Grid>

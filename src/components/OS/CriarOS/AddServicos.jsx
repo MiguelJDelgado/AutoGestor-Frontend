@@ -167,8 +167,7 @@ const AddColabButton = styled.button`
 `;
 
 
-function ServicosSection() {
-  const [servicos, setServicos] = useState([{ colaboradores: [] }]);
+function ServicosSection({ servicos, setServicos }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [isColabModalOpen, setIsColabModalOpen] = useState(false);
   const [serviceList, setServiceList] = useState([]); // lista vinda do backend

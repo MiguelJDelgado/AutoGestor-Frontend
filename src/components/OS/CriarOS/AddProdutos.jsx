@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import SolicitarProdutoModal from "./SolicitarProdutos";
 import ProdutoIcon from "./icons/ProdutoOS.png";
 import xIcon from '../../../assets/XIcon.png';
+import { getProducts } from "../../../services/ProdutoService";
 
 const Section = styled.div`
   background: #fff;
@@ -139,16 +140,123 @@ const AddButton = styled.button`
   }
 `;
 
-function ProdutosSection() {
-  const [produtos, setProdutos] = useState([{}]);
+const Dropdown = styled.ul`
+  position: absolute;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+`;
+
+const DropdownItem = styled.li`
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #0f2f43;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f3f6f9;
+  }
+`;
+
+function ProdutosSection({ products, setProducts }) {
+  const [todosProdutos, setTodosProdutos] = useState([]);
+  const [buscas, setBuscas] = useState([""]); // 🔹 inicia com 1 busca vazia
+  const [dropdownAtivo, setDropdownAtivo] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
 
-  const adicionarProduto = () => setProdutos([...produtos, {}]);
-  const removerProduto = (index) =>
-    setProdutos(produtos.filter((_, i) => i !== index));
+  // 🔹 Adiciona 1 produto vazio SOMENTE na primeira renderização
+  useEffect(() => {
+    if (!products || products.length === 0) {
+      setProducts([{}]);
+      setBuscas([""]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // <-- apenas na montagem
 
-  const handleAddProduto = (novoProduto) => {
-    setProdutos([...produtos, novoProduto]);
+  // Buscar produtos
+  useEffect(() => {
+    const fetchProdutos = async () => {
+      try {
+        const res = await getProducts();
+        setTodosProdutos(res?.data || []);
+      } catch (err) {
+        console.error("Erro ao buscar produtos:", err);
+        setTodosProdutos([]);
+      }
+    };
+    fetchProdutos();
+  }, []);
+
+  const adicionarProduto = () => {
+    setProducts([...products, {}]);
+    setBuscas([...buscas, ""]);
+  };
+
+  const removerProduto = (index) => {
+    const novosProdutos = products.filter((_, i) => i !== index);
+    const novasBuscas = buscas.filter((_, i) => i !== index);
+    setProducts(novosProdutos);
+    setBuscas(novasBuscas);
+  };
+
+  const handleBuscaChange = (index, termo) => {
+    const novasBuscas = [...buscas];
+    novasBuscas[index] = termo;
+    setBuscas(novasBuscas);
+    setDropdownAtivo(index);
+
+    const novosProdutos = [...products];
+    novosProdutos[index] = {};
+    setProducts(novosProdutos);
+  };
+
+  const handleSelectProduto = (index, produto) => {
+    const novosProdutos = [...products];
+    novosProdutos[index] = {
+      productId: produto._id,
+      code: produto.code,
+      name: produto.name,
+      quantity: 1,
+      costUnitPrice: produto.costUnitPrice || 0,
+      salePrice: produto.salePrice || 0,
+      grossProfitMargin: produto.grossProfitMargin ?? 0,
+      providerIds: produto.providerIds || [],
+      unitMeasure: produto.unitMeasure || "",
+      stock: produto.quantity ?? 0,
+      total: (produto.salePrice || 0) * 1,
+    };
+    setProducts(novosProdutos);
+
+    const novasBuscas = [...buscas];
+    novasBuscas[index] = produto.name;
+    setBuscas(novasBuscas);
+    setDropdownAtivo(null);
+  };
+
+  const handleQuantidadeChange = (index, quantidade) => {
+    const novosProdutos = [...products];
+    const p = novosProdutos[index] || {};
+    p.quantity = quantidade;
+    p.total = (p.salePrice || 0) * (quantidade || 0);
+    novosProdutos[index] = p;
+    setProducts(novosProdutos);
+  };
+
+  const produtosFiltrados = (termo) => {
+    if (!termo) return [];
+    const lower = termo.toLowerCase();
+    return todosProdutos.filter((p) => p.name?.toLowerCase().includes(lower));
   };
 
   return (
@@ -165,61 +273,106 @@ function ProdutosSection() {
       {modalAberto && (
         <SolicitarProdutoModal
           onClose={() => setModalAberto(false)}
-          onAdd={handleAddProduto}
+          onAdd={(novoProduto) => setProducts([...products, novoProduto])}
         />
       )}
 
-      {produtos.map((_, index) => (
-        <FormWrapper key={index}>
-          <RemoveButton onClick={() => removerProduto(index)}>
-            <img src={xIcon} alt="Remover" />
-          </RemoveButton>
+      {products.map((produto, index) => (
+          <FormWrapper key={index}>
+            <RemoveButton onClick={() => removerProduto(index)}>
+              <img src={xIcon} alt="Remover" />
+            </RemoveButton>
 
-          <FormGrid>
-            <Field>
-              <Label>Descrição</Label>
-              <Select>
-                <option>Lista de produtos cadastrados</option>
-              </Select>
-            </Field>
-            <Field>
-              <Label>UN</Label>
-              <Input disabled placeholder="Puxado da área de produtos" />
-            </Field>
-            <Field>
-              <Label>Estoque</Label>
-              <Input disabled placeholder="Puxado da área de produtos" />
-            </Field>
-            <Field>
-              <Label>Quantidade</Label>
-              <Input placeholder="Editável" />
-            </Field>
-            <Field>
-              <Label>Valor unitário</Label>
-              <Input disabled placeholder="Puxado da área de produtos" />
-            </Field>
-            <Field>
-              <Label>Tipo de Desconto</Label>
-              <Select>
-                <option>Desconto %</option>
-                <option>Desconto R$</option>
-              </Select>
-            </Field>
-            <Field>
-              <Label>Desconto</Label>
-              <Input placeholder="Editável" />
-            </Field>
-            <Field>
-              <Label>Subtotal sem desconto</Label>
-              <Input disabled placeholder="unitário x quantidade" />
-            </Field>
-            <Field>
-              <Label>Valor total</Label>
-              <Input disabled placeholder="cálculo final" />
-            </Field>
-          </FormGrid>
-        </FormWrapper>
-      ))}
+            <FormGrid>
+              <Field style={{ position: "relative" }}>
+                <Label>Descrição</Label>
+                <Input
+                  type="text"
+                  placeholder="Digite para buscar..."
+                  value={buscas[index] || produto.name || ""}
+                  onChange={(e) => handleBuscaChange(index, e.target.value)}
+                  onFocus={() => setDropdownAtivo(index)}
+                  autoComplete="off"
+                />
+
+                {dropdownAtivo === index &&
+                  buscas[index] &&
+                  produtosFiltrados(buscas[index]).length > 0 && (
+                    <Dropdown style={{ zIndex: 50 }}>
+                      {produtosFiltrados(buscas[index])
+                        .slice(0, 8)
+                        .map((p) => (
+                          <DropdownItem
+                            key={p._id}
+                            onClick={() => handleSelectProduto(index, p)}
+                          >
+                            {p.name}
+                          </DropdownItem>
+                        ))}
+                    </Dropdown>
+                  )}
+              </Field>
+
+              <Field>
+                <Label>UN</Label>
+                <Input
+                  disabled
+                  value={produto.unitMeasure || ""}
+                  placeholder="Puxado da área de produtos"
+                />
+              </Field>
+
+              <Field>
+                <Label>Estoque</Label>
+                <Input
+                  disabled
+                  value={produto.stock ?? produto.quantity ?? ""}
+                  placeholder="Puxado da área de produtos"
+                />
+              </Field>
+
+              <Field>
+                <Label>Quantidade</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={produto.quantity || ""}
+                  onChange={(e) =>
+                    handleQuantidadeChange(index, Number(e.target.value))
+                  }
+                  placeholder="Editável"
+                />
+              </Field>
+
+              <Field>
+                <Label>Valor unitário</Label>
+                <Input
+                  disabled
+                  value={
+                    produto.salePrice !== undefined && produto.salePrice !== null
+                      ? `R$ ${Number(produto.salePrice).toFixed(2)}`
+                      : ""
+                  }
+                  placeholder="Puxado da área de produtos"
+                />
+              </Field>
+
+              <Field>
+                <Label>Valor total</Label>
+                <Input
+                  disabled
+                  value={
+                    produto.total !== undefined && produto.total !== null
+                      ? `R$ ${Number(produto.total).toFixed(2)}`
+                      : ""
+                  }
+                  placeholder="Cálculo final"
+                />
+              </Field>
+            </FormGrid>
+          </FormWrapper>
+        ))
+      }
 
       <AddButton onClick={adicionarProduto}>+</AddButton>
     </Section>

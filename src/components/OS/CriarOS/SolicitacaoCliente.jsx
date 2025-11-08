@@ -35,17 +35,22 @@ const TextArea = styled.textarea`
   resize: vertical;
 `;
 
-const SolicitacaoCliente = ({ value, onChange }) => {
+const SolicitacaoCliente = ({ value = "", onChange }) => {
+  const handleChange = (e) => {
+    if (onChange) onChange(e);
+  };
+
   return (
     <Section>
       <SectionHeader>
         <Icon src={SolIcon} alt="Solicitação Cliente" />
         Solicitação do Cliente
       </SectionHeader>
+
       <TextArea
-        placeholder="Descrição do problema relatado"
+        placeholder="Descrição do problema relatado pelo cliente"
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
       />
     </Section>
   );

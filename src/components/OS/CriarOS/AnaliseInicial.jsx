@@ -45,7 +45,7 @@ const AnaliseInicial = ({ value, onChange }) => {
       <TextArea
         placeholder="Descrição do diagnóstico"
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange(e.target.value)}
       />
     </Section>
   );

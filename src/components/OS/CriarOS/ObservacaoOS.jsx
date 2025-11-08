@@ -45,7 +45,7 @@ const ObservacaoOS = ({ value, onChange }) => {
       <TextArea
         placeholder="Descrição da observação"
         value={value}
-        onChange={onChange}
+        onChange={(e) => onChange(e.target.value)}
       />
     </Section>
   );

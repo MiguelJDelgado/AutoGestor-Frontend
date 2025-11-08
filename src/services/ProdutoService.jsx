@@ -3,7 +3,7 @@ import { getAuthHeaders } from "../utils/Token";
 const API_URL = import.meta.env.VITE_API + "/auth/products";
 
 // Buscar todos com paginação
-export const getProducts = async ({ page = 1, limit = 10, date, identifier, search } = {}) => {
+export const getProducts = async ({ page, limit, date, identifier, search } = {}) => {
   const queryParams = new URLSearchParams();
 
   if (page) queryParams.append("page", page);

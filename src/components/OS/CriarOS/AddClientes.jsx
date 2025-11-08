@@ -98,12 +98,11 @@ const DropdownItem = styled.li`
 `;
 
 
-const ClienteOS = () => {
+const ClienteOS = ({ clientId, setClientId }) => {
   const [clientes, setClientes] = useState([]);
   const [filteredClientes, setFilteredClientes] = useState([]);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
   const [busca, setBusca] = useState("");
-
   const [dadosCliente, setDadosCliente] = useState({
     nome: "",
     cpfCnpj: "",
@@ -115,7 +114,7 @@ const ClienteOS = () => {
     uf: "",
   });
 
-  // 🔹 Buscar clientes do backend
+  // Buscar clientes
   useEffect(() => {
     const fetchClientes = async () => {
       try {
@@ -126,11 +125,10 @@ const ClienteOS = () => {
         console.error("Erro ao buscar clientes:", err);
       }
     };
-
     fetchClientes();
   }, []);
 
-  // 🔹 Filtra clientes conforme o texto digitado
+  // Filtrar clientes conforme busca
   useEffect(() => {
     const termo = busca.toLowerCase();
     const filtrados = clientes.filter((c) =>
@@ -139,9 +137,10 @@ const ClienteOS = () => {
     setFilteredClientes(filtrados);
   }, [busca, clientes]);
 
-  // 🔹 Quando cliente é selecionado
+  // Quando cliente é selecionado
   const handleSelectCliente = (cliente) => {
     setClienteSelecionado(cliente);
+    setClientId(cliente._id); // 🔹 Envia ID para o CriarOS
     setBusca(cliente.name);
 
     setDadosCliente({
@@ -164,7 +163,6 @@ const ClienteOS = () => {
       </SectionHeader>
 
       <FormGrid>
-        {/* Campo de busca com dropdown */}
         <Field style={{ position: "relative" }}>
           <Label>Nome / Razão Social</Label>
           <Input
@@ -178,7 +176,6 @@ const ClienteOS = () => {
             autoComplete="off"
           />
 
-          {/* 🔽 Lista dropdown dinâmica */}
           {busca && !clienteSelecionado && filteredClientes.length > 0 && (
             <Dropdown>
               {filteredClientes.slice(0, 8).map((cliente) => (
@@ -197,32 +194,26 @@ const ClienteOS = () => {
           <Label>CPF / CNPJ</Label>
           <Input value={dadosCliente.cpfCnpj} disabled />
         </Field>
-
         <Field>
           <Label>Telefone</Label>
           <Input value={dadosCliente.telefone} disabled />
         </Field>
-
         <Field>
           <Label>Email</Label>
           <Input value={dadosCliente.email} disabled />
         </Field>
-
         <Field>
           <Label>Endereço</Label>
           <Input value={dadosCliente.endereco} disabled />
         </Field>
-
         <Field>
           <Label>Número</Label>
           <Input value={dadosCliente.numero} disabled />
         </Field>
-
         <Field>
           <Label>Município</Label>
           <Input value={dadosCliente.municipio} disabled />
         </Field>
-
         <Field>
           <Label>UF</Label>
           <Input value={dadosCliente.uf} disabled />

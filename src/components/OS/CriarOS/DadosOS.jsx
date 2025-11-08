@@ -70,10 +70,16 @@ const Select = styled.select`
   color: #333;
 `;
 
-function DadosOSSection() {
+function DadosOSSection({ dadosOS = {}, setDadosOS }) {
+  // handler genérico
+  const handleChange = (field) => (e) => {
+    const value = e.target.value;
+    setDadosOS({ ...dadosOS, [field]: value });
+  };
+
   return (
     <Section>
-      <SectionHeader> 
+      <SectionHeader>
         <Icon src={DadosIcon} alt="Dados OS" />
         Dados da OS
       </SectionHeader>
@@ -81,29 +87,45 @@ function DadosOSSection() {
       <FormGrid>
         <Field>
           <Label>Número da OS</Label>
-          <Input placeholder="Gerado automaticamente" disabled />
+          <Input
+            placeholder="Gerado automaticamente"
+            value={dadosOS.numero || ""}
+            disabled
+          />
         </Field>
 
         <Field>
           <Label>Status</Label>
-          <Select defaultValue="analise">
+          <Select
+            value={dadosOS.status || "analise"}
+            onChange={handleChange("status")}
+          >
             <option value="analise">Solicitação</option>
             <option value="pendente">Orçamento</option>
-            <option value="finalizado">Em Progresso</option>
-            <option value="finalizado">Pendente de Produto</option>
-            <option value="finalizado">Cancelado</option>
-            <option value="finalizado">Concluído</option>
+            <option value="emprogresso">Em Progresso</option>
+            <option value="pendente-produto">Pendente de Produto</option>
+            <option value="cancelado">Cancelado</option>
+            <option value="concluido">Concluído</option>
           </Select>
         </Field>
 
         <Field>
           <Label>Entrada do veículo</Label>
-          <Input type="date" />
+          {/* armazenamos a data como YYYY-MM-DD (string). Se quiser ISO, convertemos no CriarOS antes de enviar */}
+          <Input
+            type="date"
+            value={dadosOS.entryDate || ""}
+            onChange={handleChange("entryDate")}
+          />
         </Field>
 
         <Field>
           <Label>Previsão de entrega</Label>
-          <Input type="date" />
+          <Input
+            type="date"
+            value={dadosOS.deadline || ""}
+            onChange={handleChange("deadline")}
+          />
         </Field>
       </FormGrid>
     </Section>
