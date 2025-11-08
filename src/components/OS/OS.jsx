@@ -8,7 +8,7 @@ import aprovarIcon from '../../assets/aprovar.png'
 import imprimirIcon from '../../assets/imprimir.png'
 import clockIcon from '../../assets/clock.png'  // 🕒 novo ícone
 import Header from '../Header/Header'
-import { getAllServiceOrders } from '../../services/OrdemServicoService.jsx'
+import { getAllServiceOrders, scheduleTimeReportEmailSender, stopTimeReportEmailSender } from '../../services/OrdemServicoService.jsx'
 import { getClientById } from '../../services/ClienteService.jsx'
 import { getVehicleById } from '../../services/VeiculoService.jsx'
 
@@ -272,11 +272,6 @@ function Os({
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("");
 
-  const handleSaveTime = () => {
-    console.log(`Horário configurado: ${hour}:${minute}`);
-    setShowModal(false);
-  };
-
   const formatCurrencyBRL = (value) => {
     if (value === null || value === undefined) return "";
     try {
@@ -422,10 +417,53 @@ function Os({
             />
 
             <ModalActions>
-              <ModalButton className="cancel" onClick={() => setShowModal(false)}>
+              <ModalButton
+                className="cancel"
+                onClick={() => setShowModal(false)}
+              >
                 Cancelar
               </ModalButton>
-              <ModalButton className="save" onClick={handleSaveTime}>
+
+              
+              <ModalButton
+                className="stop"
+                style={{ backgroundColor: "red", color: "#fff" }}
+                onClick={async () => {
+                  try {
+                    await stopTimeReportEmailSender();
+                    alert("🛑 Disparo pausado com sucesso!");
+                    setShowModal(false);
+                  } catch (err) {
+                    console.error(err);
+                    alert("Erro ao pausar disparo: " + err.message);
+                  }
+                }}
+              >
+                Pausar disparo
+              </ModalButton>
+
+              <ModalButton
+                className="save"
+                onClick={async () => {
+                  try {
+                    // Converte para inteiro antes de enviar
+                    const h = parseInt(hour, 10);
+                    const m = parseInt(minute, 10);
+
+                    if (isNaN(h) || isNaN(m) || h < 0 || h > 23 || m < 0 || m > 59) {
+                      alert("Informe um horário válido (0-23) e minuto (0-59).");
+                      return;
+                    }
+
+                    await scheduleTimeReportEmailSender(h, m);
+                    alert("⏰ Horário agendado com sucesso!");
+                    setShowModal(false);
+                  } catch (err) {
+                    console.error(err);
+                    alert("Erro ao agendar horário: " + err.message);
+                  }
+                }}
+              >
                 Salvar
               </ModalButton>
             </ModalActions>

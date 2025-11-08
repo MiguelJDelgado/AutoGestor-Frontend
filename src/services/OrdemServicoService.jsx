@@ -48,6 +48,35 @@ export const calculateServiceOrderTotals = async (ServiceOrderData) => {
   return res.json();
 };
 
+export const scheduleTimeReportEmailSender = async (hour, minute) => {
+  const res = await fetch(`${API_URL}/schedule-deadline-check`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ hour, minute }),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Erro ao agendar envio de e-mail");
+  }
+
+  return res.json();
+};
+
+export const stopTimeReportEmailSender = async () => {
+  const res = await fetch(`${API_URL}/stop-deadline-check`, {
+    method: "PATCH",
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Erro ao parar envio de e-mail");
+  }
+
+  return res.json();
+};
+
 export const updateServiceOrder = async (id, ServiceOrderData) => {
   const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
