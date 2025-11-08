@@ -198,6 +198,39 @@ const ModalCliente = ({ onClose, onSave }) => {
     notes: "",
   });
 
+  // Funções de formatação visual
+  const formatCPFouCNPJ = (value) => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 11) {
+      return digits
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    } else {
+      return digits
+        .replace(/^(\d{2})(\d)/, "$1.$2")
+        .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+        .replace(/\.(\d{3})(\d)/, ".$1/$2")
+        .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+    }
+  };
+
+  const formatCEP = (value) =>
+    value.replace(/\D/g, "").replace(/^(\d{5})(\d)/, "$1-$2").substring(0, 9);
+
+  const formatTelefone = (value) =>
+    value
+      .replace(/\D/g, "")
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .substring(0, 15);
+
+  const formatInscricaoEstadual = (value) =>
+    value.replace(/\D/g, "").replace(/(\d{3})(\d)/, "$1.$2").substring(0, 14);
+
+  const apenasNumerosPositivos = (value) => value.replace(/\D/g, "");
+
+  // Handlers
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -209,26 +242,27 @@ const ModalCliente = ({ onClose, onSave }) => {
   };
 
   const adicionarVeiculo = () => setVeiculos([...veiculos, {}]);
-  const removerVeiculo = (index) => setVeiculos(veiculos.filter((_, i) => i !== index));
+  const removerVeiculo = (index) =>
+    setVeiculos(veiculos.filter((_, i) => i !== index));
 
   const handleSubmit = async () => {
     try {
-      // 1️⃣ Cadastra o cliente
-      const newClient = await createClient(form);
-
-      // 2️⃣ Cadastra cada veículo e obtém seus IDs
       const vehicleIds = [];
       for (const v of veiculos) {
-        if (v.plate) {
-          const createdVehicle = await createVehicle({ ...v, clientId: newClient._id });
+        if (v.licensePlate) {
+          // 🔹 Agora enviando "name" ao backend
+          const createdVehicle = await createVehicle({
+            ...v,
+            name: v.name || v.model || "", // se tiver model antigo, usamos como fallback
+          });
           vehicleIds.push(createdVehicle._id);
         }
       }
 
-      // 3️⃣ Atualiza cliente com os veículos (se necessário)
-      if (vehicleIds.length > 0) {
-        await createClient({ ...newClient, vehicleIds });
-      }
+      const newClient = await createClient({
+        ...form,
+        vehicleIds,
+      });
 
       alert("Cliente e veículos cadastrados com sucesso!");
       if (onSave) onSave(newClient);
@@ -248,58 +282,111 @@ const ModalCliente = ({ onClose, onSave }) => {
         </Header>
 
         <Section>
+          {/* === FORMULÁRIO CLIENTE === */}
           <FormGrid columns="3">
             <Field>
               <Label>Nome/Razão Social</Label>
-              <Input value={form.name} onChange={(e) => handleChange("name", e.target.value)} />
+              <Input
+                value={form.name}
+                onChange={(e) => handleChange("name", e.target.value)}
+              />
             </Field>
+
             <Field>
               <Label>CPF/CNPJ</Label>
-              <Input value={form.cpf || form.cnpj} onChange={(e) => handleChange("cpf", e.target.value)} />
+              <Input
+                value={formatCPFouCNPJ(form.cpf || form.cnpj || "")}
+                onChange={(e) =>
+                  handleChange("cpf", e.target.value.replace(/\D/g, ""))
+                }
+              />
             </Field>
+
             <Field>
               <Label>Inscrição Estadual</Label>
-              <Input value={form.stateRegistration} onChange={(e) => handleChange("stateRegistration", e.target.value)} />
+              <Input
+                value={formatInscricaoEstadual(form.stateRegistration || "")}
+                onChange={(e) =>
+                  handleChange(
+                    "stateRegistration",
+                    e.target.value.replace(/\D/g, "")
+                  )
+                }
+              />
             </Field>
           </FormGrid>
 
           <FormGrid columns="6">
             <Field>
               <Label>CEP</Label>
-              <Input value={form.cep} onChange={(e) => handleChange("cep", e.target.value)} />
+              <Input
+                value={formatCEP(form.cep || "")}
+                onChange={(e) =>
+                  handleChange("cep", e.target.value.replace(/\D/g, ""))
+                }
+              />
             </Field>
+
             <Field columns="2">
               <Label>Endereço</Label>
-              <Input value={form.address} onChange={(e) => handleChange("address", e.target.value)} />
+              <Input
+                value={form.address}
+                onChange={(e) => handleChange("address", e.target.value)}
+              />
             </Field>
+
             <Field>
               <Label>Número</Label>
-              <Input value={form.number} onChange={(e) => handleChange("number", e.target.value)} />
+              <Input
+                value={form.number}
+                onChange={(e) => handleChange("number", e.target.value)}
+              />
             </Field>
+
             <Field>
               <Label>Município</Label>
-              <Input value={form.city} onChange={(e) => handleChange("city", e.target.value)} />
+              <Input
+                value={form.city}
+                onChange={(e) => handleChange("city", e.target.value)}
+              />
             </Field>
+
             <Field>
               <Label>UF</Label>
-              <InputUF value={form.state} onChange={(e) => handleChange("state", e.target.value)} />
+              <InputUF
+                value={form.state}
+                onChange={(e) => handleChange("state", e.target.value)}
+              />
             </Field>
           </FormGrid>
 
           <FormGrid columns="2">
             <Field>
               <Label>Email</Label>
-              <Input value={form.email} onChange={(e) => handleChange("email", e.target.value)} />
+              <Input
+                value={form.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+              />
             </Field>
+
             <Field>
               <Label>Telefone</Label>
-              <Input value={form.cellphone} onChange={(e) => handleChange("cellphone", e.target.value)} />
+              <Input
+                value={formatTelefone(form.cellphone || "")}
+                onChange={(e) =>
+                  handleChange("cellphone", e.target.value.replace(/\D/g, ""))
+                }
+              />
             </Field>
           </FormGrid>
 
           <Field>
             <Label>Anotação</Label>
-            <TextArea rows="2" value={form.notes} onChange={(e) => handleChange("notes", e.target.value)} />
+            <TextArea
+              rows="2"
+              value={form.notes}
+              onChange={(e) => handleChange("notes", e.target.value)}
+            />
           </Field>
         </Section>
 
@@ -314,35 +401,80 @@ const ModalCliente = ({ onClose, onSave }) => {
 
               <FormGrid columns="4">
                 <Field>
-                  <Label>Marca</Label>
-                  <Input value={v.brand || ""} onChange={(e) => handleVehicleChange(index, "brand", e.target.value)} />
+                  <Label>Placa</Label>
+                  <Input
+                    value={v.licensePlate || ""}
+                    onChange={(e) =>
+                      handleVehicleChange(index, "licensePlate", e.target.value)
+                    }
+                  />
                 </Field>
+
+                <Field>
+                  <Label>Marca</Label>
+                  <Input
+                    value={v.brand || ""}
+                    onChange={(e) =>
+                      handleVehicleChange(index, "brand", e.target.value)
+                    }
+                  />
+                </Field>
+
                 <Field>
                   <Label>Modelo</Label>
-                  <Input value={v.model || ""} onChange={(e) => handleVehicleChange(index, "model", e.target.value)} />
+                  <Input
+                    value={v.name || ""}
+                    onChange={(e) =>
+                      handleVehicleChange(index, "name", e.target.value)
+                    }
+                  />
                 </Field>
-                <Field>
-                  <Label>Placa</Label>
-                  <Input value={v.licensePlate || ""} onChange={(e) => handleVehicleChange(index, "licensePlate", e.target.value)} />
-                </Field>
+
                 <Field>
                   <Label>Ano</Label>
-                  <Input value={v.year || ""} onChange={(e) => handleVehicleChange(index, "year", e.target.value)} />
+                  <Input
+                    value={v.year || ""}
+                    inputMode="numeric"
+                    onChange={(e) =>
+                      handleVehicleChange(
+                        index,
+                        "year",
+                        apenasNumerosPositivos(e.target.value)
+                      )
+                    }
+                  />
                 </Field>
               </FormGrid>
 
               <FormGrid columns="4">
                 <Field>
                   <Label>Tipo de combustível</Label>
-                  <Input value={v.fuel || ""} onChange={(e) => handleVehicleChange(index, "fuel", e.target.value)} />
+                  <Input
+                    value={v.fuel || ""}
+                    onChange={(e) =>
+                      handleVehicleChange(index, "fuel", e.target.value)
+                    }
+                  />
                 </Field>
+
                 <Field>
                   <Label>Chassi</Label>
-                  <Input value={v.chassis || ""} onChange={(e) => handleVehicleChange(index, "chassis", e.target.value)} />
+                  <Input
+                    value={v.chassis || ""}
+                    onChange={(e) =>
+                      handleVehicleChange(index, "chassis", e.target.value)
+                    }
+                  />
                 </Field>
+
                 <Field>
                   <Label>Km</Label>
-                  <Input value={v.km || ""} onChange={(e) => handleVehicleChange(index, "km", e.target.value)} />
+                  <Input
+                    value={v.km || ""}
+                    onChange={(e) =>
+                      handleVehicleChange(index, "km", e.target.value)
+                    }
+                  />
                 </Field>
               </FormGrid>
             </FormWrapper>
