@@ -133,17 +133,21 @@ const IconButton = styled.button`
 
 const DefaultActions = ({ row, onView, onEdit, onDelete }) => (
   <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
-    <IconButton title="Visualizar" onClick={() => onView?.(row)}>
-      <img src={olhoIcon} alt="Visualizar" />
-    </IconButton>
-
-    <IconButton title="Editar" onClick={() => onEdit?.(row)}>
-      <img src={editarIcon} alt="Editar" />
-    </IconButton>
-
-    <IconButton title="Excluir" onClick={() => onDelete?.(row)}>
-      <img src={excluirIcon} alt="Excluir" />
-    </IconButton>
+    {onView && (
+      <IconButton title="Visualizar" onClick={() => onView(row)}>
+        <img src={olhoIcon} alt="Visualizar" />
+      </IconButton>
+    )}
+    {onEdit && (
+      <IconButton title="Editar" onClick={() => onEdit(row)}>
+        <img src={editarIcon} alt="Editar" />
+      </IconButton>
+    )}
+    {onDelete && (
+      <IconButton title="Excluir" onClick={() => onDelete(row)}>
+        <img src={excluirIcon} alt="Excluir" />
+      </IconButton>
+    )}
   </div>
 );
 
@@ -156,6 +160,7 @@ const DataTable = ({
   onView,
   onEdit,
   onDelete,
+  showActions = true,
 }) => {
   return (
     <Container>
@@ -181,9 +186,11 @@ const DataTable = ({
               {columns.map((col, i) => (
                 <TableHeader key={i}>{col}</TableHeader>
               ))}
-              <TableHeader style={{ textAlign: "center", width: "150px" }}>
-                Ações
-              </TableHeader>
+              {showActions && (
+                <TableHeader style={{ textAlign: "center", width: "150px" }}>
+                  Ações
+                </TableHeader>
+              )}
             </tr>
           </thead>
 
@@ -194,25 +201,26 @@ const DataTable = ({
                   {columns.map((col, colIndex) => (
                     <TableCell key={colIndex}>{row[col] ?? "—"}</TableCell>
                   ))}
-                  <TableCell style={{ textAlign: "center" }}>
-                    {/* Se o usuário quiser sobrescrever as ações, ele pode passar renderActions */}
-                    {renderActions ? (
-                      renderActions(row)
-                    ) : (
-                      <DefaultActions
-                        row={row}
-                        onView={onView}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
-                      />
-                    )}
-                  </TableCell>
+                  {showActions && (
+                    <TableCell style={{ textAlign: "center" }}>
+                      {renderActions ? (
+                        renderActions(row)
+                      ) : (
+                        <DefaultActions
+                          row={row}
+                          onView={onView}
+                          onEdit={onEdit}
+                          onDelete={onDelete}
+                        />
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + 1}
+                  colSpan={columns.length + (showActions ? 1 : 0)}
                   style={{ textAlign: "center" }}
                 >
                   Nenhum registro encontrado.
