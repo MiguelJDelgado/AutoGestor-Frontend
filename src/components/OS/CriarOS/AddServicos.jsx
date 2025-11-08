@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import ServicoIcon from "./icons/ServicoOS.png";
 import xIcon from "../../../assets/XIcon.png";
 import plusIcon from "../../../assets/plusIcon.png";
 import ColaboradoresModal from "../../../modals/Colaboradores/AdicionarColaboradorOS";
+import { getAllServices } from "../../../services/ServicoService";
 
 const Section = styled.div`
   background: #fff;
@@ -170,6 +171,20 @@ function ServicosSection() {
   const [servicos, setServicos] = useState([{ colaboradores: [] }]);
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [isColabModalOpen, setIsColabModalOpen] = useState(false);
+  const [serviceList, setServiceList] = useState([]); // lista vinda do backend
+
+  // 🔹 Carrega todos os serviços ao montar o componente
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const data = await getAllServices();
+        setServiceList(data);
+      } catch (error) {
+        console.error("Erro ao carregar serviços:", error);
+      }
+    };
+    fetchServices();
+  }, []);
 
   const adicionarServico = () =>
     setServicos([...servicos, { colaboradores: [] }]);
@@ -184,6 +199,46 @@ function ServicosSection() {
       )
     );
     setIsColabModalOpen(false);
+  };
+
+  // 🔹 Quando o usuário escolhe um serviço no select
+  const handleSelectService = (index, serviceId) => {
+    const selectedService = serviceList.find((s) => s._id === serviceId);
+    if (!selectedService) return;
+
+    setServicos((prev) =>
+      prev.map((srv, i) =>
+        i === index
+          ? {
+              ...srv,
+              serviceId: selectedService._id,
+              title: selectedService.title,
+              workHours: selectedService.workHours,
+              hourValue: selectedService.hourValue,
+              totalValue: selectedService.totalValue,
+              quantidade: 1, // valor padrão editável
+            }
+          : srv
+      )
+    );
+  };
+
+  // 🔹 Atualiza o campo de quantidade manualmente
+  const handleChangeQuantidade = (index, value) => {
+    setServicos((prev) =>
+      prev.map((srv, i) =>
+        i === index
+          ? {
+              ...srv,
+              quantidade: value,
+              totalValue:
+                srv.hourValue && srv.workHours
+                  ? srv.hourValue * srv.workHours * value
+                  : srv.totalValue,
+            }
+          : srv
+      )
+    );
   };
 
   return (
@@ -202,52 +257,70 @@ function ServicosSection() {
           <FormGrid>
             <Field>
               <Label>Título do serviço</Label>
-              <Select>
-                <option>Lista de serviços cadastrados</option>
+              <Select
+                value={servico.serviceId || ""}
+                onChange={(e) => handleSelectService(index, e.target.value)}
+              >
+                <option value="">Selecione um serviço</option>
+                {serviceList.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.title}
+                  </option>
+                ))}
               </Select>
             </Field>
 
             <Field>
               <Label>Horas de trabalho</Label>
-              <Input disabled placeholder="Puxado da área de serviços" />
+              <Input
+                disabled
+                placeholder="Puxado da área de serviços"
+                value={servico.workHours || ""}
+              />
             </Field>
 
             <Field>
               <Label>Quantidade</Label>
-              <Input placeholder="Editável" />
+              <Input
+                type="number"
+                min="1"
+                placeholder="Editável"
+                value={servico.quantidade || ""}
+                onChange={(e) =>
+                  handleChangeQuantidade(index, Number(e.target.value))
+                }
+              />
             </Field>
 
             <Field>
               <Label>Valor hora</Label>
-              <Input disabled placeholder="Puxado da área de serviços" />
+              <Input
+                disabled
+                placeholder="Puxado da área de serviços"
+                value={servico.hourValue || ""}
+              />
             </Field>
 
             <Field>
               <Label>Valor unitário</Label>
-              <Input disabled placeholder="Puxado da área de serviços" />
-            </Field>
-
-            <Field>
-              <Label>Tipo de Desconto</Label>
-              <Select>
-                <option>Desconto %</option>
-                <option>Desconto R$</option>
-              </Select>
-            </Field>
-
-            <Field>
-              <Label>Desconto</Label>
-              <Input placeholder="Editável" />
-            </Field>
-
-            <Field>
-              <Label>Subtotal sem desconto</Label>
-              <Input disabled placeholder="unitário x quantidade" />
+              <Input
+                disabled
+                placeholder="Puxado da área de serviços"
+                value={
+                  servico.workHours && servico.hourValue
+                    ? servico.workHours * servico.hourValue
+                    : ""
+                }
+              />
             </Field>
 
             <Field>
               <Label>Valor total</Label>
-              <Input disabled placeholder="cálculo final" />
+              <Input
+                disabled
+                placeholder="cálculo final"
+                value={servico.totalValue || ""}
+              />
             </Field>
 
             <Field>
@@ -267,7 +340,6 @@ function ServicosSection() {
                 </AddColabButton>
               </ChipsContainer>
             </Field>
-
           </FormGrid>
         </FormWrapper>
       ))}
@@ -278,9 +350,7 @@ function ServicosSection() {
         <ColaboradoresModal
           onClose={() => setIsColabModalOpen(false)}
           onSave={handleSaveColaboradores}
-          colaboradoresIniciais={
-            servicos[selectedIndex]?.colaboradores || []
-          }
+          colaboradoresIniciais={servicos[selectedIndex]?.colaboradores || []}
         />
       )}
     </Section>
