@@ -99,23 +99,23 @@ const DropdownItem = styled.li`
   }
 `;
 
-const VeiculoOS = ({ value, onChange }) => {
+const VeiculoOS = ({ vehicleId, setVehicleId }) => {
   const [veiculos, setVeiculos] = useState([]);
   const [filteredVeiculos, setFilteredVeiculos] = useState([]);
-  const [busca, setBusca] = useState("");
   const [veiculoSelecionado, setVeiculoSelecionado] = useState(null);
+  const [busca, setBusca] = useState("");
 
   const [dadosVeiculo, setDadosVeiculo] = useState({
-    marca: "—",
-    modelo: "—",
-    placa: "—",
-    ano: "—",
-    tipoCombustivel: "—",
-    chassi: "—",
-    km: "—",
+    marca: "",
+    modelo: "",
+    placa: "",
+    ano: "",
+    tipoCombustivel: "",
+    chassi: "",
+    km: "",
   });
 
-  // 🔹 Buscar veículos do backend
+  // 🔹 Buscar todos os veículos
   useEffect(() => {
     const fetchVeiculos = async () => {
       try {
@@ -129,43 +129,45 @@ const VeiculoOS = ({ value, onChange }) => {
     fetchVeiculos();
   }, []);
 
-  // 🔹 Filtra veículos conforme texto digitado
+  // 🔹 Filtrar veículos conforme busca
   useEffect(() => {
     const termo = busca.toLowerCase();
-    const filtrados = veiculos.filter((v) =>
-      v.name.toLowerCase().includes(termo)
+    const filtrados = veiculos.filter(
+      (v) =>
+        v.name?.toLowerCase().includes(termo) ||
+        v.licensePlate?.toLowerCase().includes(termo)
     );
     setFilteredVeiculos(filtrados);
   }, [busca, veiculos]);
 
-  // 🔹 Quando veículo é selecionado
+  // 🔹 Quando o veículo é selecionado
   const handleSelectVeiculo = (veiculo) => {
     setVeiculoSelecionado(veiculo);
-    setBusca(`${veiculo.name} - ${veiculo.licensePlate ?? ""}`);
+    setBusca(`${veiculo.name || ""} - ${veiculo.licensePlate || ""}`);
 
-    const dados = {
-      marca: veiculo.brand || "—",
-      modelo: veiculo.name || "—",
-      placa: veiculo.licensePlate || "—",
-      ano: veiculo.year || "—",
-      tipoCombustivel: veiculo.fuel || "—",
-      chassi: veiculo.chassi || "—",
-      km: veiculo.km?.toLocaleString() || "—",
-    };
+    setDadosVeiculo({
+      marca: veiculo.brand || "",
+      modelo: veiculo.name || "",
+      placa: veiculo.licensePlate || "",
+      ano: veiculo.year || "",
+      tipoCombustivel: veiculo.fuel || "",
+      chassi: veiculo.chassi || "",
+      km: veiculo.km || "",
+    });
 
-    setDadosVeiculo(dados); // mantém autopreenchimento interno
-    onChange && onChange(dados); // notifica o pai
+    // 🔸 Envia apenas o ID do veículo
+    setVehicleId(veiculo._id);
   };
 
   return (
     <Section>
       <SectionHeader>
         <Icon src={VeiculoIcon} alt="Veículo" />
-        Dados do Veículo
+        Veículo
       </SectionHeader>
 
       <FormGrid>
-        <Field>
+        <Field style={{ position: "relative" }}>
           <Label>Veículo / Placa</Label>
           <Input
             type="text"
@@ -173,6 +175,7 @@ const VeiculoOS = ({ value, onChange }) => {
             onChange={(e) => {
               setBusca(e.target.value);
               setVeiculoSelecionado(null);
+              setVehicleId(null);
             }}
             placeholder="Digite o nome ou placa..."
             autoComplete="off"
@@ -181,10 +184,7 @@ const VeiculoOS = ({ value, onChange }) => {
           {busca && !veiculoSelecionado && filteredVeiculos.length > 0 && (
             <Dropdown>
               {filteredVeiculos.slice(0, 8).map((v) => (
-                <DropdownItem
-                  key={v._id}
-                  onClick={() => handleSelectVeiculo(v)}
-                >
+                <DropdownItem key={v._id} onClick={() => handleSelectVeiculo(v)}>
                   {v.name} — {v.licensePlate}
                 </DropdownItem>
               ))}

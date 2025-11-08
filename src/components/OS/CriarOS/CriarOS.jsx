@@ -5,7 +5,6 @@ import NovaOSIcon from "./icons/NovaOS.png";
 import ServicosSection from "./AddServicos";
 import ProdutosSection from "./AddProdutos";
 import DadosOSSection from "./DadosOS";
-import VeiculosSection from "./AddVeiculos";
 import SolicitacaoCliente from "./SolicitacaoCliente";
 import AnaliseInicial from "./AnaliseInicial";
 import DescontoTotal from "./DescontoTotal";
@@ -13,6 +12,7 @@ import ObservacaoOS from "./ObservacaoOS";
 import CustoTotal from "./CustoTotal";
 import { createServiceOrder } from "../../../services/OrdemServicoService";
 import ClienteOS from "./AddClientes";
+import VeiculoOS from "./AddVeiculos";
 
 const Container = styled.div`
   background: #7f929d;
@@ -91,8 +91,16 @@ function CriarOS() {
     paid: false,
   });
 
+const [custoTotal, setCustoTotal] = useState({
+  valorProdutos: "",
+  valorServicos: "",
+  valorTotal: "",
+  totalComDesconto: "",
+});
+
+
   const [clientId, setClientId] = useState(null);
-  const [veiculo, setVeiculo] = useState({});
+  const [vehicleId, setVehicleId] = useState(null);
   const [servicos, setServicos] = useState([{ colaboradores: [] }]);
   const [products, setProducts] = useState([]);
   const [observacao, setObservacao] = useState("");
@@ -108,7 +116,7 @@ function CriarOS() {
     try {
       const payload = {
         clientId: clientId,
-        vehicleId: veiculo._id,
+        vehicleId: vehicleId,
         description: dadosOS.description,
         technicalAnalysis: dadosOS.technicalAnalysis,
         status: dadosOS.status,
@@ -146,8 +154,6 @@ function CriarOS() {
         })),
       };
 
-      console.log("📦 Payload final para o backend:", payload);
-
       const res = await createServiceOrder(payload);
 
       alert("✅ Ordem de serviço criada com sucesso!");
@@ -167,7 +173,7 @@ function CriarOS() {
 
       <DadosOSSection dadosOS={dadosOS} setDadosOS={setDadosOS} />
       <ClienteOS clientId={clientId} setClientId={setClientId} />
-      <VeiculosSection veiculo={veiculo} setVeiculo={setVeiculo} />
+      <VeiculoOS vehicleId={vehicleId} setVehicleId={setVehicleId} />
       <ServicosSection servicos={servicos} setServicos={setServicos} />
       <ProdutosSection products={products} setProducts={setProducts} />
       <SolicitacaoCliente
@@ -186,8 +192,8 @@ function CriarOS() {
         onChange={(novo) => setDescontoData(novo)}
       />
 
-      <CustoTotal servicos={servicos} products={products} descontoData={descontoData} />
-      <ObservacaoOS observacao={observacao} setObservacao={setObservacao} />
+      <CustoTotal value={custoTotal} onChange={setCustoTotal} />
+      <ObservacaoOS value={observacao} onChange={setObservacao} />
 
       <ButtonsWrapper>
         <SaveButton onClick={handleSave}>SALVAR</SaveButton>
