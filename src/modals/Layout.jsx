@@ -84,7 +84,7 @@ const SaveBtn = styled.button`
   }
 `;
 
-const LayoutModal = ({ title, onClose, onSave, children }) => {
+const LayoutModal = ({ title, onClose, onSave, children, hideSaveButton }) => {
   return (
     <Overlay role="dialog" aria-modal="true" aria-label={title}>
       <Modal>
@@ -98,8 +98,8 @@ const LayoutModal = ({ title, onClose, onSave, children }) => {
         {children}
 
         <Actions>
-          <CancelBtn onClick={onClose}>Cancelar</CancelBtn>
-          <SaveBtn onClick={onSave}>Salvar</SaveBtn>
+          <CancelBtn onClick={onClose}>Fechar</CancelBtn>
+          {!hideSaveButton && <SaveBtn onClick={onSave}>Salvar</SaveBtn>}
         </Actions>
       </Modal>
     </Overlay>
