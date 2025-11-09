@@ -1,9 +1,10 @@
 // src/components/CardsFinancas.jsx
 import styled from 'styled-components';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
+import { getAnnualBilling, getDashboardMonthly, getServiceOrdersNearDeadline, getServiceOrdersPastDeadline } from '../../services/DashboardService';
 
 const Block = styled.section`
   padding: 16px 20px;
@@ -100,6 +101,26 @@ const OrderItem = styled.div`
   }
 `;
 
+// 🔹 Adiciona um wrapper interno rolável dentro de cada card
+const ScrollableList = styled.div`
+  max-height: 140px; /* altura máxima antes de rolar */
+  overflow-y: auto;
+  margin-top: 8px;
+
+  /* barra de rolagem discreta */
+  scrollbar-width: thin;
+  scrollbar-color: #aaa transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #aaa;
+    border-radius: 3px;
+  }
+`;
+
+
 const cardBg = {
   faturado: 'linear-gradient(135deg, #5ecf68, #9ad84d)',
   servicos: 'linear-gradient(135deg, #0aa1dd, #1864ab)',
@@ -110,60 +131,85 @@ const cardBg = {
 };
 
 const months = [
-  'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-  'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'
+  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
 ];
 
 function formatBRL(n) {
-  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return n?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) ?? "R$ 0,00";
 }
 
-function FinanceSummary({
-  initialMonthIndex = new Date().getMonth(),
-  dataByMonth = {
-    Janeiro:   { faturado: 250000, servicos: 110000, pecas:  80000, custos: 120000, osEmitidas: 45, novosClientes: 8 },
-    Fevereiro: { faturado: 210000, servicos:  90000, pecas:  70000, custos: 110000, osEmitidas: 50, novosClientes: 10 },
-    Março:     { faturado: 420000, servicos: 180000, pecas: 130000, custos: 160000, osEmitidas: 70, novosClientes: 12 },
-    Abril:     { faturado: 470000, servicos: 200000, pecas: 145000, custos: 170000, osEmitidas: 65, novosClientes: 18 },
-    Maio:      { faturado: 390000, servicos: 175000, pecas: 120000, custos: 150000, osEmitidas: 75, novosClientes: 14 },
-    Junho:     { faturado: 360000, servicos: 160000, pecas: 115000, custos: 140000, osEmitidas: 80, novosClientes: 20 },
-    Julho:     { faturado: 410000, servicos: 185000, pecas: 125000, custos: 155000, osEmitidas: 78, novosClientes: 22 },
-    Agosto:    { faturado: 520000, servicos: 220000, pecas: 300000, custos: 200000, osEmitidas: 85, novosClientes: 25 },
-  }
-}) {
-  const [month, setMonth] = useState(months[initialMonthIndex] || 'Agosto');
+function FinanceSummary() {
+  const currentDate = new Date();
+  const [monthIndex, setMonthIndex] = useState(currentDate.getMonth());
+  const [monthlyData, setMonthlyData] = useState(null);
+  const [annualData, setAnnualData] = useState([]);
+  const [ordersNear, setOrdersNear] = useState([]);
+  const [ordersLate, setOrdersLate] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const mdata = useMemo(
-    () => dataByMonth[month] || { faturado: 0, servicos: 0, pecas: 0, custos: 0, osEmitidas: 0, novosClientes: 0 },
-    [month, dataByMonth]
-  );
+  const monthName = months[monthIndex];
+  const currentYear = currentDate.getFullYear();
 
-  // Dados do gráfico anual
-  const chartData = useMemo(
-    () =>
-      Object.entries(dataByMonth).map(([mes, valores]) => ({
-        month: mes.substring(0, 3),
-        faturado: valores.faturado,
-      })),
-    [dataByMonth]
-  );
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const monthParam = `${currentYear}-${String(monthIndex + 1).padStart(2, "0")}`;
 
-  // 🔹 Dados simulados de ordens
-  const ordensProximas = [
-    { id: '25081501', cliente: 'Transportadora Carrion', veiculo: 'Montana', data: '18/08/25' },
-    { id: '25081502', cliente: 'Transportadora Delgado', veiculo: 'Montana', data: '19/08/25' },
-  ];
+        const [monthlyRes, annualRes, nearRes, pastRes] = await Promise.all([
+          getDashboardMonthly(monthParam),
+          getAnnualBilling(currentYear),
+          getServiceOrdersNearDeadline(),
+          getServiceOrdersPastDeadline(),
+        ]);
 
-  const ordensVencidas = [
-    { id: '25031204', cliente: 'Transportadora Dimas', veiculo: 'Montana', data: '14/08/25' },
-    { id: '25041503', cliente: 'Transportadora Fekete', veiculo: 'Montana', data: '13/07/25' },
-  ];
+        setMonthlyData(monthlyRes);
+        setAnnualData(annualRes);
+        setOrdersNear(nearRes);
+        setOrdersLate(pastRes);
+      } catch (err) {
+        console.error("Erro ao buscar dados do dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [monthIndex]);
+
+  const mdata = useMemo(() => {
+    if (!monthlyData) {
+      return { faturado: 0, servicos: 0, pecas: 0, custos: 0, osEmitidas: 0, novosClientes: 0 };
+    }
+
+    const { billingTotalValue, totalCost, quantityNewClients } = monthlyData;
+    return {
+      faturado: billingTotalValue?.totalGeneral ?? 0,
+      servicos: billingTotalValue?.totalServices ?? 0,
+      pecas: billingTotalValue?.totalProducts ?? 0,
+      custos: totalCost ?? 0,
+      osEmitidas: billingTotalValue?.countOrders ?? 0,
+      novosClientes: quantityNewClients ?? 0,
+    };
+  }, [monthlyData]);
+
+  const chartData = useMemo(() => {
+    return (annualData || []).map((item) => ({
+      month: months[item.month - 1]?.substring(0, 3) ?? "Mês",
+      faturado: item.totalBilling,
+    }));
+  }, [annualData]);
+
+  if (loading) return <p>Carregando...</p>;
 
   return (
     <Block>
       <RowHead>
-        <strong>{month}</strong>
-        <MonthSelect value={month} onChange={(e) => setMonth(e.target.value)}>
+        <strong>{monthName}</strong>
+        <MonthSelect
+          value={monthName}
+          onChange={(e) => setMonthIndex(months.indexOf(e.target.value))}
+        >
           {months.map((m) => (
             <option key={m} value={m}>{m}</option>
           ))}
@@ -193,8 +239,8 @@ function FinanceSummary({
         </Card>
       </Cards>
 
-      {/* 🔹 Novos indicadores (segunda linha) */}
-      <Cards style={{ marginTop: '18px' }}>
+      {/* Segunda linha */}
+      <Cards style={{ marginTop: "18px" }}>
         <Card style={{ background: cardBg.osEmitidas }}>
           <Label>O.S Emitidas</Label>
           <Value>{mdata.osEmitidas}</Value>
@@ -206,16 +252,11 @@ function FinanceSummary({
         </Card>
       </Cards>
 
-      {/* 🔹 Gráfico + Ordens de Serviço */}
+      {/* Gráfico + Ordens */}
       <ChartWrapper>
-        {/* Gráfico */}
         <ChartContainer>
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              margin={{ top: 10, right: 30, left: 0, bottom: 5 }}
-              barSize={40}
-            >
+            <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 5 }} barSize={40}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis tickFormatter={(v) => `R$ ${(v / 1000).toFixed(0)}k`} />
@@ -225,26 +266,42 @@ function FinanceSummary({
           </ResponsiveContainer>
         </ChartContainer>
 
-        {/* Cards de ordens */}
         <OrdersContainer>
+          {/* Próximas do vencimento */}
           <OrderCard>
             <OrderTitle color="#1864ab">📅 Próximas do vencimento</OrderTitle>
-            {ordensProximas.map((o) => (
-              <OrderItem key={o.id}>
-                <span>{o.id}</span> | {o.cliente} | {o.veiculo} | {o.data}
-              </OrderItem>
-            ))}
+            <ScrollableList>
+              {ordersNear.length > 0 ? (
+                ordersNear.map((o) => (
+                  <OrderItem key={o._id}>
+                    <span>{o.code}</span> | {o.client} | {o.vehicle} |{" "}
+                    {new Date(o.deadline).toLocaleDateString("pt-BR")}
+                  </OrderItem>
+                ))
+              ) : (
+                <p>Nenhuma ordem próxima do vencimento.</p>
+              )}
+            </ScrollableList>
           </OrderCard>
 
+          {/* Vencidas */}
           <OrderCard>
             <OrderTitle color="#c92a2a">⛔ Vencidas</OrderTitle>
-            {ordensVencidas.map((o) => (
-              <OrderItem key={o.id}>
-                <span>{o.id}</span> | {o.cliente} | {o.veiculo} | {o.data}
-              </OrderItem>
-            ))}
+            <ScrollableList>
+              {ordersLate.length > 0 ? (
+                ordersLate.map((o) => (
+                  <OrderItem key={o._id}>
+                    <span>{o.code}</span> | {o.client} |{" "}
+                    {new Date(o.deadline).toLocaleDateString("pt-BR")}
+                  </OrderItem>
+                ))
+              ) : (
+                <p>Nenhuma ordem vencida.</p>
+              )}
+            </ScrollableList>
           </OrderCard>
         </OrdersContainer>
+
       </ChartWrapper>
     </Block>
   );
