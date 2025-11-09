@@ -2,11 +2,37 @@ import { getAuthHeaders } from "../utils/Token";
 
 const API_URL = import.meta.env.VITE_API + "/auth/service-orders";
 
-export const getAllServiceOrders = async () => {
-  const res = await fetch(`${API_URL}`, {
+export const getAllServiceOrders = async ({ clientId, date, code, status, paid } = {}) => {
+  const queryParams = new URLSearchParams();
+  console.log('clientId:', clientId);
+
+  if (clientId) queryParams.append("clientId", clientId);
+  if (date) queryParams.append("date", date);
+  if (code) queryParams.append("code", code);
+
+  const statusMap = {
+    analise: "request",
+    "pendente-produto": "pending_product",
+    pendente: "budget",
+    emprogresso: "in_progress",
+    concluido: "completed",
+    cancelado: "canceled",
+  };
+
+  if (status && status.toLowerCase() !== "todos") {
+    const mappedStatus = statusMap[status.toLowerCase()] || status;
+    queryParams.append("status", mappedStatus);
+  }
+
+  if (paid && paid.toLowerCase() !== "todos") {
+    queryParams.append("paid", paid === "sim");
+  }
+
+  const res = await fetch(`${API_URL}?${queryParams.toString()}`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("Erro ao buscar usuários");
+
+  if (!res.ok) throw new Error("Erro ao buscar ordens de serviços");
   return res.json();
 };
 

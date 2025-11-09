@@ -9,7 +9,7 @@ import imprimirIcon from '../../assets/imprimir.png'
 import clockIcon from '../../assets/clock.png'  // 🕒 novo ícone
 import Header from '../Header/Header'
 import { getAllServiceOrders, scheduleTimeReportEmailSender, stopTimeReportEmailSender } from '../../services/OrdemServicoService.jsx'
-import { getClientById } from '../../services/ClienteService.jsx'
+import { getAllClients, getClientById } from '../../services/ClienteService.jsx'
 import { getVehicleById } from '../../services/VeiculoService.jsx'
 
 const MainContent = styled.div`
@@ -160,6 +160,12 @@ const Select = styled.select`
     color: #ffffff;
     border-color: #1f2937;
   }
+
+  &.paid-select {
+    background-color:#333;
+    color: #ffffff;
+    border-color: #1f2937;
+  }
 `
 
 const FilterButton = styled.button`
@@ -255,6 +261,35 @@ const IconImage = styled.img`
   display: block;
 `
 
+const Dropdown = styled.ul`
+  position: absolute;
+  top: 100%; // logo abaixo do input
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+`;
+
+const DropdownItem = styled.li`
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #0f2f43;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f3f6f9;
+  }
+`;
+
 function Os({
   onApprove = () => {},
   onPrint = () => {},
@@ -271,6 +306,11 @@ function Os({
   const [showModal, setShowModal] = useState(false);
   const [hour, setHour] = useState("");
   const [minute, setMinute] = useState("");
+
+  const [clientes, setClientes] = useState([]);
+  const [filteredClientes, setFilteredClientes] = useState([]);
+  const [buscaCliente, setBuscaCliente] = useState("");
+  const [clienteSelecionado, setClienteSelecionado] = useState(null);
 
   const formatCurrencyBRL = (value) => {
     if (value === null || value === undefined) return "";
@@ -302,11 +342,53 @@ function Os({
     }
   };
 
-  // 🧠 Buscar todas as ordens e montar os dados completos
-  const fetchServiceOrders = async () => {
+  useEffect(() => {
+    const fetchClientes = async () => {
+      try {
+        const res = await getAllClients();
+        setClientes(res);
+        setFilteredClientes(res);
+      } catch (err) {
+        console.error("Erro ao buscar clientes:", err);
+      }
+    };
+    fetchClientes();
+  }, []);
+
+  useEffect(() => {
+    const termo = buscaCliente.toLowerCase();
+    const filtrados = clientes.filter((c) =>
+      c.name.toLowerCase().includes(termo)
+    );
+    setFilteredClientes(filtrados);
+  }, [buscaCliente, clientes]);
+
+  const handleSelectCliente = (cliente) => {
+    setClienteSelecionado(cliente);
+    setBuscaCliente(cliente.name);
+  };
+
+  const statusMap = {
+    analise: "request",
+    "pendente-produto": "pending_product",
+    pendente: "budget",
+    emprogresso: "in_progress",
+    concluido: "completed",
+    cancelado: "canceled",
+  };
+
+  const fetchServiceOrders = async ({ clientId, date, code, status, paid } = {}) => {
     try {
-      setLoading(true);
-      const serviceOrders = await getAllServiceOrders();
+    setLoading(true);
+
+    const filters = {};
+    if (clientId) filters.clientId = clientId;
+    if (date) filters.date = date;
+    if (code) filters.code = code;
+    if (status && status !== "todos") filters.status = statusMap[status] || status;
+    if (paid && paid !== "todos") filters.paid = paid;
+
+    const serviceOrders = await getAllServiceOrders(filters);
 
       // busca cliente e veículo para cada OS
       const fullOrders = await Promise.all(
@@ -374,6 +456,23 @@ function Os({
   useEffect(() => {
     fetchServiceOrders();
   }, []);
+
+  
+  const handleFilter = () => {
+    const date = document.querySelector('input[type="date"]').value;
+    const code = document.querySelector('input[placeholder="Código"]').value;
+    const status = document.querySelector('.status-select').value;
+    const paid = document.querySelector('.paid-select').value;
+
+    fetchServiceOrders({
+      clientId: clienteSelecionado?._id,
+      date,
+      code,
+      status,
+      paid,
+    });
+  };
+
 
   return (
     <MainContent>
@@ -474,17 +573,34 @@ function Os({
       <SearchSection>
         <SearchTitle>Buscar</SearchTitle>
         <SearchForm>
-          <FormGroup>
+          <FormGroup style={{ position: "relative" }}>
             <Label>Cliente</Label>
-            <Input type="text" placeholder="Nome do cliente" />
+            <Input
+              type="text"
+              value={buscaCliente}
+              onChange={(e) => {
+                setBuscaCliente(e.target.value);
+                setClienteSelecionado(null);
+              }}
+              placeholder="Digite para buscar..."
+              autoComplete="off"
+            />
+            {buscaCliente && !clienteSelecionado && filteredClientes.length > 0 && (
+              <Dropdown>
+                {filteredClientes.slice(0, 8).map((cliente) => (
+                  <DropdownItem
+                    key={cliente._id}
+                    onClick={() => handleSelectCliente(cliente)}
+                  >
+                    {cliente.name}
+                  </DropdownItem>
+                ))}
+              </Dropdown>
+            )}
           </FormGroup>
           <FormGroup>
             <Label>Código</Label>
             <Input type="text" placeholder="Código" />
-          </FormGroup>
-          <FormGroup>
-            <Label>O.S</Label>
-            <Input type="text" placeholder="Número da OS" />
           </FormGroup>
           <FormGroup>
             <Label>Data</Label>
@@ -493,17 +609,25 @@ function Os({
           <FormGroup>
             <Label>Status</Label>
             <Select className="status-select">
-              <option value="budget">Análise/Orçamento</option>
-              <option value="pending">Pendente</option>
-              <option value="finalized">Finalizado</option>
+              <option value="todos">Todos</option>
+              <option value="analise">Solicitação</option>
+              <option value="pendente">Orçamento</option>
+              <option value="emprogresso">Em Progresso</option>
+              <option value="pendente-produto">Pendente de Produto</option>
+              <option value="cancelado">Cancelado</option>
+              <option value="concluido">Concluído</option>
             </Select>
           </FormGroup>
           <FormGroup>
-            <Label>Valor</Label>
-            <Input type="number" placeholder="Valor" />
+            <Label>Pago</Label>
+            <Select className="paid-select">
+              <option value="todos">Todos</option>
+              <option value="sim">Sim</option>
+              <option value="nao">Não</option>
+            </Select>
           </FormGroup>
           <FormGroup>
-            <FilterButton>Filtrar</FilterButton>
+            <FilterButton onClick={handleFilter}>Filtrar</FilterButton>
           </FormGroup>
         </SearchForm>
       </SearchSection>
