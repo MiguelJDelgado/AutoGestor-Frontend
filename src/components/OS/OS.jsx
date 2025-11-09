@@ -436,7 +436,7 @@ function Os({
                 : order.status === "request"
                 ? "Solicitação"
                 : order.status,
-            dataCriacao: order.createdAt,
+            dataEntrada: order.entryDate,
             dataFinalizacao: order.deadline,
             valor: order.totalValueWithDiscount ?? order.totalValueGeneral,
           };
@@ -603,7 +603,7 @@ function Os({
             <Input type="text" placeholder="Código" />
           </FormGroup>
           <FormGroup>
-            <Label>Data</Label>
+            <Label>Data de Entrada</Label>
             <Input type="date" />
           </FormGroup>
           <FormGroup>
@@ -649,7 +649,7 @@ function Os({
                 <Th>Veículo</Th>
                 <Th>Placa</Th>
                 <Th>Status</Th>
-                <Th>Data</Th>
+                <Th>Data de Entrada</Th>
                 <Th>Valor</Th>
                 <Th>Ações</Th>
               </tr>
@@ -669,7 +669,7 @@ function Os({
                       </StatusBadge>
                     </Td>
                     <Td>
-                      {formatDateTimeBR(order.dataCriacao)}
+                      {formatDateTimeBR(order.dataEntrada)}
                       <br />
                       <small>
                         {order.dataFinalizacao
