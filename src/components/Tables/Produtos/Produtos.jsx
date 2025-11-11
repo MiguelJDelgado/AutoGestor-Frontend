@@ -22,6 +22,7 @@ const TelaProdutos = () => {
     { label: "Código", value: "code" },
     { label: "Nome", value: "name" },
     { label: "Unidade de Medida", value: "unitMeasure" },
+    { label: "Estoque Disponível", value: "quantity" },
   ];
 
   // 🔹 Função para formatar produtos retornados

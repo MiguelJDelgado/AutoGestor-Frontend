@@ -5,70 +5,80 @@ import CriarServico from "../../../modals/Servicos/CriarServicos";
 import { getAllServices } from "../../../services/ServicoService";
 
 const TelaServicos = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const columns = [
+    "Título",
+    "Descrição",
+    "Horas Trabalho",
+    "Valor Hora",
+    "Valor Total",
+  ];
+
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const columns = ["Título", "Descrição", "Horas Trabalho", "Valor Hora", "Valor Total"];
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // 🔹 Campos de busca com mapeamento conforme backend
+  const searchOptions = [
+    { label: "Título", value: "title" },
+    { label: "Descrição", value: "description" },
+    { label: "Horas de trabalho", value: "workHours" },
+    { label: "Valor por hora", value: "hourValue" },
+    { label: "Valor total", value: "totalValue" },
+  ];
+
+  // 🔹 Formata serviços retornados do backend
+  const formatServices = (servicesArray) =>
+    servicesArray.map((s) => ({
+      Título: s.title ?? "-",
+      Descrição: s.description ?? "-",
+      "Horas Trabalho": s.workHours ?? 0,
+      "Valor Hora": s.hourValue
+        ? `R$ ${Number(s.hourValue).toFixed(2)}`
+        : "-",
+      "Valor Total": s.totalValue
+        ? `R$ ${Number(s.totalValue).toFixed(2)}`
+        : "-",
+    }));
+
+  // 🔹 Busca serviços (padrão para carregamento e pesquisa)
+  const fetchServices = async (filters = {}) => {
+    try {
+      const response = await getAllServices({
+        page: 1,
+        limit: 10,
+        ...filters,
+      });
+
+      // Considera que o backend retorna { data: [...] }
+      const servicesArray = response.data || response;
+      setData(formatServices(servicesArray));
+    } catch (error) {
+      console.error("Erro ao carregar serviços:", error.message);
+    }
+  };
+
+  // 🔹 Carrega todos os serviços ao montar o componente
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const services = await getAllServices();
-        console.log("🔍 Retorno do back:", services);
-
-        // Formata os dados vindos do backend
-        const formatted = services.map((item) => {
-          const horas = item.workHours || item.horasTrabalho || "";
-          const valorHora = item.hourValue || item.valorHora || "";
-          const valorTotal =
-            item.totalValue ||
-            (horas && valorHora ? Number(horas) * Number(valorHora) : "");
-
-          return {
-            titulo: item.title || item.titulo,
-            descricao: item.description || item.descricao,
-            horasTrabalho: horas,
-            valorHora,
-            valorTotal,
-          };
-        });
-
-        // 🔁 Converte para o formato esperado pela tabela
-        const formattedForTable = formatted.map((item) => ({
-          Título: item.titulo,
-          Descrição: item.descricao,
-          "Horas Trabalho": item.horasTrabalho,
-          "Valor Hora": item.valorHora,
-          "Valor Total": item.valorTotal,
-        }));
-
-        console.log("📋 Dados enviados à tabela:", formattedForTable);
-        setData(formattedForTable);
-      } catch (err) {
-        console.error("Erro ao buscar serviços:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    fetchServices();
   }, []);
 
-  const handleSaveServico = (novoServico) => {
-    // Quando criar um novo serviço, converte também para o formato da tabela
-    const novoServicoFormatado = {
-      Título: novoServico.title || novoServico.titulo,
-      Descrição: novoServico.description || novoServico.descricao,
-      "Horas Trabalho": novoServico.workHours || novoServico.horasTrabalho,
-      "Valor Hora": novoServico.hourValue || novoServico.valorHora,
-      "Valor Total":
-        novoServico.totalValue ||
-        (novoServico.workHours && novoServico.hourValue
-          ? Number(novoServico.workHours) * Number(novoServico.hourValue)
-          : ""),
-    };
+  // 🔹 Pesquisa: envia campos `identifier` e `search`
+  const handleSearch = async ({ identifier, search }) => {
+    if (!identifier || !search) {
+      await fetchServices(); // limpa pesquisa
+      return;
+    }
+    await fetchServices({ identifier, search });
+  };
 
-    setData((prev) => [...prev, novoServicoFormatado]);
+  // 🔹 Ações da tabela (pode ser estendido depois)
+  const handleView = (row) => console.log("Visualizar", row);
+  const handleEdit = (row) => console.log("Editar", row);
+  const handleDelete = (row) => console.log("Excluir", row);
+
+  // 🔹 Ao salvar novo serviço
+  const handleSaveServico = (novoServico) => {
+    console.log("Novo serviço salvo:", novoServico);
+    fetchServices(); // recarrega lista
   };
 
   return (
@@ -80,8 +90,11 @@ const TelaServicos = () => {
       <Table
         columns={columns}
         data={data}
-        searchOptions={columns}
-        loading={loading}
+        searchOptions={searchOptions}
+        onSearch={handleSearch}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
 
       {isModalOpen && (
