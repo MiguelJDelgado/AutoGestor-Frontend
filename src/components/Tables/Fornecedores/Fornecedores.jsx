@@ -5,7 +5,7 @@ import { getSuppliers } from "../../../services/FornecedorService";
 import CriarFornecedor from "../../../modals/Fornecedores/CriarFornecedores"; // importe o modal
 
 const TelaFornecedores = () => {
-  const columns = ["Nome / Razão Social", "CPF / CNPJ", "Telefone", "Email", "Endereço", "Número", "Município", "CEP", "Inscrição Estadual", "Anotação"];
+  const columns = ["Nome", "CNPJ", "Celular", "Email", "Endereço", "Número", "Município", "CEP", "Inscrição Estadual", "Anotação"];
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -13,12 +13,18 @@ const TelaFornecedores = () => {
     const fetchSuppliers = async () => {
       try {
         const response = await getSuppliers({ page: 1, limit: 10 });
-        const suppliersArray = response.data || [];
-        const formattedData = suppliersArray.map((f) => ({
+        const formattedData = response.map((f) => ({
           Nome: f.name,
           Endereço: f.address,
-          Celular: f.phone,
+          Celular: f.cellphone,
           CNPJ: f.cnpj,
+          "Inscrição Estadual": f.stateRegistration,
+          Email: f.email,
+          Número: f.number,
+          Município: f.city,
+          Estado: f.state,
+          CEP: f.cep,
+          Anotação: f.notes,
         }));
         setData(formattedData);
       } catch (error) {

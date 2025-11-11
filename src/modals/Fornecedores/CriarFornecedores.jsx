@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import LayoutModal from "../Layout";
+import { createSupplier } from "../../services/FornecedorService";
+import { getAddressByCep } from "../../services/CepService";
 
 const FormGrid = styled.div`
   display: grid;
@@ -71,24 +73,119 @@ const CriarFornecedor = ({ onClose = () => {}, onSave = () => {} }) => {
     anotacao: "",
   });
 
+  const [isSaving, setIsSaving] = useState(false);
   const firstInputRef = useRef(null);
 
   useEffect(() => {
     firstInputRef.current?.focus();
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    return () => (document.body.style.overflow = prev);
   }, []);
 
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  // 🔧 Aplica máscara apenas quando necessário
+  const applyMask = (field, value) => {
+    let v = value;
+
+    if (["cpfCnpj", "telefone", "cep"].includes(field)) {
+      v = v.replace(/\D/g, ""); // remove tudo que não é número
+    }
+
+    switch (field) {
+      case "cpfCnpj":
+        if (v.length <= 11) {
+          v = v.replace(/(\d{3})(\d)/, "$1.$2");
+          v = v.replace(/(\d{3})(\d)/, "$1.$2");
+          v = v.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        } else {
+          v = v.replace(/^(\d{2})(\d)/, "$1.$2");
+          v = v.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+          v = v.replace(/\.(\d{3})(\d)/, ".$1/$2");
+          v = v.replace(/(\d{4})(\d)/, "$1-$2");
+        }
+        break;
+
+      case "telefone":
+        if (v.length <= 10) {
+          v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+          v = v.replace(/(\d{4})(\d)/, "$1-$2");
+        } else {
+          v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+          v = v.replace(/(\d{5})(\d)/, "$1-$2");
+        }
+        break;
+
+      case "cep":
+        v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+        break;
+    }
+
+    return v;
   };
 
-  const handleSave = () => {
-    onSave(form);
-    onClose();
+  const handleChange = (field) => async (e) => {
+  let rawValue = e.target.value;
+
+  // 🔢 Impede caracteres não numéricos no campo "numero"
+  if (field === "numero") {
+    rawValue = rawValue.replace(/\D/g, "");
+  }
+
+  const maskedValue = applyMask(field, rawValue);
+  setForm((prev) => ({ ...prev, [field]: maskedValue }));
+
+  // 📦 Busca endereço automático quando CEP completo
+  if (field === "cep") {
+    const onlyDigits = rawValue.replace(/\D/g, "");
+    if (onlyDigits.length === 8) {
+      try {
+        const address = await getAddressByCep(onlyDigits);
+        setForm((prev) => ({
+          ...prev,
+          cep: maskedValue,
+          endereco: address.logradouro || "",
+          municipio: address.localidade || "",
+          uf: address.uf || "",
+        }));
+      } catch (err) {
+        console.error("Erro ao buscar CEP:", err);
+        alert("CEP não encontrado.");
+      }
+    }
+  }
+};
+
+
+
+  const handleSave = async () => {
+    setIsSaving(true);
+
+    try {
+      const unmasked = (v) => v?.replace(/\D/g, "") || "";
+
+      const supplierData = {
+        name: form.nome,
+        cnpj: unmasked(form.cpfCnpj),
+        stateRegistration: form.inscricaoEstadual,
+        cep: unmasked(form.cep),
+        address: form.endereco,
+        number: form.numero,
+        city: form.municipio,
+        state: form.uf,
+        email: form.email,
+        cellphone: unmasked(form.telefone),
+        notes: form.anotacao,
+      };
+
+      const createdSupplier = await createSupplier(supplierData);
+      onSave(createdSupplier);
+      onClose();
+    } catch (error) {
+      console.error("Erro ao criar fornecedor:", error);
+      alert("Erro ao criar fornecedor. Verifique os dados e tente novamente.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -96,6 +193,7 @@ const CriarFornecedor = ({ onClose = () => {}, onSave = () => {} }) => {
       title="Adicionar Novo Fornecedor"
       onClose={onClose}
       onSave={handleSave}
+      saveDisabled={isSaving}
     >
       <FormGrid>
         <HalfWidth>
@@ -109,7 +207,11 @@ const CriarFornecedor = ({ onClose = () => {}, onSave = () => {} }) => {
 
         <HalfWidth>
           <Label>CPF/CNPJ</Label>
-          <Input value={form.cpfCnpj} onChange={handleChange("cpfCnpj")} />
+          <Input
+            value={form.cpfCnpj}
+            onChange={handleChange("cpfCnpj")}
+            maxLength={18}
+          />
         </HalfWidth>
 
         <FullWidth>
@@ -122,7 +224,11 @@ const CriarFornecedor = ({ onClose = () => {}, onSave = () => {} }) => {
 
         <ThirdWidth>
           <Label>CEP</Label>
-          <Input value={form.cep} onChange={handleChange("cep")} />
+          <Input
+            value={form.cep}
+            onChange={handleChange("cep")}
+            maxLength={9}
+          />
         </ThirdWidth>
 
         <HalfWidth>
@@ -152,7 +258,11 @@ const CriarFornecedor = ({ onClose = () => {}, onSave = () => {} }) => {
 
         <HalfWidth>
           <Label>Telefone</Label>
-          <Input value={form.telefone} onChange={handleChange("telefone")} />
+          <Input
+            value={form.telefone}
+            onChange={handleChange("telefone")}
+            maxLength={15}
+          />
         </HalfWidth>
 
         <FullWidth>
