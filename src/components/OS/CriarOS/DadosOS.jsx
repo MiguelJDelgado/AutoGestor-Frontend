@@ -7,6 +7,7 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+  overflow: hidden;
 `;
 
 const Icon = styled.img`
@@ -27,15 +28,8 @@ const SectionHeader = styled.h3`
 
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
 `;
 
 const Field = styled.div`

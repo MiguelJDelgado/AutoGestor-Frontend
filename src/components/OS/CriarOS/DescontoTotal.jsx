@@ -7,6 +7,7 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+  overflow: hidden;
 `;
 
 const Icon = styled.img`
@@ -21,16 +22,14 @@ const SectionHeader = styled.h3`
   font-weight: 600;
   color: #2b3e50;
   margin-bottom: 12px;
+  display: flex;
+  align-items: center;
 `;
 
 const Grid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
-
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr 1fr;
-  }
 `;
 
 const Field = styled.div`

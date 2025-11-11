@@ -11,6 +11,9 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+  width: 100%;
+  overflow-x: auto; /* evita que o conteúdo vaze */
+  box-sizing: border-box;
 `;
 
 const Icon = styled.img`
@@ -29,12 +32,29 @@ const SectionHeader = styled.h3`
   gap: 8px;
 `;
 
+const RequestButton = styled.button`
+  background: #1e862cff;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 13px;
+  padding: 6px 12px;
+  cursor: pointer;
+  margin-bottom: 12px;
+
+  &:hover {
+    background: #46e08c;
+  }
+`;
+
 const FormWrapper = styled.div`
   position: relative;
   border: 1px solid #e0e0e0;
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 16px;
+  background: #fafafa;
+  overflow-x: auto;
 `;
 
 const RemoveButton = styled.button`
@@ -61,39 +81,21 @@ const RemoveButton = styled.button`
   }
 `;
 
-
-
-const RequestButton = styled.button`
-  background: #1e862cff;
-  border: none;
-  border-radius: 4px;
-  color: #fff;
-  font-size: 13px;
-  padding: 6px 12px;
-  cursor: pointer;
-  margin-bottom: 12px;
-
-  &:hover {
-    background: #46e08c;
-  }
-`;
-
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
   gap: 12px;
+  min-width: 600px; /* garante scroll horizontal se faltar espaço */
 
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
   @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
+    min-width: 500px;
   }
 `;
 
 const Field = styled.div`
   display: flex;
   flex-direction: column;
+  min-width: 150px;
 `;
 
 const Label = styled.label`
@@ -108,7 +110,7 @@ const Input = styled.input`
   padding: 0 10px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-  background: #f3f6f9;
+  background: ${(props) => (props.disabled ? "#e9ecef" : "#f3f6f9")};
   font-size: 14px;
   color: #333;
 `;
@@ -137,35 +139,6 @@ const AddButton = styled.button`
 
   &:hover {
     background: #00b248;
-  }
-`;
-
-const Dropdown = styled.ul`
-  position: absolute;
-  top: 64px;
-  left: 0;
-  width: 100%;
-  background: #fff;
-  border: 1px solid #dcdfe6;
-  border-radius: 6px;
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 1000;
-  list-style: none;
-  padding: 4px 0;
-  margin: 0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-`;
-
-const DropdownItem = styled.li`
-  padding: 8px 12px;
-  font-size: 14px;
-  color: #0f2f43;
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover {
-    background: #f3f6f9;
   }
 `;
 

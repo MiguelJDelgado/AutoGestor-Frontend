@@ -12,6 +12,8 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+  overflow-x: auto;
+  max-width: 100%;
 `;
 
 const Icon = styled.img`
@@ -36,6 +38,7 @@ const FormWrapper = styled.div`
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 16px;
+  overflow-x: auto;
 `;
 
 const RemoveButton = styled.button`
@@ -64,15 +67,9 @@ const RemoveButton = styled.button`
 
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  min-width: 900px;
 `;
 
 const Field = styled.div`

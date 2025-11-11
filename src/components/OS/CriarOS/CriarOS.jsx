@@ -9,7 +9,7 @@ import SolicitacaoCliente from "./SolicitacaoCliente";
 import AnaliseInicial from "./AnaliseInicial";
 import DescontoTotal from "./DescontoTotal";
 import ObservacaoOS from "./ObservacaoOS";
-import CustoTotal from "./CustoTotal";
+import CustoTotal from "./ValoresTotais";
 import { createServiceOrder } from "../../../services/OrdemServicoService";
 import ClienteOS from "./AddClientes";
 import VeiculoOS from "./AddVeiculos";
