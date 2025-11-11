@@ -7,6 +7,18 @@ import LayoutModal from "../Layout";
 const Content = styled.div`
   padding: 10px 0;
   color: #555;
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+  }
 `;
 
 const Section = styled.div`
@@ -178,39 +190,6 @@ const AddButton = styled.button`
 
   &:hover {
     background: #00b248;
-  }
-`;
-
-const Footer = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-`;
-
-const CancelButton = styled.button`
-  background: #ccc;
-  color: #333;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-
-  &:hover {
-    background: #b3b3b3;
-  }
-`;
-
-const ConfirmButton = styled.button`
-  background: #7ed957;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-
-  &:hover {
-    background: #afe698ff;
   }
 `;
 
