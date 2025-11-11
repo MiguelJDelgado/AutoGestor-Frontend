@@ -3,6 +3,7 @@ import olhoIcon from "../../assets/olho.png";
 import excluirIcon from "../../assets/excluir.png";
 import editarIcon from "../../assets/editar.png";
 import pesquisarIcon from "../../assets/pesquisa.png";
+import { useState } from "react";
 
 const Container = styled.div`
   background: #fff;
@@ -154,7 +155,7 @@ const DefaultActions = ({ row, onView, onEdit, onDelete }) => (
 const DataTable = ({
   columns,
   data,
-  searchOptions,
+  searchOptions, // deve ser [{ label: "Nome", value: "name" }, ...]
   onSearch,
   renderActions,
   onView,
@@ -162,18 +163,42 @@ const DataTable = ({
   onDelete,
   showActions = true,
 }) => {
+  const [selectedField, setSelectedField] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+
+  const handleSearchClick = () => {
+    if (onSearch && selectedField && searchValue) {
+      onSearch({
+        identifier: selectedField,
+        search: searchValue,
+      });
+    }
+  };
+
   return (
     <Container>
       <SearchSection>
         <Label>Buscar</Label>
         <ControlsRow>
-          <Select>
-            {searchOptions?.map((col, i) => (
-              <option key={i}>{col}</option>
+          <Select
+            value={selectedField}
+            onChange={(e) => setSelectedField(e.target.value)}
+          >
+            <option value="">Selecione...</option>
+            {searchOptions?.map((opt, i) => (
+              <option key={i} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </Select>
-          <Input placeholder="Digite para buscar..." />
-          <SearchButton onClick={onSearch}>
+
+          <Input
+            placeholder="Digite para buscar..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+          />
+
+          <SearchButton onClick={handleSearchClick}>
             <img src={pesquisarIcon} alt="Pesquisar" />
           </SearchButton>
         </ControlsRow>
