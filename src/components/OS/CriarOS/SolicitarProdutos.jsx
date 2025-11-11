@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import styled from "styled-components";
+import xIcon from "../../../assets/XIcon.png";
 
 const Overlay = styled.div`
   position: fixed;
@@ -21,7 +22,20 @@ const Modal = styled.div`
   max-width: 95%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
   padding: 18px 22px;
+  max-height: 80vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+  }
 `;
+
 
 const Header = styled.div`
   display: flex;
@@ -49,17 +63,50 @@ const CloseButton = styled.button`
   }
 `;
 
+const ProductBlock = styled.div`
+  position: relative;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  background: #fff;
+  padding: 16px;
+  margin-bottom: 20px;
+`;
+
+const RemoveButton = styled.button`
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+`;
+
 const Field = styled.div`
   display: flex;
   flex-direction: column;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 `;
 
 const Label = styled.label`
   font-weight: 600;
   color: #0f2f43;
   font-size: 13px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 `;
 
 const Input = styled.input`
@@ -96,7 +143,6 @@ const QuantityButton = styled.button`
     background: #c2c7cc;
   }
 `;
-
 
 const QuantityDisplay = styled.div`
   width: 50px;
@@ -138,31 +184,70 @@ const Button = styled.button`
       `}
 `;
 
+const AddButton = styled.button`
+  width: 100%;
+  background: #00c853;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 22px;
+  font-weight: bold;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-top: 8px;
+
+  &:hover {
+    background: #00b248;
+  }
+`;
+
 export default function SolicitarProdutoModal({ onClose, onAdd }) {
-  const [produto, setProduto] = useState("");
-  const [produtos, setProdutos] = useState([]);
-  const [quantidade, setQuantidade] = useState(1);
+  const [produtos, setProdutos] = useState([
+    { produto: "", lista: [], quantidade: 1 },
+  ]);
 
-  useEffect(() => {
-    const buscarProdutos = async () => {
-      if (produto.trim().length < 2) return;
-      try {
-        const response = await fetch(`/api/produtos?nome=${encodeURIComponent(produto)}`);
-        if (!response.ok) throw new Error("Erro ao buscar produtos");
-        const data = await response.json();
-        setProdutos(data);
-      } catch (error) {
-        console.error("Erro ao buscar produtos:", error);
-      }
-    };
+  const buscarProdutos = async (texto, index) => {
+    if (texto.trim().length < 2) return;
+    try {
+      const response = await fetch(`/api/produtos?nome=${encodeURIComponent(texto)}`);
+      if (!response.ok) throw new Error("Erro ao buscar produtos");
+      const data = await response.json();
+      setProdutos((prev) =>
+        prev.map((p, i) => (i === index ? { ...p, lista: data } : p))
+      );
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+    }
+  };
 
-    const delay = setTimeout(buscarProdutos, 300);
-    return () => clearTimeout(delay);
-  }, [produto]);
+  const handleChangeProduto = (value, index) => {
+    setProdutos((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, produto: value } : p))
+    );
+    buscarProdutos(value, index);
+  };
+
+  const handleQuantidade = (index, op) => {
+    setProdutos((prev) =>
+      prev.map((p, i) =>
+        i === index ? { ...p, quantidade: Math.max(1, p.quantidade + op) } : p
+      )
+    );
+  };
+
+  const adicionarProduto = () => {
+    setProdutos((prev) => [...prev, { produto: "", lista: [], quantidade: 1 }]);
+  };
+
+  const removerProduto = (index) => {
+    setProdutos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleAdd = () => {
-    if (!produto) return alert("Selecione um produto válido!");
-    onAdd({ produto, quantidade });
+    if (produtos.some((p) => !p.produto))
+      return alert("Preencha todos os produtos!");
+    onAdd(produtos);
     onClose();
   };
 
@@ -174,32 +259,50 @@ export default function SolicitarProdutoModal({ onClose, onAdd }) {
           <CloseButton onClick={onClose}>×</CloseButton>
         </Header>
 
-        <Field>
-          <Label>Produto</Label>
-          <Input
-            list="lista-produtos"
-            placeholder="Digite para buscar..."
-            value={produto}
-            onChange={(e) => setProduto(e.target.value)}
-          />
-          <datalist id="lista-produtos">
-            {produtos.map((p) => (
-              <option key={p.id} value={p.nome} />
-            ))}
-          </datalist>
-        </Field>
+        {produtos.map((p, index) => (
+          <ProductBlock key={index}>
+            {produtos.length > 0 && (
+              <RemoveButton
+                onClick={() => removerProduto(index)}
+                aria-label={`Remover produto ${index + 1}`}
+                title="Remover"
+              >
+                <img src={xIcon} alt="Remover" />
+              </RemoveButton>
+            )}
 
-        <Field>
-          <Label>Quantidade O.S</Label>
-          <QuantityContainer>
-            <QuantityButton onClick={() => setQuantidade((q) => Math.max(1, q - 1))}>−</QuantityButton>
-            <QuantityDisplay>{quantidade}</QuantityDisplay>
-            <QuantityButton onClick={() => setQuantidade((q) => q + 1)}>+</QuantityButton>
-          </QuantityContainer>
-        </Field>
+            <Field>
+              <Label>Produto {index + 1}</Label>
+              <Input
+                list={`lista-produtos-${index}`}
+                placeholder="Digite para buscar..."
+                value={p.produto}
+                onChange={(e) => handleChangeProduto(e.target.value, index)}
+              />
+              <datalist id={`lista-produtos-${index}`}>
+                {p.lista.map((item) => (
+                  <option key={item.id} value={item.nome} />
+                ))}
+              </datalist>
+            </Field>
+
+            <Field>
+              <Label>Quantidade O.S</Label>
+              <QuantityContainer>
+                <QuantityButton onClick={() => handleQuantidade(index, -1)}>−</QuantityButton>
+                <QuantityDisplay>{p.quantidade}</QuantityDisplay>
+                <QuantityButton onClick={() => handleQuantidade(index, 1)}>+</QuantityButton>
+              </QuantityContainer>
+            </Field>
+          </ProductBlock>
+        ))}
+
+        <AddButton onClick={adicionarProduto}>+</AddButton>
 
         <Footer>
-          <Button variant="cancel" onClick={onClose}>Cancelar</Button>
+          <Button variant="cancel" onClick={onClose}>
+            Cancelar
+          </Button>
           <Button onClick={handleAdd}>Adicionar</Button>
         </Footer>
       </Modal>
