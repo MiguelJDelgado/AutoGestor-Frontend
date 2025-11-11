@@ -167,13 +167,21 @@ const DataTable = ({
   const [searchValue, setSearchValue] = useState("");
 
   const handleSearchClick = () => {
-    if (onSearch && selectedField && searchValue) {
-      onSearch({
-        identifier: selectedField,
-        search: searchValue,
-      });
+    if (!onSearch) return;
+
+    // 🔹 Se o usuário não selecionar campo ou não digitar nada, busca geral
+    if (!selectedField || !searchValue) {
+      onSearch({});
+      return;
     }
+
+    // 🔹 Caso contrário, busca filtrada normalmente
+    onSearch({
+      identifier: selectedField,
+      search: searchValue,
+    });
   };
+
 
   return (
     <Container>
