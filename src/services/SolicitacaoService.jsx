@@ -1,12 +1,21 @@
 import { getAuthHeaders } from "../utils/Token";
 
-const API_URL = import.meta.env.VITE_API + "/auth/solicitacaos";
+const API_URL = import.meta.env.VITE_API + "/auth/buys";
 
-export const getAllSolicitacao = async () => {
-  const res = await fetch(`${API_URL}`, {
+export const getAllSolicitacao = async ({ page, limit, date, identifier, search } = {}) => {
+  const queryParams = new URLSearchParams();
+
+  if (page) queryParams.append("page", page);
+  if (limit) queryParams.append("limit", limit);
+  if (date) queryParams.append("date", date);
+  if (identifier) queryParams.append("identifier", identifier);
+  if (search) queryParams.append("search", search);
+
+  const res = await fetch(`${API_URL}?${queryParams.toString()}`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("Erro ao buscar usuários");
+
+  if (!res.ok) throw new Error("Erro ao buscar solicitações");
   return res.json();
 };
 

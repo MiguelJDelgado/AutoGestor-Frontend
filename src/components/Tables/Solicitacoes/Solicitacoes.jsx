@@ -1,21 +1,19 @@
-import { useState } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
-import olhoIcon from "../../../assets/olho.png";
-import excluirIcon from "../../../assets/excluir.png";
-import ModalNovaSolicitacao from "../../../modals/Solicitacoes/CriarSolicitacao";
+import {
+  getAllSolicitacao,
+  deleteSolicitacao,
+} from "../../../services/SolicitacaoService";
 
+import ModalNovaSolicitacao from "../../../modals/Solicitacoes/CriarSolicitacao";
 import ModalPendente from "../../../modals/Solicitacoes/SolicitacaoPendente";
 import ModalAceita from "../../../modals/Solicitacoes/SolicitacaoAceita";
 import ModalRejeitada from "../../../modals/Solicitacoes/SolicitacaoRejeitada";
 import ModalFinalizada from "../../../modals/Solicitacoes/SolicitacaoFinalizada";
 
 const TelaSolicitacoes = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalAberto, setModalAberto] = useState(false);
-  const [modalTipo, setModalTipo] = useState(null);
-  const [solicitacaoSelecionada, setSolicitacaoSelecionada] = useState(null);
-
   const columns = [
     "OS",
     "Produto Solicitado",
@@ -24,9 +22,22 @@ const TelaSolicitacoes = () => {
     "Status",
     "Data Solicitação",
     "Data Finalização",
-    "Ações",
   ];
 
+  const searchOptions = [
+    { label: "Produto", value: "productName" },
+    { label: "Solicitante", value: "userName" },
+    { label: "Status", value: "status" },
+  ];
+
+  const [data, setData] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalAberto, setModalAberto] = useState(false);
+  const [modalTipo, setModalTipo] = useState(null);
+  const [solicitacaoSelecionada, setSolicitacaoSelecionada] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 🔹 Renderiza o status com cores conforme o RequestBuyStatus
   const renderStatus = (status) => {
     const style = {
       padding: "6px 0",
@@ -34,22 +45,30 @@ const TelaSolicitacoes = () => {
       color: "white",
       fontWeight: "bold",
       display: "inline-block",
-      width: "110px",
+      width: "120px",
       textAlign: "center",
     };
 
     switch (status?.toLowerCase()) {
-      case "pendente":
-        style.backgroundColor = "#ef4444";
+      case "pending":
+        style.backgroundColor = "#facc15"; // amarelo
+        status = "Pendente";
         break;
-      case "aceita":
-        style.backgroundColor = "#facc15";
+      case "approved":
+        style.backgroundColor = "#3b82f6"; // azul
+        status = "Autorizado";
         break;
-      case "rejeitada":
-        style.backgroundColor = "#ee8f00ff";
+      case "rejected":
+        style.backgroundColor = "#ef4444"; // vermelho
+        status = "Rejeitado";
         break;
-      case "finalizada":
-        style.backgroundColor = "#22c55e";
+      case "purchased":
+        style.backgroundColor = "#22c55e"; // verde
+        status = "Comprado";
+        break;
+      case "delivered":
+        style.backgroundColor = "#a855f7"; // roxo
+        status = "Finalizado";
         break;
       default:
         style.backgroundColor = "#9ca3af";
@@ -58,19 +77,80 @@ const TelaSolicitacoes = () => {
     return <span style={style}>{status || "—"}</span>;
   };
 
-  const abrirModalVisualizacao = (solicitacao) => {
-    setSolicitacaoSelecionada(solicitacao);
-    switch (solicitacao.rawStatus?.toLowerCase()) {
-      case "pendente":
+  // 🔹 Converte o array do backend para formato da tabela
+  const formatSolicitacoes = (solicitacoes) =>
+    solicitacoes.map((s) => {
+      const produtoPrincipal = s.products?.[0];
+      const quantidade =
+        produtoPrincipal?.quantityToServiceOrder ||
+        produtoPrincipal?.quantity ||
+        0;
+
+      return {
+        OS: s.serviceOrderCode ? `${s.serviceOrderCode}` : "-",
+
+        "Produto Solicitado": produtoPrincipal?.name || "-",
+        Quantidade: `${quantidade} un`,
+        Solicitante: s.userName || s.userId?.name || "-",
+        Status: renderStatus(s.status),
+        "Data Solicitação": s.requestDate
+          ? new Date(s.requestDate).toLocaleDateString("pt-BR")
+          : "-",
+        "Data Finalização": s.deliveredDate
+          ? new Date(s.deliveredDate).toLocaleDateString("pt-BR")
+          : "—",
+        rawData: s,
+        rawStatus: s.status,
+      };
+    });
+
+  // 🔹 Busca solicitações do backend
+  const fetchSolicitacoes = async (filters = {}) => {
+    setIsLoading(true);
+    try {
+      const response = await getAllSolicitacao({
+        page: 1,
+        limit: 10,
+        ...filters,
+      });
+
+      const solicitacoesArray = response.data || response;
+      setData(formatSolicitacoes(solicitacoesArray));
+    } catch (error) {
+      console.error("Erro ao buscar solicitações:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSolicitacoes();
+  }, []);
+
+  // 🔹 Pesquisa dinâmica
+  const handleSearch = async ({ identifier, search }) => {
+    if (!identifier || !search) {
+      await fetchSolicitacoes();
+      return;
+    }
+    await fetchSolicitacoes({ identifier, search });
+  };
+
+  // 🔹 Visualizar modais conforme status
+  const abrirModalVisualizacao = (row) => {
+    setSolicitacaoSelecionada(row.rawData);
+    switch (row.rawStatus?.toLowerCase()) {
+      case "pending":
         setModalTipo("pendente");
         break;
-      case "aceita":
+      case "approved":
         setModalTipo("aceita");
         break;
-      case "rejeitada":
+      case "rejected":
         setModalTipo("rejeitada");
         break;
-      case "finalizada":
+      case "purchased":
+      case "delivered":
         setModalTipo("finalizada");
         break;
       default:
@@ -85,70 +165,34 @@ const TelaSolicitacoes = () => {
     setSolicitacaoSelecionada(null);
   };
 
-  const excluirSolicitacao = (id) => {
-    console.log("Excluir solicitação ID:", id);
+  // 🔹 Exclusão real via backend
+  const excluirSolicitacao = async (row) => {
+    const id = row.rawData?._id;
+    if (!id) {
+      alert("ID da solicitação não encontrado.");
+      return;
+    }
+
+    const confirm = window.confirm(
+      `Tem certeza que deseja excluir a solicitação ${row.OS}?`
+    );
+    if (!confirm) return;
+
+    try {
+      await deleteSolicitacao(id);
+      alert("Solicitação excluída com sucesso!");
+      setData((prev) => prev.filter((item) => item.rawData._id !== id));
+    } catch (error) {
+      console.error("Erro ao excluir solicitação:", error.message);
+      alert("Erro ao excluir solicitação.");
+    }
   };
 
-  const data = [
-    {
-      OS: "001",
-      "Produto Solicitado": "Monitor 24''",
-      Quantidade: "10 un",
-      Solicitante: "Carlos Almeida",
-      Status: renderStatus("Pendente"),
-      "Data Solicitação": "05/09/2025",
-      "Data Finalização": "—",
-      rawStatus: "Pendente",
-    },
-    {
-      OS: "002",
-      "Produto Solicitado": "Notebook Dell",
-      Quantidade: "5 un",
-      Solicitante: "Mariana Silva",
-      Status: renderStatus("Rejeitada"),
-      "Data Solicitação": "01/09/2025",
-      "Data Finalização": "03/09/2025",
-      rawStatus: "Rejeitada",
-    },
-    {
-      OS: "003",
-      "Produto Solicitado": "Cadeiras Escritório",
-      Quantidade: "20 un",
-      Solicitante: "João Pedro",
-      Status: renderStatus("Aceita"),
-      "Data Solicitação": "10/09/2025",
-      "Data Finalização": "—",
-      rawStatus: "Aceita",
-    },
-    {
-      OS: "004",
-      "Produto Solicitado": "Mesa de Reunião",
-      Quantidade: "2 un",
-      Solicitante: "Beatriz Rocha",
-      Status: renderStatus("Finalizada"),
-      "Data Solicitação": "01/08/2025",
-      "Data Finalização": "05/08/2025",
-      rawStatus: "Finalizada",
-    },
-  ].map((item) => ({
-    ...item,
-    Ações: (
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <img
-          src={olhoIcon}
-          alt="Ver detalhes"
-          style={{ cursor: "pointer", width: "20px" }}
-          onClick={() => abrirModalVisualizacao(item)}
-        />
-        <img
-          src={excluirIcon}
-          alt="Excluir"
-          style={{ cursor: "pointer", width: "20px" }}
-          onClick={() => excluirSolicitacao(item.OS)}
-        />
-      </div>
-    ),
-  }));
+  // 🔹 Após criar nova solicitação
+  const handleSaveSolicitacao = async () => {
+    setIsModalOpen(false);
+    await fetchSolicitacoes();
+  };
 
   return (
     <div>
@@ -159,25 +203,44 @@ const TelaSolicitacoes = () => {
       <Table
         columns={columns}
         data={data}
-        searchOptions={columns}
-        onSearch={() => console.log("Buscar solicitação...")}
-        showActions={false}
+        searchOptions={searchOptions}
+        onSearch={handleSearch}
+        onView={abrirModalVisualizacao}
+        onDelete={excluirSolicitacao}
+        loading={isLoading}
       />
 
-      {isModalOpen && <ModalNovaSolicitacao onClose={() => setIsModalOpen(false)} />}
+      {isModalOpen && (
+        <ModalNovaSolicitacao
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveSolicitacao}
+        />
+      )}
 
       {/* Modais específicos conforme status */}
       {modalAberto && modalTipo === "pendente" && (
-        <ModalPendente solicitacao={solicitacaoSelecionada} onClose={fecharModal} />
+        <ModalPendente
+          solicitacao={solicitacaoSelecionada}
+          onClose={fecharModal}
+        />
       )}
       {modalAberto && modalTipo === "aceita" && (
-        <ModalAceita solicitacao={solicitacaoSelecionada} onClose={fecharModal} />
+        <ModalAceita
+          solicitacao={solicitacaoSelecionada}
+          onClose={fecharModal}
+        />
       )}
       {modalAberto && modalTipo === "rejeitada" && (
-        <ModalRejeitada solicitacao={solicitacaoSelecionada} onClose={fecharModal} />
+        <ModalRejeitada
+          solicitacao={solicitacaoSelecionada}
+          onClose={fecharModal}
+        />
       )}
       {modalAberto && modalTipo === "finalizada" && (
-        <ModalFinalizada solicitacao={solicitacaoSelecionada} onClose={fecharModal} />
+        <ModalFinalizada
+          solicitacao={solicitacaoSelecionada}
+          onClose={fecharModal}
+        />
       )}
     </div>
   );

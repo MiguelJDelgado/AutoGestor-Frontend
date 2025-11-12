@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
@@ -32,8 +31,10 @@ const TelaVeiculos = () => {
     { label: "Tipo de Combustível", value: "fuel" },
   ];
 
+  // ✅ Garante que o ID venha formatado corretamente
   const formatVehicles = (vehiclesArray) =>
     vehiclesArray.map((v) => ({
+      id: v._id || v.id, // 🔹 normaliza o id
       Marca: v.brand ?? "-",
       Modelo: v.name ?? "-",
       Placa: v.licensePlate ?? "-",
@@ -41,7 +42,7 @@ const TelaVeiculos = () => {
       "Tipo de Combustível": v.fuel ?? "-",
       Chassi: v.chassi ?? "-",
       Km: v.km !== undefined ? `${v.km} km` : "-",
-      rawData: v,
+      rawData: v, // mantém o original para edição/visualização
     }));
 
   const fetchVehicles = async (filters = {}) => {
@@ -78,16 +79,27 @@ const TelaVeiculos = () => {
     setIsModalOpen(true);
   };
 
+  // ✅ Corrigido: garante que o id seja enviado corretamente
   const handleDelete = async (row) => {
     const placa = row["Placa"];
-    const confirmDelete = window.confirm(`Tem certeza que deseja excluir o veículo com placa ${placa}?`);
+    const confirmDelete = window.confirm(
+      `Tem certeza que deseja excluir o veículo com placa ${placa}?`
+    );
     if (!confirmDelete) return;
 
     try {
-      const id = row.rawData.id;
+      const id = row.id || row.rawData?._id || row.rawData?.id;
+      if (!id) {
+        alert("ID do veículo não encontrado. Operação cancelada.");
+        console.error("Erro: ID do veículo não encontrado:", row);
+        return;
+      }
+
       await deleteVehicle(id);
 
-      setData((prevData) => prevData.filter((item) => item["Placa"] !== placa));
+      setData((prevData) =>
+        prevData.filter((item) => item["Placa"] !== placa)
+      );
       alert(`Veículo com placa ${placa} excluído com sucesso.`);
     } catch (error) {
       console.error("Erro ao excluir veículo:", error.message);
