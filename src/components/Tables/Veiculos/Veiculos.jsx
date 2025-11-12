@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
@@ -19,31 +20,8 @@ const TelaVeiculos = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [modalMode, setModalMode] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      try {
-        const vehiclesArray = await getAllVehicles(); 
-
-        const formattedData = vehiclesArray.map((v) => ({
-          "Marca": v.brand,
-          "Modelo": v.name,
-          "Placa": v.licensePlate,
-          "Ano": v.year,
-          "Tipo de Combustível": v.fuel,
-          "Chassi": v.chassi || "-",
-          "Km": v.km !== undefined ? `${v.km} km` : "-",
-          rawData: v,
-        }));
-
-        setData(formattedData);
-      } catch (error) {
-        console.error("Erro ao carregar veículos:", error.message);
-      }
-    };
   const [isLoading, setIsLoading] = useState(false);
 
-  // 🔹 Opções de pesquisa com mapeamento conforme backend
   const searchOptions = [
     { label: "Marca", value: "brand" },
     { label: "Modelo", value: "name" },
@@ -54,7 +32,6 @@ const TelaVeiculos = () => {
     { label: "Tipo de Combustível", value: "fuel" },
   ];
 
-  // 🔹 Formata veículos vindos do backend
   const formatVehicles = (vehiclesArray) =>
     vehiclesArray.map((v) => ({
       Marca: v.brand ?? "-",
@@ -64,16 +41,16 @@ const TelaVeiculos = () => {
       "Tipo de Combustível": v.fuel ?? "-",
       Chassi: v.chassi ?? "-",
       Km: v.km !== undefined ? `${v.km} km` : "-",
+      rawData: v,
     }));
 
-  // 🔹 Função genérica de busca
   const fetchVehicles = async (filters = {}) => {
     setIsLoading(true);
     try {
       const response = await getAllVehicles({
         page: 1,
         limit: 10,
-        ...filters, // inclui identifier e search, se houver
+        ...filters,
       });
 
       const vehiclesArray = response.data || response;
@@ -85,7 +62,6 @@ const TelaVeiculos = () => {
     }
   };
 
-  // 🔹 Carrega todos os veículos ao montar o componente
   useEffect(() => {
     fetchVehicles();
   }, []);
@@ -112,7 +88,6 @@ const TelaVeiculos = () => {
       await deleteVehicle(id);
 
       setData((prevData) => prevData.filter((item) => item["Placa"] !== placa));
-
       alert(`Veículo com placa ${placa} excluído com sucesso.`);
     } catch (error) {
       console.error("Erro ao excluir veículo:", error.message);
@@ -138,19 +113,14 @@ const TelaVeiculos = () => {
       )
     );
   };
-  // 🔹 Pesquisa — envia os parâmetros esperados pelo backend
+
   const handleSearch = async ({ identifier, search }) => {
     if (!identifier || !search) {
-      await fetchVehicles(); // se limpar os filtros, recarrega tudo
+      await fetchVehicles();
       return;
     }
     await fetchVehicles({ identifier, search });
   };
-
-  // 🔹 Ações da tabela
-  const handleView = (row) => console.log("Visualizar veículo:", row);
-  const handleEdit = (row) => console.log("Editar veículo:", row);
-  const handleDelete = (row) => console.log("Excluir veículo:", row);
 
   return (
     <div>
