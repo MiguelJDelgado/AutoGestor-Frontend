@@ -390,7 +390,6 @@ function Os({
 
     const serviceOrders = await getAllServiceOrders(filters);
 
-      // busca cliente e veículo para cada OS
       const fullOrders = await Promise.all(
         serviceOrders.map(async (order) => {
           let clientName = "—";
@@ -545,7 +544,6 @@ function Os({
                 className="save"
                 onClick={async () => {
                   try {
-                    // Converte para inteiro antes de enviar
                     const h = parseInt(hour, 10);
                     const m = parseInt(minute, 10);
 

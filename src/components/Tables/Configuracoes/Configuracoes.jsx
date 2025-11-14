@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Table from "../Table";
 import Header from "../../Header/Header";
 import { getAllUsers } from "../../../services/UsuarioService";
 
 const TelaConfiguracoes = () => {
+  const navigate = useNavigate();
+
   const columns = ["Nome", "Email", "Perfil de acesso"];
 
   const [data, setData] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🔹 Opções de pesquisa conforme backend
   const searchOptions = [
     { label: "Nome", value: "name" },
     { label: "Email", value: "email" },
     { label: "Perfil de Acesso", value: "role" },
   ];
 
-  // 🔹 Função que formata os usuários para a tabela
   const formatUsers = (usersArray) =>
     usersArray.map((user) => ({
       Nome: user.name ?? "-",
@@ -31,14 +31,13 @@ const TelaConfiguracoes = () => {
           : "Usuário",
     }));
 
-  // 🔹 Função de busca genérica
   const fetchUsers = async (filters = {}) => {
     setLoading(true);
     try {
       const response = await getAllUsers({
         page: 1,
         limit: 10,
-        ...filters, // envia identifier, search etc.
+        ...filters,
       });
 
       const usersArray = response.data || response;
@@ -56,37 +55,37 @@ const TelaConfiguracoes = () => {
     fetchUsers();
   }, []);
 
-const handleSearch = async ({ identifier, search }) => {
-  if (!identifier || !search) {
-    await fetchUsers();
-    return;
-  }
-
-  const normalized = search.trim().toLowerCase();
-
-  if (identifier === "role") {
-    if (normalized === "administrador") {
-      await fetchUsers({ identifier: "role", search: "admin" });
+  const handleSearch = async ({ identifier, search }) => {
+    if (!identifier || !search) {
+      await fetchUsers();
       return;
     }
 
-    if (normalized === "usuário" || normalized === "usuario") {
-      await fetchUsers({ identifier: "role", search: "employer" });
-      return;
+    const normalized = search.trim().toLowerCase();
+
+    if (identifier === "role") {
+      if (normalized === "administrador") {
+        await fetchUsers({ identifier: "role", search: "admin" });
+        return;
+      }
+
+      if (normalized === "usuário" || normalized === "usuario") {
+        await fetchUsers({ identifier: "role", search: "employer" });
+        return;
+      }
+
+      if (normalized === "gerente") {
+        await fetchUsers({ identifier: "manager", search: true });
+        return;
+      }
     }
 
-    if (normalized === "gerente") {
-      await fetchUsers({ identifier: "manager", search: true });
-      return;
-    }
-  }
-
-  await fetchUsers({ identifier, search });
-};
+    await fetchUsers({ identifier, search });
+  };
 
   return (
     <div>
-      <Header title="Configurações" onNew={() => setIsModalOpen(true)}>
+      <Header title="Configurações" onNew={() => navigate("/cadastro")}>
         + Novo Colaborador
       </Header>
 
@@ -101,10 +100,6 @@ const handleSearch = async ({ identifier, search }) => {
           searchOptions={searchOptions}
           onSearch={handleSearch}
         />
-      )}
-
-      {isModalOpen && (
-        <ModalNovaSolicitacao onClose={() => setIsModalOpen(false)} />
       )}
     </div>
   );

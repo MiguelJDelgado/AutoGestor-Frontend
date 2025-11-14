@@ -84,6 +84,22 @@ const Botao = styled.button`
   }
 `;
 
+const CheckboxContainer = styled.label`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 16px;
+
+  input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+`;
+
 const ErroMsg = styled.p`
   color: red;
   margin-top: 10px;
@@ -92,15 +108,13 @@ const ErroMsg = styled.p`
 
 const Cadastro = () => {
   const navigate = useNavigate();
-
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [role, setRole] = useState('');
+  const [role, setRole] = useState('usuario');
   const [repetirSenha, setRepetirSenha] = useState('');
   const [erro, setErro] = useState('');
-  const [mostrarModal, setMostrarModal] = useState(false);
 
   async function handleCadastro(e) {
     e.preventDefault();
@@ -119,27 +133,23 @@ const Cadastro = () => {
     role
   };
 
-    try {
-      const res = await API.createUser(novoUsuario)
+  try {
+    const res = await API.createUser(novoUsuario)
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        setErro(data.erro || 'Erro ao cadastrar usuário');
-        return;
-      }
-
-      setMostrarModal(true);
-
-    } catch {
-      setErro('Erro de conexão com o servidor');
+    if (!res.ok) {
+      setErro(data.erro || 'Erro ao cadastrar usuário');
+      return;
     }
+
+    navigate('/configurações');
+
+  } catch{
+    setErro('Erro de conexão com o servidor');
   }
 
-  const irParaLogin = () => {
-    setMostrarModal(false);
-    navigate('/login');
-  };
+  }
 
   return (
     <>
@@ -168,6 +178,13 @@ const Cadastro = () => {
                 required
               />
               <Input
+                type="text"
+                placeholder="Telefone"
+                value={telefone}
+                onChange={e => setTelefone(e.target.value)}
+                required
+              />
+              <Input
                 type="password"
                 placeholder="Senha"
                 value={senha}
@@ -181,6 +198,14 @@ const Cadastro = () => {
                 onChange={e => setRepetirSenha(e.target.value)}
                 required
               />
+              <CheckboxContainer>
+                <input
+                  type="checkbox"
+                  checked={role === 'gerente'}
+                  onChange={(e) => setRole(e.target.checked ? 'gerente' : 'usuario')}
+                />
+                Gerente
+              </CheckboxContainer>
 
               <Botao type="submit">Confirmar</Botao>
             </form>

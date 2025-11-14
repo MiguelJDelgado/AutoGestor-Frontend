@@ -150,7 +150,6 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
               <tr>
                 <Th>Quantidade</Th>
                 <Th>Itens solicitados</Th>
-                <Th>Entrada</Th>
                 <Th>Fornecedor</Th>
                 <Th>UN</Th>
                 <Th>Valor Pago</Th>
@@ -161,15 +160,7 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
                 <tr key={index}>
                   <Td>{item.quantidade}</Td>
                   <Td>{item.nome}</Td>
-                  <Td>
-                    <TableInput
-                      type="number"
-                      value={item.entrada || ""}
-                      onChange={(e) =>
-                        handleChangeItem(index, "entrada", e.target.value)
-                      }
-                    />
-                  </Td>
+
                   <Td>
                     <TableSelect
                       value={item.fornecedor || ""}
@@ -185,6 +176,8 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
                       ))}
                     </TableSelect>
                   </Td>
+
+                  {/* UN */}
                   <Td>
                     <TableInput
                       type="text"
@@ -195,6 +188,7 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
                       }
                     />
                   </Td>
+
                   <Td>
                     <TableInput
                       type="number"
@@ -211,6 +205,7 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
             </tbody>
           </Table>
         </div>
+
 
         <div>
           <Label>Observação</Label>
