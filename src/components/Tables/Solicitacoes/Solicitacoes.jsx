@@ -12,6 +12,7 @@ import ModalPendente from "../../../modals/Solicitacoes/SolicitacaoPendente";
 import ModalAceita from "../../../modals/Solicitacoes/SolicitacaoAceita";
 import ModalRejeitada from "../../../modals/Solicitacoes/SolicitacaoRejeitada";
 import ModalFinalizada from "../../../modals/Solicitacoes/SolicitacaoFinalizada";
+import ModalSolicitacaoComprada from "../../../modals/Solicitacoes/SolicitacaoComprada";
 
 const TelaSolicitacoes = () => {
   const columns = [
@@ -144,12 +145,14 @@ const TelaSolicitacoes = () => {
         setModalTipo("pendente");
         break;
       case "approved":
-        setModalTipo("aceita");
+        setModalTipo("autorizada");
         break;
       case "rejected":
         setModalTipo("rejeitada");
         break;
       case "purchased":
+        setModalTipo("comprada");
+        break;
       case "delivered":
         setModalTipo("finalizada");
         break;
@@ -217,14 +220,13 @@ const TelaSolicitacoes = () => {
         />
       )}
 
-      {/* Modais específicos conforme status */}
       {modalAberto && modalTipo === "pendente" && (
         <ModalPendente
           solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
         />
       )}
-      {modalAberto && modalTipo === "aceita" && (
+      {modalAberto && modalTipo === "autorizada" && (
         <ModalAceita
           solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
@@ -232,6 +234,12 @@ const TelaSolicitacoes = () => {
       )}
       {modalAberto && modalTipo === "rejeitada" && (
         <ModalRejeitada
+          solicitacao={solicitacaoSelecionada}
+          onClose={fecharModal}
+        />
+      )}
+      {modalAberto && modalTipo === "comprada" && (
+        <ModalSolicitacaoComprada
           solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
         />

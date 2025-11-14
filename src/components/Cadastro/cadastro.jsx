@@ -39,11 +39,10 @@ const FormSection = styled.div`
   form {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Alinha os inputs ao centro */
+    align-items: center;
     width: 100%;
   }
 `;
-
 
 const Titulo = styled.h2`
   color: #fff;
@@ -61,9 +60,25 @@ const Input = styled.input`
   color: #fff;
   width: 100%;
   max-width: 300px;
-  
+
   &::placeholder {
-  color: #ffffff;
+    color: #ffffff;
+  }
+`;
+
+const Select = styled.select`
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  border: none;
+  background-color: #061a1fff;
+  color: #fff;
+  width: 100%;
+  max-width: 320px;
+  cursor: pointer;
+
+  option {
+    color: #ffffffff;
   }
 `;
 
@@ -81,22 +96,6 @@ const Botao = styled.button`
 
   &:hover {
     background-color: #4d7985ff;
-  }
-`;
-
-const CheckboxContainer = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #fff;
-  margin-top: 10px;
-  cursor: pointer;
-  font-size: 16px;
-
-  input {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
   }
 `;
 
@@ -126,29 +125,31 @@ const Cadastro = () => {
     }
 
     const novoUsuario = {
-    name: nome,
-    email,
-    password: senha,
-    cellphone: telefone,
-    role
-  };
+      name: nome,
+      email,
+      password: senha,
+      cellphone: telefone,
+      role
+    };
 
-  try {
-    const res = await API.createUser(novoUsuario)
+    try {
+      const res = await API.createUser(novoUsuario);
+      const data = await res.json();
 
-    const data = await res.json();
+      if (!res.ok) {
+        setErro(data.erro || 'Erro ao cadastrar usuário');
+        return;
+      }
 
-    if (!res.ok) {
-      setErro(data.erro || 'Erro ao cadastrar usuário');
-      return;
+      if (role === 'administrador') {
+        navigate('/dashboard');
+      } else {
+        navigate('/configurações');
+      }
+
+    } catch {
+      setErro('Erro de conexão com o servidor');
     }
-
-    navigate('/configurações');
-
-  } catch{
-    setErro('Erro de conexão com o servidor');
-  }
-
   }
 
   return (
@@ -156,7 +157,11 @@ const Cadastro = () => {
       <Container>
         <Card>
           <LogoSection>
-            <img src={logo} alt="Logo" style={{ width: '90%', marginBottom: '20px' }} />
+            <img
+              src={logo}
+              alt="Logo"
+              style={{ width: '90%', marginBottom: '20px' }}
+            />
           </LogoSection>
 
           <FormSection>
@@ -167,45 +172,47 @@ const Cadastro = () => {
                 type="text"
                 placeholder="Nome completo"
                 value={nome}
-                onChange={e => setNome(e.target.value)}
+                onChange={(e) => setNome(e.target.value)}
                 required
               />
+
               <Input
                 type="email"
                 placeholder="E-mail"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
+
               <Input
                 type="text"
                 placeholder="Telefone"
                 value={telefone}
-                onChange={e => setTelefone(e.target.value)}
+                onChange={(e) => setTelefone(e.target.value)}
                 required
               />
+
               <Input
                 type="password"
                 placeholder="Senha"
                 value={senha}
-                onChange={e => setSenha(e.target.value)}
+                onChange={(e) => setSenha(e.target.value)}
                 required
               />
+
               <Input
                 type="password"
                 placeholder="Repetir senha"
                 value={repetirSenha}
-                onChange={e => setRepetirSenha(e.target.value)}
+                onChange={(e) => setRepetirSenha(e.target.value)}
                 required
               />
-              <CheckboxContainer>
-                <input
-                  type="checkbox"
-                  checked={role === 'gerente'}
-                  onChange={(e) => setRole(e.target.checked ? 'gerente' : 'usuario')}
-                />
-                Gerente
-              </CheckboxContainer>
+
+              <Select value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="administrador">Administrador</option>
+                <option value="gerente">Gerente</option>
+                <option value="usuario">Usuário</option>
+              </Select>
 
               <Botao type="submit">Confirmar</Botao>
             </form>
@@ -214,7 +221,6 @@ const Cadastro = () => {
           </FormSection>
         </Card>
       </Container>
-
     </>
   );
 };
