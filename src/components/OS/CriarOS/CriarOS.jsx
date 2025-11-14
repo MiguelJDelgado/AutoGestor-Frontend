@@ -13,6 +13,7 @@ import CustoTotal from "./ValoresTotais";
 import { createServiceOrder } from "../../../services/OrdemServicoService";
 import ClienteOS from "./AddClientes";
 import VeiculoOS from "./AddVeiculos";
+import PagamentosOS from "./Pagamentos";
 
 const Container = styled.div`
   background: #7f929d;
@@ -53,7 +54,7 @@ const SaveButton = styled.button`
   padding: 15px 0;
   cursor: pointer;
   font-size: 14px;
-  width: 500px; /* largura maior */
+  width: 500px;
 
   &:hover {
     background: #00b248;
@@ -76,7 +77,6 @@ const SaveExitButton = styled.button`
   }
 `;
 
-
 function CriarOS() {
   const statusMap = {
     analise: "request",
@@ -87,7 +87,6 @@ function CriarOS() {
     concluido: "completed",
   };
 
-  // 🔹 Estados principais
   const [dadosOS, setDadosOS] = useState({
     description: "",
     technicalAnalysis: "",
@@ -96,23 +95,29 @@ function CriarOS() {
     notes: "",
     entryDate: "",
     deadline: "",
-    paymentType: "",
-    paid: false,
   });
-
-const [custoTotal, setCustoTotal] = useState({
-  valorProdutos: "",
-  valorServicos: "",
-  valorTotal: "",
-  totalComDesconto: "",
-});
-
 
   const [clientId, setClientId] = useState(null);
   const [vehicleId, setVehicleId] = useState(null);
+
+  const [pagamento, setPagamento] = useState({
+    paymentType: "",
+    paid: false,
+    paymentDate: "",
+  });
+
+  const [custoTotal, setCustoTotal] = useState({
+    valorProdutos: "",
+    valorServicos: "",
+    valorTotal: "",
+    totalComDesconto: "",
+  });
+
   const [servicos, setServicos] = useState([{ colaboradores: [] }]);
   const [products, setProducts] = useState([]);
+
   const [observacao, setObservacao] = useState("");
+
   const [descontoData, setDescontoData] = useState({
     tipo: "percent",
     valor: 0,
@@ -120,20 +125,23 @@ const [custoTotal, setCustoTotal] = useState({
     total: 0,
   });
 
-  // 🔹 Função principal de salvar
   const handleSave = async () => {
     try {
       const payload = {
-        clientId: clientId,
-        vehicleId: vehicleId,
+        clientId,
+        vehicleId,
+
         technicalAnalysis: dadosOS.technicalAnalysis,
         status: statusMap[dadosOS.status] || "request",
         descriptionClient: dadosOS.descriptionClient,
         notes: observacao,
         entryDate: dadosOS.entryDate,
         deadline: dadosOS.deadline,
-        paymentType: dadosOS.paymentType,
-        paid: dadosOS.paid,
+
+        paymentType: pagamento.paymentType,
+        paid: pagamento.paid,
+        paymentDate: pagamento.paymentDate,
+
         discountType: descontoData.tipo,
         discountValue: descontoData.valor,
 
@@ -183,6 +191,7 @@ const [custoTotal, setCustoTotal] = useState({
       <VeiculoOS vehicleId={vehicleId} setVehicleId={setVehicleId} />
       <ServicosSection servicos={servicos} setServicos={setServicos} />
       <ProdutosSection products={products} setProducts={setProducts} />
+
       <SolicitacaoCliente
         value={dadosOS.descriptionClient}
         onChange={(e) =>
@@ -192,12 +201,12 @@ const [custoTotal, setCustoTotal] = useState({
 
       <AnaliseInicial
         value={dadosOS.technicalAnalysis}
-        onChange={(value) => setDadosOS({ ...dadosOS, technicalAnalysis: value })}
+        onChange={(value) =>
+          setDadosOS({ ...dadosOS, technicalAnalysis: value })
+        }
       />
-      <DescontoTotal
-        value={descontoData}
-        onChange={(novo) => setDescontoData(novo)}
-      />
+
+      <DescontoTotal value={descontoData} onChange={setDescontoData} />
 
       <CustoTotal
         value={custoTotal}
@@ -206,6 +215,8 @@ const [custoTotal, setCustoTotal] = useState({
         services={servicos}
         descontoData={descontoData}
       />
+
+      <PagamentosOS value={pagamento} onChange={setPagamento} />
 
       <ObservacaoOS value={observacao} onChange={setObservacao} />
 
