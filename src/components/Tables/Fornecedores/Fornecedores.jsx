@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
 import { getSuppliers } from "../../../services/FornecedorService";
-import CriarFornecedor from "../../../modals/Fornecedores/CriarFornecedores"; // importe o modal
+import CriarFornecedor from "../../../modals/Fornecedores/CriarFornecedores";
 
 const TelaFornecedores = () => {
   const fieldMap = {
@@ -18,10 +18,9 @@ const TelaFornecedores = () => {
   "Anotação": "notes",
 };
 
-// Função que é chamada quando clica na lupa
 const handleSearch = async ({ identifier, search }) => {
   try {
-    const backendField = fieldMap[identifier] || identifier; // converte para o nome do banco
+    const backendField = fieldMap[identifier] || identifier;
     const response = await getSuppliers({
       identifier: backendField,
       search,

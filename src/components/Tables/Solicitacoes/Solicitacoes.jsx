@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
@@ -38,7 +37,6 @@ const TelaSolicitacoes = () => {
   const [solicitacaoSelecionada, setSolicitacaoSelecionada] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 🔹 Renderiza o status com cores conforme o RequestBuyStatus
   const renderStatus = (status) => {
     const style = {
       padding: "6px 0",
@@ -52,23 +50,23 @@ const TelaSolicitacoes = () => {
 
     switch (status?.toLowerCase()) {
       case "pending":
-        style.backgroundColor = "#facc15"; // amarelo
+        style.backgroundColor = "#facc15";
         status = "Pendente";
         break;
       case "approved":
-        style.backgroundColor = "#3b82f6"; // azul
+        style.backgroundColor = "#3b82f6"; 
         status = "Autorizado";
         break;
       case "rejected":
-        style.backgroundColor = "#ef4444"; // vermelho
+        style.backgroundColor = "#ef4444"; 
         status = "Rejeitado";
         break;
       case "purchased":
-        style.backgroundColor = "#22c55e"; // verde
+        style.backgroundColor = "#22c55e"; 
         status = "Comprado";
         break;
       case "delivered":
-        style.backgroundColor = "#a855f7"; // roxo
+        style.backgroundColor = "#a855f7"; 
         status = "Finalizado";
         break;
       default:
@@ -78,7 +76,6 @@ const TelaSolicitacoes = () => {
     return <span style={style}>{status || "—"}</span>;
   };
 
-  // 🔹 Converte o array do backend para formato da tabela
   const formatSolicitacoes = (solicitacoes) =>
     solicitacoes.map((s) => {
       const produtoPrincipal = s.products?.[0];
@@ -105,7 +102,6 @@ const TelaSolicitacoes = () => {
       };
     });
 
-  // 🔹 Busca solicitações do backend
   const fetchSolicitacoes = async (filters = {}) => {
     setIsLoading(true);
     try {
@@ -128,7 +124,6 @@ const TelaSolicitacoes = () => {
     fetchSolicitacoes();
   }, []);
 
-  // 🔹 Pesquisa dinâmica
   const handleSearch = async ({ identifier, search }) => {
     if (!identifier || !search) {
       await fetchSolicitacoes();
@@ -137,7 +132,6 @@ const TelaSolicitacoes = () => {
     await fetchSolicitacoes({ identifier, search });
   };
 
-  // 🔹 Visualizar modais conforme status
   const abrirModalVisualizacao = (row) => {
     setSolicitacaoSelecionada(row.rawData);
     switch (row.rawStatus?.toLowerCase()) {
@@ -168,7 +162,6 @@ const TelaSolicitacoes = () => {
     setSolicitacaoSelecionada(null);
   };
 
-  // 🔹 Exclusão real via backend
   const excluirSolicitacao = async (row) => {
     const id = row.rawData?._id;
     if (!id) {
@@ -191,7 +184,6 @@ const TelaSolicitacoes = () => {
     }
   };
 
-  // 🔹 Após criar nova solicitação
   const handleSaveSolicitacao = async () => {
     setIsModalOpen(false);
     await fetchSolicitacoes();

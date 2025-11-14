@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Table from "../Table";
 import Header from "../../Header/Header";
 import { getAllUsers } from "../../../services/UsuarioService";
+import { deleteUser } from "../../../services/UsuarioService";
 
 const TelaConfiguracoes = () => {
   const navigate = useNavigate();
@@ -20,16 +21,34 @@ const TelaConfiguracoes = () => {
   ];
 
   const formatUsers = (usersArray) =>
-    usersArray.map((user) => ({
-      Nome: user.name ?? "-",
-      Email: user.email ?? "-",
-      "Perfil de acesso":
-        user.role === "admin"
-          ? "Administrador"
-          : user.role === "employer" && user.manager === true
-          ? "Gerente"
-          : "Usuário",
-    }));
+  usersArray.map((user) => ({
+    Nome: user.name ?? "-",
+    Email: user.email ?? "-",
+
+    "Perfil de acesso": (
+      user.role === "admin" ? (
+        "Administrador"
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          {user.manager ? "Gerente" : "Usuário"}
+
+          <span
+            style={{
+              fontSize: "14px",
+              cursor: "pointer",
+              userSelect: "none"
+            }}
+          >
+            ▼
+          </span>
+        </div>
+      )
+    ),
+
+    Ações: { id: user.id },
+    rawData: user,
+  }));
+
 
   const fetchUsers = async (filters = {}) => {
     setLoading(true);
@@ -83,6 +102,22 @@ const TelaConfiguracoes = () => {
     await fetchUsers({ identifier, search });
   };
 
+  const handleDelete = async (row) => {
+    const id = row.rawData?.id;
+    if (!id) return;
+
+    if (!window.confirm("Deseja realmente excluir este usuário?")) return;
+
+    try {
+      await deleteUser(id);
+      setData((prev) => prev.filter((u) => u.rawData.id !== id));
+      alert("Usuário excluído com sucesso!");
+    } catch (err) {
+      console.error("Erro ao excluir:", err);
+      alert("Erro ao excluir usuário.");
+    }
+  };
+
   return (
     <div>
       <Header title="Configurações" onNew={() => navigate("/cadastro")}>
@@ -99,6 +134,7 @@ const TelaConfiguracoes = () => {
           data={data}
           searchOptions={searchOptions}
           onSearch={handleSearch}
+          onDelete={handleDelete}
         />
       )}
     </div>
