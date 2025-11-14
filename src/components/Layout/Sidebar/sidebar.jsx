@@ -10,7 +10,7 @@ import Produtos from '../../../assets/produtos.png';
 import Servicos from '../../../assets/servicos.png';
 import Solicitacao from '../../../assets/compras.png';
 import Fornecedor from '../../../assets/fornecedor.png';
-import Colaborador from '../../../assets/mecanico.png';
+import Mecanico from '../../../assets/mecanico.png';
 import sidebar from '../../../assets/sidebar.png';
 import profile from '../../../assets/profile.svg';
 import settings from '../../../assets/configuracoes.png';
@@ -24,7 +24,7 @@ const opcoesMenu = [
   { texto: 'Serviços', icone: Servicos },
   { texto: 'Solicitações', icone: Solicitacao },
   { texto: 'Fornecedores', icone: Fornecedor },
-  { texto: 'Colaboradores', icone: Colaborador },
+  { texto: 'Mecânicos', icone: Mecanico },
   { texto: 'Configurações', icone: settings }
 ];
 

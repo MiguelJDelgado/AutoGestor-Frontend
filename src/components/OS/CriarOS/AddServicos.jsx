@@ -3,7 +3,7 @@ import styled from "styled-components";
 import ServicoIcon from "./icons/ServicoOS.png";
 import xIcon from "../../../assets/XIcon.png";
 import plusIcon from "../../../assets/plusIcon.png";
-import ColaboradoresModal from "../../../modals/Colaboradores/AdicionarColaboradorOS";
+import MecanicosModal from "../../../modals/Mecanicos/AdicionarMecanicoOS";
 import { getAllServices } from "../../../services/ServicoService";
 
 const Section = styled.div`
@@ -320,7 +320,7 @@ function ServicosSection({ servicos, setServicos }) {
             </Field>
 
             <Field>
-              <Label>Colaboradores</Label>
+              <Label>Mecanicos</Label>
               <ChipsContainer>
                 {servico.colaboradores.map((colab, i) => (
                   <Chip key={i}>{colab}</Chip>
@@ -343,7 +343,7 @@ function ServicosSection({ servicos, setServicos }) {
       <AddButton onClick={adicionarServico}>+</AddButton>
 
       {isColabModalOpen && (
-        <ColaboradoresModal
+        <MecanicosModal
           onClose={() => setIsColabModalOpen(false)}
           onSave={handleSaveColaboradores}
           colaboradoresIniciais={servicos[selectedIndex]?.colaboradores || []}

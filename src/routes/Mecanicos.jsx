@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import Layout from "../components/Layout/Layout";
-import TelaColaboradoresComponent from '../components/Tables/Colaboradores/Colaboradores'
+import TelaMecanicosComponent from '../components/Tables/Mecanicos/Mecanicos'
 
 const AppContainer = styled.div`
   width: 100vw;
@@ -12,7 +12,7 @@ function TelaColaboradores() {
   return (
     <AppContainer>
       <Layout>
-        <TelaColaboradoresComponent />
+        <TelaMecanicosComponent />
       </Layout>
     </AppContainer>
   )

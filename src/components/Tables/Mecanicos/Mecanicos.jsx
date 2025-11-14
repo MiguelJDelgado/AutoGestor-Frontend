@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
-import CriarColaborador from "../../../modals/Colaboradores/CriarColaboradores";
+import CriarColaborador from "../../../modals/Mecanicos/CriarMecanicos";
 import { getAllMechanics } from "../../../services/ColaboradorService";
 
 const TelaColaboradores = () => {
@@ -75,8 +75,8 @@ const TelaColaboradores = () => {
 
   return (
     <div>
-      <Header title="Colaboradores" onNew={() => setIsModalOpen(true)}>
-        + Novo Colaborador
+      <Header title="Mecânicos" onNew={() => setIsModalOpen(true)}>
+        + Novo Mecânico
       </Header>
 
       <Table

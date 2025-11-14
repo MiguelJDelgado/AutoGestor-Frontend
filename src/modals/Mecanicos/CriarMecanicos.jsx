@@ -167,7 +167,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
 
   return (
     <LayoutModal
-      title="Adicionar Novo Colaborador"
+      title="Adicionar Novo Mecânico"
       onClose={onClose}
       onSave={handleSave}
       disableSave={loading}

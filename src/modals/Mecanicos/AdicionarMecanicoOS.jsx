@@ -93,7 +93,7 @@ const ColaboradoresModal = ({ onClose = () => {}, onSave = () => {}, colaborador
   };
 
   return (
-    <LayoutModal title="Colaboradores" onClose={onClose} onSave={handleSave}>
+    <LayoutModal title="Mecânicos" onClose={onClose} onSave={handleSave}>
       <FormGrid>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <Select
@@ -101,7 +101,7 @@ const ColaboradoresModal = ({ onClose = () => {}, onSave = () => {}, colaborador
             value={colaboradorSelecionado}
             onChange={(e) => setColaboradorSelecionado(e.target.value)}
           >
-            <option value="">Selecione um colaborador</option>
+            <option value="">Selecione um mecânico</option>
             {colaboradoresDisponiveis.map((colab) => (
               <option key={colab} value={colab}>
                 {colab}
@@ -111,7 +111,7 @@ const ColaboradoresModal = ({ onClose = () => {}, onSave = () => {}, colaborador
           <ButtonAdd type="button" onClick={adicionarColaborador}>Adicionar</ButtonAdd>
         </div>
 
-        <label>Colaboradores adicionados anteriormente:</label>
+        <label>Mecânicos adicionados anteriormente:</label>
         <ChipsArea>
           {colaboradores.map((colab, i) => (
             <Chip key={i}>
