@@ -142,6 +142,35 @@ const AddButton = styled.button`
   }
 `;
 
+const Dropdown = styled.ul`
+  position: absolute;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+`;
+
+const DropdownItem = styled.li`
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #0f2f43;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f3f6f9;
+  }
+`;
+
 function ProdutosSection({ products, setProducts }) {
   const [todosProdutos, setTodosProdutos] = useState([]);
   const [buscas, setBuscas] = useState([""]); // 🔹 inicia com 1 busca vazia
