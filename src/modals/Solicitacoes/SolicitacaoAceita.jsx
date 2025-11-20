@@ -88,7 +88,7 @@ const TextArea = styled.textarea`
 `;
 
 const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
-  const [status, setStatus] = useState(solicitacao?.status || "Aceita");
+  const [status, setStatus] = useState(solicitacao?.status || "Autorizada");
   const [itens, setItens] = useState(solicitacao?.itens || []);
 
   const handleChangeItem = (index, field, value) => {
@@ -126,7 +126,7 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
           <Field>
             <Label>Status</Label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="Aceita">Aceita</option>
+              <option value="Autorizada">Autorizada</option>
               <option value="Finalizada">Finalizada</option>
             </Select>
           </Field>

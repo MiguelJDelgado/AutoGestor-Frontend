@@ -5,7 +5,6 @@ import {
   getAllSolicitacao,
   deleteSolicitacao,
 } from "../../../services/SolicitacaoService";
-
 import ModalNovaSolicitacao from "../../../modals/Solicitacoes/CriarSolicitacao";
 import ModalPendente from "../../../modals/Solicitacoes/SolicitacaoPendente";
 import ModalAceita from "../../../modals/Solicitacoes/SolicitacaoAceita";

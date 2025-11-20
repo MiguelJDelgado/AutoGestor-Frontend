@@ -1,10 +1,10 @@
-// src/components/CardsFinancas.jsx
 import styled from 'styled-components';
 import { useEffect, useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { getAnnualBilling, getDashboardMonthly, getServiceOrdersNearDeadline, getServiceOrdersPastDeadline } from '../../services/DashboardService';
+import baixar from "../../assets/baixar.png";
 
 const Block = styled.section`
   padding: 16px 20px;
@@ -101,7 +101,6 @@ const OrderItem = styled.div`
   }
 `;
 
-// 🔹 Adiciona um wrapper interno rolável dentro de cada card
 const ScrollableList = styled.div`
   max-height: 140px; /* altura máxima antes de rolar */
   overflow-y: auto;
@@ -206,17 +205,24 @@ function FinanceSummary() {
     <Block>
       <RowHead>
         <strong>{monthName}</strong>
-        <MonthSelect
-          value={monthName}
-          onChange={(e) => setMonthIndex(months.indexOf(e.target.value))}
-        >
-          {months.map((m) => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </MonthSelect>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <MonthSelect
+            value={monthName}
+            onChange={(e) => setMonthIndex(months.indexOf(e.target.value))}
+          >
+            {months.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </MonthSelect>
+          <img
+            src={baixar} 
+            alt="Ícone"
+            style={{ width: "20px", height: "20px", cursor: "pointer" }}
+          />
+        </div>
       </RowHead>
 
-      {/* Cards principais */}
       <Cards>
         <Card style={{ background: cardBg.faturado }}>
           <Label>Faturado no mês</Label>
@@ -239,7 +245,6 @@ function FinanceSummary() {
         </Card>
       </Cards>
 
-      {/* Segunda linha */}
       <Cards style={{ marginTop: "18px" }}>
         <Card style={{ background: cardBg.osEmitidas }}>
           <Label>O.S Emitidas</Label>
@@ -252,7 +257,6 @@ function FinanceSummary() {
         </Card>
       </Cards>
 
-      {/* Gráfico + Ordens */}
       <ChartWrapper>
         <ChartContainer>
           <ResponsiveContainer width="100%" height="100%">
@@ -267,7 +271,6 @@ function FinanceSummary() {
         </ChartContainer>
 
         <OrdersContainer>
-          {/* Próximas do vencimento */}
           <OrderCard>
             <OrderTitle color="#1864ab">📅 Próximas do vencimento</OrderTitle>
             <ScrollableList>
@@ -284,7 +287,6 @@ function FinanceSummary() {
             </ScrollableList>
           </OrderCard>
 
-          {/* Vencidas */}
           <OrderCard>
             <OrderTitle color="#c92a2a">⛔ Vencidas</OrderTitle>
             <ScrollableList>
