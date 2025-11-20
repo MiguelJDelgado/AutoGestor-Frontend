@@ -84,17 +84,17 @@ const TelaConfiguracoes = () => {
 
     if (identifier === "role") {
       if (normalized === "administrador") {
-        await fetchUsers({ identifier: "role", search: "admin" });
+        await fetchUsers({ identifier, search: "admin" });
         return;
       }
 
       if (normalized === "usuário" || normalized === "usuario") {
-        await fetchUsers({ identifier: "role", search: "employer" });
+        await fetchUsers({ identifier, search: "employer" });
         return;
       }
 
       if (normalized === "gerente") {
-        await fetchUsers({ identifier: "manager", search: true });
+        await fetchUsers({ identifier, search: "manager" });
         return;
       }
     }

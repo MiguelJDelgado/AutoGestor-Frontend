@@ -3,8 +3,12 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
-import { getAnnualBilling, getDashboardMonthly, getServiceOrdersNearDeadline, getServiceOrdersPastDeadline } from '../../services/DashboardService';
-import baixar from "../../assets/baixar.png";
+import {
+  getAnnualBilling,
+  getDashboardMonthly,
+  getServiceOrdersNearDeadline,
+  getServiceOrdersPastDeadline
+} from '../../services/DashboardService';
 
 const Block = styled.section`
   padding: 16px 20px;
@@ -13,8 +17,30 @@ const Block = styled.section`
 const RowHead = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
   margin-bottom: 14px;
+`;
+
+const HeadLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const DownloadButton = styled.button`
+  padding: 8px 14px;
+  background: #1864ab;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+
+  &:hover {
+    background: #0d3c6e;
+  }
 `;
 
 const MonthSelect = styled.select`
@@ -102,11 +128,10 @@ const OrderItem = styled.div`
 `;
 
 const ScrollableList = styled.div`
-  max-height: 140px; /* altura máxima antes de rolar */
+  max-height: 140px;
   overflow-y: auto;
   margin-top: 8px;
 
-  /* barra de rolagem discreta */
   scrollbar-width: thin;
   scrollbar-color: #aaa transparent;
 
@@ -118,7 +143,6 @@ const ScrollableList = styled.div`
     border-radius: 3px;
   }
 `;
-
 
 const cardBg = {
   faturado: 'linear-gradient(135deg, #5ecf68, #9ad84d)',
@@ -150,6 +174,11 @@ function FinanceSummary() {
   const monthName = months[monthIndex];
   const currentYear = currentDate.getFullYear();
 
+  const handleDownloadReport = () => {
+    // futuro: chamar rota tipo GET /billing/report?date=XXXX-YY
+    alert("Função para baixar relatório será conectada aqui.");
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -167,6 +196,7 @@ function FinanceSummary() {
         setAnnualData(annualRes);
         setOrdersNear(nearRes);
         setOrdersLate(pastRes);
+
       } catch (err) {
         console.error("Erro ao buscar dados do dashboard:", err);
       } finally {
@@ -204,9 +234,8 @@ function FinanceSummary() {
   return (
     <Block>
       <RowHead>
-        <strong>{monthName}</strong>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <HeadLeft>
+          <strong>{monthName}</strong>
           <MonthSelect
             value={monthName}
             onChange={(e) => setMonthIndex(months.indexOf(e.target.value))}
@@ -215,12 +244,11 @@ function FinanceSummary() {
               <option key={m} value={m}>{m}</option>
             ))}
           </MonthSelect>
-          <img
-            src={baixar} 
-            alt="Ícone"
-            style={{ width: "20px", height: "20px", cursor: "pointer" }}
-          />
-        </div>
+        </HeadLeft>
+
+        <DownloadButton onClick={handleDownloadReport}>
+          📄 Baixar relatório
+        </DownloadButton>
       </RowHead>
 
       <Cards>
