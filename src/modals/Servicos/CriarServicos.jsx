@@ -1,7 +1,10 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState} from "react";
 import styled from "styled-components";
 import LayoutModal from "../Layout";
-import { createService } from "../../services/ServicoService";
+import {
+  createService,
+  updateService,
+} from "../../services/ServicoService";
 
 const FormGrid = styled.div`
   display: grid;
@@ -32,19 +35,13 @@ const InputTitle = styled.input`
   border-radius: 6px;
   text-align: center;
   margin-left: 25px;
-`
+`;
 
 const Input = styled.input`
   flex: 1;
   padding: 8px;
   border-radius: 6px;
   text-align: center;
-
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
 
   &[type=number] {
     -moz-appearance: textfield;
@@ -70,7 +67,6 @@ const CurrencyPrefix = styled.span`
   border: 1px solid #d5dde3;
   padding: 8px 10px;
   border-radius: 6px;
-  font-size: 14px;
 `;
 
 const IconButton = styled.button`
@@ -83,10 +79,9 @@ const IconButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 18px;
 `;
 
-const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
+const CriarServico = ({ mode = "create", data = null, onClose, onSave }) => {
   const [form, setForm] = useState({
     titulo: "",
     descricao: "",
@@ -94,20 +89,23 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
     valorHora: "",
     valorTotal: "",
   });
-  const [errors, setErrors] = useState({});
+
   const [loading, setLoading] = useState(false);
-  const firstInputRef = useRef(null);
+
+  const isView = mode === "view";
 
   useEffect(() => {
-    firstInputRef.current?.focus();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
+    if (data) {
+      setForm({
+        titulo: data.title,
+        descricao: data.description,
+        horas: Number(data.workHours) || 0.5,
+        valorHora: data.hourValue,
+        valorTotal: data.totalValue,
+      });
+    }
+  }, [data]);
 
-  // Calcula valor total
   useEffect(() => {
     const vh = parseFloat(String(form.valorHora).replace(",", "."));
     if (!isNaN(vh)) {
@@ -116,8 +114,6 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
         ...prev,
         valorTotal: isFinite(total) ? total.toFixed(2) : "",
       }));
-    } else {
-      setForm((prev) => ({ ...prev, valorTotal: "" }));
     }
   }, [form.valorHora, form.horas]);
 
@@ -126,73 +122,65 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
   };
 
   const handleInc = (val) => {
-    setForm((prev) => {
-      const newHoras = Math.max(0.5, prev.horas + val * 0.5);
-      return { ...prev, horas: newHoras };
-    });
-  };
-
-  const formatHoras = () => {
-    const horas = form.horas;
-    if (horas < 1) return `${horas * 60}min`;
-    if (horas % 1 === 0) return `${horas} h`;
-    return `${Math.floor(horas)}h ${Math.round((horas % 1) * 60)}min`;
-  };
-
-  const validate = () => {
-    const err = {};
-    if (!form.titulo || form.titulo.trim().length < 2)
-      err.titulo = "Título é obrigatório";
-    if (!form.descricao || form.descricao.trim().length < 5)
-      err.descricao = "Descrição é obrigatória";
-    if (
-      form.valorHora === "" ||
-      isNaN(parseFloat(String(form.valorHora).replace(",", ".")))
-    )
-      err.valorHora = "Informe um valor válido";
-    setErrors(err);
-    return Object.keys(err).length === 0;
+    if (isView) return;
+    setForm((prev) => ({
+      ...prev,
+      horas: Math.max(0.5, prev.horas + val * 0.5),
+    }));
   };
 
   const handleSave = async () => {
-    if (!validate()) return;
+    if (isView) return;
 
     setLoading(true);
     try {
-      const novoServico = {
+      const payload = {
         title: form.titulo,
         description: form.descricao,
-        workHours: String(form.horas),
-        hourValue: String(form.valorHora),
-        totalValue: parseFloat(form.valorTotal),
+        workHours: form.horas,
+        hourValue: form.valorHora,
+        totalValue: form.valorTotal,
       };
 
-      const response = await createService(novoServico);
+      if (mode === "edit" && data?._id) {
+        await updateService(data._id, payload);
+      } else {
+        await createService(payload);
+      }
 
-      onSave(response || novoServico); 
+      onSave();
       onClose();
-    } catch (error) {
-      console.error("Erro ao criar serviço:", error);
-      alert("Erro ao salvar serviço. Tente novamente.");
+    } catch (err) {
+      console.error("Erro ao salvar serviço:", err);
+      alert("Erro ao salvar serviço.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <LayoutModal title="Adicionar Serviço" onClose={onClose} onSave={handleSave} disableSave={loading}>
+    <LayoutModal
+      title={
+        mode === "view"
+          ? "Visualizar Serviço"
+          : mode === "edit"
+          ? "Editar Serviço"
+          : "Adicionar Serviço"
+      }
+      onClose={onClose}
+      onSave={isView ? null : handleSave}
+      disableSave={loading || isView}
+      hideSaveButton={isView}
+    >
       <FormGrid>
         <Full>
           <Label>Título</Label>
           <InputTitle
-            ref={firstInputRef}
             placeholder="Nome do serviço"
             value={form.titulo}
             onChange={handleChange("titulo")}
-            aria-invalid={!!errors.titulo}
-            disabled={loading}
+            disabled={isView}
           />
-          {errors.titulo && <small style={{ color: "crimson" }}>{errors.titulo}</small>}
         </Full>
 
         <Full>
@@ -201,18 +189,16 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
             placeholder="Descreva o serviço"
             value={form.descricao}
             onChange={handleChange("descricao")}
-            aria-invalid={!!errors.descricao}
-            disabled={loading}
+            disabled={isView}
           />
-          {errors.descricao && <small style={{ color: "crimson" }}>{errors.descricao}</small>}
         </Full>
 
         <div>
           <Label>Horas de Trabalho</Label>
           <InputWrapper>
-            <IconButton onClick={() => handleInc(-1)} aria-label="Diminuir horas" disabled={loading}>−</IconButton>
-            <Input readOnly value={formatHoras()} style={{ textAlign: "center", width: 120 }} />
-            <IconButton onClick={() => handleInc(1)} aria-label="Aumentar horas" disabled={loading}>+</IconButton>
+            <IconButton onClick={() => handleInc(-1)} disabled={isView}>−</IconButton>
+            <Input readOnly value={form.horas} />
+            <IconButton onClick={() => handleInc(1)} disabled={isView}>+</IconButton>
           </InputWrapper>
         </div>
 
@@ -224,21 +210,18 @@ const CriarServico = ({ onClose = () => {}, onSave = () => {} }) => {
               type="number"
               step="0.01"
               min="0"
-              placeholder="0.00"
               value={form.valorHora}
               onChange={handleChange("valorHora")}
-              aria-invalid={!!errors.valorHora}
-              disabled={loading}
+              disabled={isView}
             />
           </InputWrapper>
-          {errors.valorHora && <small style={{ color: "crimson" }}>{errors.valorHora}</small>}
         </div>
 
         <div>
           <Label>Valor Total</Label>
           <InputWrapper>
             <CurrencyPrefix>R$</CurrencyPrefix>
-            <SmallInput readOnly value={form.valorTotal} placeholder="—" />
+            <SmallInput readOnly value={form.valorTotal} />
           </InputWrapper>
         </div>
       </FormGrid>
