@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
 import ModalCliente from "../../../modals/Clientes/CriarClientes";
-import { getAllClients, getClientById } from "../../../services/ClienteService";
+
+import { 
+  getAllClients, 
+  getClientById, 
+  deleteClient 
+} from "../../../services/ClienteService";
+
+import { deleteVehicle } from "../../../services/VeiculoService";
 
 const TelaClientes = () => {
   const columns = [
@@ -18,12 +25,11 @@ const TelaClientes = () => {
   ];
 
   const [selectedClient, setSelectedClient] = useState(null);
-  const [modalMode, setModalMode] = useState("create"); 
+  const [modalMode, setModalMode] = useState("create");
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Campos de busca mapeados conforme backend
   const searchOptions = [
     { label: "Nome", value: "name" },
     { label: "CPF", value: "cpf" },
@@ -33,7 +39,6 @@ const TelaClientes = () => {
     { label: "Município", value: "city" },
   ];
 
-  // 🔹 Função para formatar clientes retornados
   const formatClients = (clientsArray) =>
     clientsArray.map((client) => ({
       _id: client._id,
@@ -48,17 +53,15 @@ const TelaClientes = () => {
       CEP: client.cep ?? "-",
     }));
 
-  // 🔹 Busca clientes (tanto inicial quanto por pesquisa)
   const fetchClients = async (filters = {}) => {
     setLoading(true);
     try {
       const response = await getAllClients({
         page: 1,
         limit: 10,
-        ...filters, // inclui identifier e search
+        ...filters,
       });
 
-      // o backend pode retornar { data: [...] } ou um array direto
       const clientsArray = response.data || response;
       setData(formatClients(clientsArray));
     } catch (error) {
@@ -68,22 +71,17 @@ const TelaClientes = () => {
     }
   };
 
-  // 🔹 Carrega todos os clientes ao montar o componente
   useEffect(() => {
     fetchClients();
   }, []);
 
-  // 🔹 Pesquisa: envia os parâmetros esperados pelo backend
   const handleSearch = async ({ identifier, search }) => {
     if (!identifier || !search) {
-      await fetchClients(); // sem filtro → lista todos
+      await fetchClients();
       return;
     }
     await fetchClients({ identifier, search });
   };
-
-  // 🔹 Ações da tabela
-  
 
   const handleView = async (row) => {
     try {
@@ -107,18 +105,42 @@ const TelaClientes = () => {
     }
   };
 
+  const handleDelete = async (row) => {
+    const confirmDelete = window.confirm(
+      "Tem certeza que deseja excluir este cliente e todos os veículos associados?"
+    );
 
-  const handleDelete = (row) => console.log("Excluir cliente:", row);
+    if (!confirmDelete) return;
 
-  // 🔹 Quando salvar novo cliente, atualiza a tabela
-  const handleSaveCliente = (novoCliente) => {
-    console.log("Novo cliente salvo:", novoCliente);
+    try {
+      const client = await getClientById(row._id);
+
+      if (client.vehicleIds && client.vehicleIds.length > 0) {
+        for (const vehicleId of client.vehicleIds) {
+          await deleteVehicle(vehicleId);
+        }
+      }
+
+      await deleteClient(row._id);
+
+      fetchClients();
+    } catch (error) {
+      console.error("Erro ao excluir cliente:", error.message);
+      alert("Erro ao excluir cliente");
+    }
+  };
+
+  const handleSaveCliente = () => {
     fetchClients();
   };
 
   return (
     <div>
-      <Header title="Clientes" onNew={() => setIsModalOpen(true)}>
+      <Header title="Clientes" onNew={() => {
+        setSelectedClient(null);
+        setModalMode("create");
+        setIsModalOpen(true);
+      }}>
         + Novo Cliente
       </Header>
 
@@ -140,7 +162,6 @@ const TelaClientes = () => {
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveCliente}
         />
-
       )}
     </div>
   );
