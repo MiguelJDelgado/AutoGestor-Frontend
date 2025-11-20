@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import Header from "../../Header/Header";
 import Table from "../Table";
 import CriarServico from "../../../modals/Servicos/CriarServicos";
-import { getAllServices } from "../../../services/ServicoService";
+import {
+  getAllServices,
+  getServiceById,
+  deleteService,
+} from "../../../services/ServicoService";
 
 const TelaServicos = () => {
   const columns = [
@@ -14,9 +18,10 @@ const TelaServicos = () => {
   ];
 
   const [data, setData] = useState([]);
+  const [modalMode, setModalMode] = useState("create");
+  const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 🔹 Campos de busca com mapeamento conforme backend
   const searchOptions = [
     { label: "Título", value: "title" },
     { label: "Descrição", value: "description" },
@@ -25,21 +30,18 @@ const TelaServicos = () => {
     { label: "Valor total", value: "totalValue" },
   ];
 
-  // 🔹 Formata serviços retornados do backend
   const formatServices = (servicesArray) =>
     servicesArray.map((s) => ({
+      _id: s._id,
       Título: s.title ?? "-",
       Descrição: s.description ?? "-",
       "Horas Trabalho": s.workHours ?? 0,
-      "Valor Hora": s.hourValue
-        ? `R$ ${Number(s.hourValue).toFixed(2)}`
-        : "-",
+      "Valor Hora": s.hourValue ? `R$ ${Number(s.hourValue).toFixed(2)}` : "-",
       "Valor Total": s.totalValue
         ? `R$ ${Number(s.totalValue).toFixed(2)}`
         : "-",
     }));
 
-  // 🔹 Busca serviços (padrão para carregamento e pesquisa)
   const fetchServices = async (filters = {}) => {
     try {
       const response = await getAllServices({
@@ -48,7 +50,6 @@ const TelaServicos = () => {
         ...filters,
       });
 
-      // Considera que o backend retorna { data: [...] }
       const servicesArray = response.data || response;
       setData(formatServices(servicesArray));
     } catch (error) {
@@ -56,34 +57,59 @@ const TelaServicos = () => {
     }
   };
 
-  // 🔹 Carrega todos os serviços ao montar o componente
   useEffect(() => {
     fetchServices();
   }, []);
 
-  // 🔹 Pesquisa: envia campos `identifier` e `search`
   const handleSearch = async ({ identifier, search }) => {
     if (!identifier || !search) {
-      await fetchServices(); // limpa pesquisa
+      await fetchServices();
       return;
     }
     await fetchServices({ identifier, search });
   };
 
-  // 🔹 Ações da tabela (pode ser estendido depois)
-  const handleView = (row) => console.log("Visualizar", row);
-  const handleEdit = (row) => console.log("Editar", row);
-  const handleDelete = (row) => console.log("Excluir", row);
+  const handleView = async (row) => {
+    try {
+      const full = await getServiceById(row._id);
+      setSelectedService(full);
+      setModalMode("view");
+      setIsModalOpen(true);
+    } catch (e) {
+      console.error("Erro ao visualizar serviço:", e);
+    }
+  };
 
-  // 🔹 Ao salvar novo serviço
-  const handleSaveServico = (novoServico) => {
-    console.log("Novo serviço salvo:", novoServico);
-    fetchServices(); // recarrega lista
+  const handleEdit = async (row) => {
+    try {
+      const full = await getServiceById(row._id);
+      setSelectedService(full);
+      setModalMode("edit");
+      setIsModalOpen(true);
+    } catch (e) {
+      console.error("Erro ao editar serviço:", e);
+    }
+  };
+
+  const handleDelete = async (row) => {
+    if (!window.confirm("Tem certeza que deseja excluir este serviço?")) return;
+
+    try {
+      await deleteService(row._id);
+      fetchServices();
+    } catch (e) {
+      alert("Erro ao excluir serviço.");
+      console.error(e);
+    }
+  };
+
+  const handleSaveServico = () => {
+    fetchServices();
   };
 
   return (
     <div>
-      <Header title="Serviços" onNew={() => setIsModalOpen(true)}>
+      <Header title="Serviços" onNew={() => { setModalMode("create"); setSelectedService(null); setIsModalOpen(true); }}>
         + Novo Serviço
       </Header>
 
@@ -99,6 +125,8 @@ const TelaServicos = () => {
 
       {isModalOpen && (
         <CriarServico
+          mode={modalMode}
+          data={selectedService}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveServico}
         />
