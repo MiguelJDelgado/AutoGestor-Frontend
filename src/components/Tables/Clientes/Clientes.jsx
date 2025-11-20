@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
 import ModalCliente from "../../../modals/Clientes/CriarClientes";
-import { getAllClients } from "../../../services/ClienteService";
+import { getAllClients, getClientById } from "../../../services/ClienteService";
 
 const TelaClientes = () => {
   const columns = [
@@ -17,6 +17,8 @@ const TelaClientes = () => {
     "CEP",
   ];
 
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [modalMode, setModalMode] = useState("create"); 
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,7 @@ const TelaClientes = () => {
   // 🔹 Função para formatar clientes retornados
   const formatClients = (clientsArray) =>
     clientsArray.map((client) => ({
+      _id: client._id,
       Nome: client.name ?? "-",
       "CPF/CNPJ": client.cpf || client.cnpj || "-",
       Telefone: client.cellphone ?? "-",
@@ -80,8 +83,31 @@ const TelaClientes = () => {
   };
 
   // 🔹 Ações da tabela
-  const handleView = (row) => console.log("Visualizar cliente:", row);
-  const handleEdit = (row) => console.log("Editar cliente:", row);
+  
+
+  const handleView = async (row) => {
+    try {
+      const fullClient = await getClientById(row._id);
+      setSelectedClient(fullClient);
+      setModalMode("view");
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Erro ao carregar cliente:", error);
+    }
+  };
+
+  const handleEdit = async (row) => {
+    try {
+      const fullClient = await getClientById(row._id);
+      setSelectedClient(fullClient);
+      setModalMode("edit");
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Erro ao carregar cliente:", error);
+    }
+  };
+
+
   const handleDelete = (row) => console.log("Excluir cliente:", row);
 
   // 🔹 Quando salvar novo cliente, atualiza a tabela
@@ -109,9 +135,12 @@ const TelaClientes = () => {
 
       {isModalOpen && (
         <ModalCliente
+          mode={modalMode}
+          data={selectedClient}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveCliente}
         />
+
       )}
     </div>
   );
