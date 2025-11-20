@@ -3,6 +3,7 @@ import styled from "styled-components";
 import xIcon from "../../assets/XIcon.png";
 import { getProducts } from "../../services/ProdutoService"
 import LayoutModal from "../Layout";
+import { createSolicitacao } from "../../services/SolicitacaoService";
 
 const Content = styled.div`
   padding: 10px 0;
@@ -194,7 +195,9 @@ const AddButton = styled.button`
 `;
 
 const ModalNovaSolicitacao = ({ onClose }) => {
-  const [produtos, setProdutos] = useState([{ produtoNome: "", produtoId: "", quantidade: 1, observacao: "" }]);
+  const [produtos, setProdutos] = useState([
+    { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" }
+  ]);
   const [listaProdutos, setListaProdutos] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [showOptions, setShowOptions] = useState(false);
@@ -203,7 +206,17 @@ const ModalNovaSolicitacao = ({ onClose }) => {
     const fetchProdutos = async () => {
       try {
         const response = await getProducts();
-        setListaProdutos(response || []);
+
+        const produtosArray =
+          Array.isArray(response)
+            ? response
+            : Array.isArray(response?.data)
+            ? response.data
+            : Array.isArray(response?.products)
+            ? response.products
+            : [];
+
+        setListaProdutos(produtosArray);
       } catch (error) {
         console.error("Erro ao buscar produtos:", error);
       }
@@ -212,7 +225,10 @@ const ModalNovaSolicitacao = ({ onClose }) => {
   }, []);
 
   const adicionarProduto = () =>
-    setProdutos([...produtos, { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" }]);
+    setProdutos([
+      ...produtos,
+      { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" }
+    ]);
 
   const removerProduto = (index) =>
     setProdutos(produtos.filter((_, i) => i !== index));
@@ -239,80 +255,110 @@ const ModalNovaSolicitacao = ({ onClose }) => {
 
   const handleSelectProduto = (index, produto) => {
     const updated = [...produtos];
-    updated[index].produtoId = produto.id;
+    updated[index].produtoId = produto._id;
     updated[index].produtoNome = produto.name;
+    updated[index].code = produto.code;
     setProdutos(updated);
     setShowOptions(false);
     setFiltro("");
   };
 
-  const handleSave = () => {
-    console.log("Solicitação:", produtos);
-    onClose();
+  const handleSave = async () => {
+    try {
+      const payload = {
+        products: produtos.map((p) => {
+          const item = {
+            name: p.produtoNome,
+            quantityToStock: p.quantidade,
+          };
+
+          if (p.produtoId) {
+            item.productId = p.produtoId;
+            item.code = p.code;
+          }
+
+          return item;
+        }),
+        status: "pending",
+      };
+
+      console.log("Enviando payload:", payload);
+
+      await createSolicitacao(payload);
+
+      onClose();
+    } catch (err) {
+      console.error("Erro ao criar solicitação:", err);
+      alert("Erro ao criar solicitação: " + err.message);
+    }
   };
 
   return (
-  <LayoutModal title="Adicionar Nova Solicitação" onClose={onClose} onSave={handleSave}>
-    <Content>
-      {produtos.map((produto, index) => (
-        <Section key={index}>
-          <RemoveButton onClick={() => removerProduto(index)}>
-            <img src={xIcon} alt="Remover" />
-          </RemoveButton>
+    <LayoutModal title="Adicionar Nova Solicitação" onClose={onClose} onSave={handleSave}>
+      <Content>
+        {produtos.map((produto, index) => (
+          <Section key={index}>
+            <RemoveButton onClick={() => removerProduto(index)}>
+              <img src={xIcon} alt="Remover" />
+            </RemoveButton>
+            <FormGrid>
+              <Field>
+                <Label>Produto</Label>
+                <SelectWrapper>
+                  <SearchInput
+                    type="text"
+                    placeholder="Digite para buscar..."
+                    value={produto.produtoNome}
+                    onChange={(e) => handleSearch(index, e.target.value)}
+                    onFocus={() => setShowOptions(true)}
+                    onBlur={() => setTimeout(() => setShowOptions(false), 150)}
+                  />
+                  {showOptions && filtro.trim().length > 0 && (
+                    <OptionsList>
+                      {listaProdutos
+                        .filter((p) =>
+                          p.name?.toLowerCase().includes(filtro.toLowerCase())
+                        )
+                        .map((p) => (
+                          <li
+                            key={p.id}
+                            onClick={() => handleSelectProduto(index, p)}
+                          >
+                            {p.name}
+                          </li>
+                        ))}
+                    </OptionsList>
+                  )}
+                </SelectWrapper>
+              </Field>
 
-          <FormGrid>
+              <FieldQtd>
+                <Label>Quantidade</Label>
+                <InputWrapper>
+                  <IconButton onClick={() => handleInc(index, -1)}>−</IconButton>
+                  <Input readOnly value={produto.quantidade} />
+                  <IconButton onClick={() => handleInc(index, 1)}>+</IconButton>
+                </InputWrapper>
+              </FieldQtd>
+            </FormGrid>
+
             <Field>
-              <Label>Produto</Label>
-              <SelectWrapper>
-                <SearchInput
-                  type="text"
-                  placeholder="Digite para buscar..."
-                  value={produto.produtoNome}
-                  onChange={(e) => handleSearch(index, e.target.value)}
-                  onFocus={() => setShowOptions(true)}
-                  onBlur={() => setTimeout(() => setShowOptions(false), 150)}
-                />
-                {showOptions && filtro.trim().length > 0 && (
-                  <OptionsList>
-                    {listaProdutos
-                      .filter((p) =>
-                        p.name.toLowerCase().includes(filtro.toLowerCase())
-                      )
-                      .map((p) => (
-                        <li key={p.id} onClick={() => handleSelectProduto(index, p)}>
-                          {p.name}
-                        </li>
-                      ))}
-                  </OptionsList>
-                )}
-              </SelectWrapper>
+              <Label>Observação</Label>
+              <TextArea
+                placeholder="Adicione uma observação (opcional)"
+                value={produto.observacao}
+                onChange={(e) =>
+                  handleChange(index, "observacao", e.target.value)
+                }
+              />
             </Field>
+          </Section>
+        ))}
 
-            <FieldQtd>
-              <Label>Quantidade</Label>
-              <InputWrapper>
-                <IconButton onClick={() => handleInc(index, -1)}>−</IconButton>
-                <Input readOnly value={produto.quantidade} />
-                <IconButton onClick={() => handleInc(index, 1)}>+</IconButton>
-              </InputWrapper>
-            </FieldQtd>
-          </FormGrid>
-
-          <Field>
-            <Label>Observação</Label>
-            <TextArea
-              placeholder="Adicione uma observação (opcional)"
-              value={produto.observacao}
-              onChange={(e) => handleChange(index, "observacao", e.target.value)}
-            />
-          </Field>
-        </Section>
-      ))}
-
-      <AddButton onClick={adicionarProduto}>+</AddButton>
-    </Content>
-  </LayoutModal>
-);
+        <AddButton onClick={adicionarProduto}>+</AddButton>
+      </Content>
+    </LayoutModal>
+  );
 };
 
 export default ModalNovaSolicitacao;
