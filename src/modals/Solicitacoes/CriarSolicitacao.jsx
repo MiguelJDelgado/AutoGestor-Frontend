@@ -3,6 +3,8 @@ import styled from "styled-components";
 import xIcon from "../../assets/XIcon.png";
 import { getProducts } from "../../services/ProdutoService"
 import LayoutModal from "../Layout";
+import ErrorModal from "../Erro/ErroModal";
+import SuccessModal from "../Sucesso/SucessoModal";
 import { createSolicitacao } from "../../services/SolicitacaoService";
 
 const Content = styled.div`
@@ -201,6 +203,8 @@ const ModalNovaSolicitacao = ({ onClose }) => {
   const [listaProdutos, setListaProdutos] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [showOptions, setShowOptions] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     const fetchProdutos = async () => {
@@ -286,14 +290,15 @@ const ModalNovaSolicitacao = ({ onClose }) => {
 
       await createSolicitacao(payload);
 
-      onClose();
+      setSuccessMessage("Solicitação criada com sucesso!");
     } catch (err) {
       console.error("Erro ao criar solicitação:", err);
-      alert("Erro ao criar solicitação: " + err.message);
+      setErrorMessage(err.message);
     }
   };
 
   return (
+    <>
     <LayoutModal title="Adicionar Nova Solicitação" onClose={onClose} onSave={handleSave}>
       <Content>
         {produtos.map((produto, index) => (
@@ -358,6 +363,16 @@ const ModalNovaSolicitacao = ({ onClose }) => {
         <AddButton onClick={adicionarProduto}>+</AddButton>
       </Content>
     </LayoutModal>
+    <ErrorModal
+      message={errorMessage}
+      onClose={() => setErrorMessage("")}
+    />
+    <SuccessModal
+      message={successMessage}
+      onClose={() => { setSuccessMessage(""); 
+        onClose(); }}
+    />
+    </>
   );
 };
 
