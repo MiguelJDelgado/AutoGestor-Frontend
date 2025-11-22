@@ -1,8 +1,18 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import xIcon from "../../assets/XIcon.png";
-import { createClient, getClientById, updateClient } from "../../services/ClienteService";
-import { createVehicle, getVehicleById, updateVehicle } from "../../services/VeiculoService";
+
+import {
+  createClient,
+  getClientById,
+  updateClient,
+} from "../../services/ClienteService";
+
+import {
+  createVehicle,
+  getVehicleById,
+  updateVehicle,
+} from "../../services/VeiculoService";
 
 const Overlay = styled.div`
   position: fixed;
@@ -201,15 +211,46 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
 
   const [veiculos, setVeiculos] = useState([{}]);
 
+  const formatCPFouCNPJ = (value) => {
+    const digits = value.replace(/\D/g, "");
+
+    if (digits.length <= 11) {
+      return digits
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+
+    return digits
+      .replace(/^(\d{2})(\d)/, "$1.$2")
+      .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/\.(\d{3})(\d)/, ".$1/$2")
+      .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+  };
+
+  const formatCEP = (value) =>
+    value.replace(/\D/g, "").replace(/^(\d{5})(\d)/, "$1-$2").substring(0, 9);
+
+  const formatTelefone = (value) =>
+    value
+      .replace(/\D/g, "")
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .substring(0, 15);
+
+  const formatInscricaoEstadual = (value) =>
+    value.replace(/\D/g, "").replace(/(\d{3})(\d)/, "$1.$2").substring(0, 14);
+
+  const apenasNumerosPositivos = (value) => value.replace(/\D/g, "");
+
   useEffect(() => {
     if (!data || isCreate) return;
 
-    async function loadData() {
+    async function loadAll() {
       try {
         const cliente = await getClientById(data._id);
 
-        setForm(prev => ({
-          ...prev,
+        setForm({
           name: cliente.name || "",
           cpf: cliente.cpf || "",
           cnpj: cliente.cnpj || "",
@@ -222,39 +263,41 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
           email: cliente.email || "",
           cellphone: cliente.cellphone || "",
           notes: cliente.notes || "",
-        }));
+        });
 
         if (cliente.vehicleIds?.length > 0) {
-          const vehicleId = cliente.vehicleIds[0];
-          const veiculo = await getVehicleById(vehicleId);
+          const allVehicles = [];
 
-          setVeiculos([
-            {
-              _id: veiculo._id,
-              licensePlate: veiculo.licensePlate || "",
-              brand: veiculo.brand || "",
-              name: veiculo.name || "",
-              year: veiculo.year || "",
-              fuel: veiculo.fuel || "",
-              chassi: veiculo.chassi || "",
-              km: veiculo.km || "",
-            },
-          ]);
+          for (const id of cliente.vehicleIds) {
+            const v = await getVehicleById(id);
+
+            allVehicles.push({
+              _id: v._id,
+              licensePlate: v.licensePlate || "",
+              brand: v.brand || "",
+              name: v.name || "",
+              year: v.year || "",
+              fuel: v.fuel || "",
+              chassis: v.chassis || "",
+              km: v.km || "",
+            });
+          }
+
+          setVeiculos(allVehicles);
         } else {
           setVeiculos([{}]);
         }
-
       } catch (err) {
-        console.error("Erro ao carregar cliente/veiculo:", err);
+        console.error("Erro ao carregar:", err);
       }
     }
 
-    loadData();
+    loadAll();
   }, [data, mode]);
 
   const handleChange = (field, value) => {
     if (isView) return;
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleVehicleChange = (index, field, value) => {
@@ -276,38 +319,36 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
 
   const handleSubmit = async () => {
     try {
-      let savedVehicles = [];
+      const savedVehicleIds = [];
 
       for (const v of veiculos) {
         if (!v.licensePlate) continue;
 
         if (v._id) {
           const updated = await updateVehicle(v._id, v);
-          savedVehicles.push(updated._id);
-        } else {
-          const created = await createVehicle(v);
-          savedVehicles.push(created._id);
+          savedVehicleIds.push(updated._id);
+        }
+        else {
+          const created = await createVehicle({
+            ...v,
+            name: v.name || v.model || "",
+          });
+          savedVehicleIds.push(created._id);
         }
       }
 
       const payload = {
         ...form,
-        vehicleIds: savedVehicles,
+        vehicleIds: savedVehicleIds,
       };
 
-      delete payload._id;
-
-      if (isEdit) {
-        await updateClient(data._id, payload);
-      }
-      if (isCreate) {
-        await createClient(payload);
-      }
+      if (isEdit) await updateClient(data._id, payload);
+      if (isCreate) await createClient(payload);
 
       if (onSave) onSave();
       onClose();
     } catch (err) {
-      console.error("Erro ao salvar cliente:", err);
+      console.error("Erro ao salvar:", err);
       alert("Erro ao salvar cliente.");
     }
   };
@@ -339,8 +380,10 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
               <Label>CPF/CNPJ</Label>
               <Input
                 disabled={isView}
-                value={form.cpf}
-                onChange={(e) => handleChange("cpf", e.target.value)}
+                value={formatCPFouCNPJ(form.cpf || form.cnpj || "")}
+                onChange={(e) =>
+                  handleChange("cpf", e.target.value.replace(/\D/g, ""))
+                }
               />
             </Field>
 
@@ -348,9 +391,12 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
               <Label>Inscrição Estadual</Label>
               <Input
                 disabled={isView}
-                value={form.stateRegistration}
+                value={formatInscricaoEstadual(form.stateRegistration || "")}
                 onChange={(e) =>
-                  handleChange("stateRegistration", e.target.value)
+                  handleChange(
+                    "stateRegistration",
+                    e.target.value.replace(/\D/g, "")
+                  )
                 }
               />
             </Field>
@@ -361,8 +407,10 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
               <Label>CEP</Label>
               <Input
                 disabled={isView}
-                value={form.cep}
-                onChange={(e) => handleChange("cep", e.target.value)}
+                value={formatCEP(form.cep || "")}
+                onChange={(e) =>
+                  handleChange("cep", e.target.value.replace(/\D/g, ""))
+                }
               />
             </Field>
 
@@ -417,8 +465,10 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
               <Label>Telefone</Label>
               <Input
                 disabled={isView}
-                value={form.cellphone}
-                onChange={(e) => handleChange("cellphone", e.target.value)}
+                value={formatTelefone(form.cellphone || "")}
+                onChange={(e) =>
+                  handleChange("cellphone", e.target.value.replace(/\D/g, ""))
+                }
               />
             </Field>
           </FormGrid>
@@ -435,12 +485,12 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
         </Section>
 
         <Section>
-          <SubTitle>Veículos do Cliente</SubTitle>
+          <SubTitle>Adicionar veículos ao cliente</SubTitle>
 
-          {veiculos.map((v, index) => (
-            <FormWrapper key={index}>
+          {veiculos.map((v, i) => (
+            <FormWrapper key={i}>
               {!isView && (
-                <RemoveButton onClick={() => removeVehicle(index)}>
+                <RemoveButton onClick={() => removeVehicle(i)}>
                   <img src={xIcon} alt="Remover veículo" />
                 </RemoveButton>
               )}
@@ -452,7 +502,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
                     disabled={isView}
                     value={v.licensePlate || ""}
                     onChange={(e) =>
-                      handleVehicleChange(index, "licensePlate", e.target.value)
+                      handleVehicleChange(i, "licensePlate", e.target.value)
                     }
                   />
                 </Field>
@@ -463,7 +513,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
                     disabled={isView}
                     value={v.brand || ""}
                     onChange={(e) =>
-                      handleVehicleChange(index, "brand", e.target.value)
+                      handleVehicleChange(i, "brand", e.target.value)
                     }
                   />
                 </Field>
@@ -474,7 +524,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
                     disabled={isView}
                     value={v.name || ""}
                     onChange={(e) =>
-                      handleVehicleChange(index, "name", e.target.value)
+                      handleVehicleChange(i, "name", e.target.value)
                     }
                   />
                 </Field>
@@ -485,7 +535,11 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
                     disabled={isView}
                     value={v.year || ""}
                     onChange={(e) =>
-                      handleVehicleChange(index, "year", e.target.value)
+                      handleVehicleChange(
+                        i,
+                        "year",
+                        apenasNumerosPositivos(e.target.value)
+                      )
                     }
                   />
                 </Field>
@@ -493,12 +547,12 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
 
               <FormGrid columns="4">
                 <Field>
-                  <Label>Combustível</Label>
+                  <Label>Tipo de combustível</Label>
                   <Input
                     disabled={isView}
                     value={v.fuel || ""}
                     onChange={(e) =>
-                      handleVehicleChange(index, "fuel", e.target.value)
+                      handleVehicleChange(i, "fuel", e.target.value)
                     }
                   />
                 </Field>
@@ -507,9 +561,9 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
                   <Label>Chassi</Label>
                   <Input
                     disabled={isView}
-                    value={v.chassi || ""}
+                    value={v.chassis || ""}
                     onChange={(e) =>
-                      handleVehicleChange(index, "chassi", e.target.value)
+                      handleVehicleChange(i, "chassis", e.target.value)
                     }
                   />
                 </Field>
@@ -520,7 +574,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
                     disabled={isView}
                     value={v.km || ""}
                     onChange={(e) =>
-                      handleVehicleChange(index, "km", e.target.value)
+                      handleVehicleChange(i, "km", e.target.value)
                     }
                   />
                 </Field>
@@ -534,9 +588,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
         <Footer>
           <CancelButton onClick={onClose}>Cancelar</CancelButton>
           {!isView && (
-            <ConfirmButton onClick={handleSubmit}>
-              {isEdit ? "Salvar alterações" : "Adicionar"}
-            </ConfirmButton>
+            <ConfirmButton onClick={handleSubmit}>Salvar</ConfirmButton>
           )}
         </Footer>
       </ModalContainer>
