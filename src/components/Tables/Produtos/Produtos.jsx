@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
-import { getProducts } from "../../../services/ProdutoService";
+import {
+  getProducts,
+  deleteProduct,
+} from "../../../services/ProdutoService";
 import CriarProduto from "../../../modals/Produtos/CriarProdutos";
 
 const TelaProdutos = () => {
@@ -16,8 +19,9 @@ const TelaProdutos = () => {
 
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  // 🔹 Opções de pesquisa com mapeamento correto dos campos do backend
   const searchOptions = [
     { label: "Código", value: "code" },
     { label: "Nome", value: "name" },
@@ -25,9 +29,10 @@ const TelaProdutos = () => {
     { label: "Estoque Disponível", value: "quantity" },
   ];
 
-  // 🔹 Função para formatar produtos retornados
   const formatProducts = (productsArray) =>
     productsArray.map((p) => ({
+      id: p._id, 
+      raw: p,
       "Código": p.code ?? "-",
       "Data": p.createdAt
         ? new Date(p.createdAt).toLocaleDateString("pt-BR")
@@ -42,48 +47,69 @@ const TelaProdutos = () => {
         : "-",
     }));
 
-  // 🔹 Função que busca produtos (usada tanto no carregamento quanto na pesquisa)
   const fetchProducts = async (filters = {}) => {
     try {
       const response = await getProducts({
         page: 1,
         limit: 10,
-        ...filters, // se tiver identifier e search, eles vão aqui
+        ...filters,
       });
 
       const productsArray = response.data || [];
       setData(formatProducts(productsArray));
-    } catch (error) {
-      console.error("Erro ao carregar produtos:", error.message);
+    } catch {
+      console.error("Erro ao carregar produtos.");
     }
   };
 
-  // 🔹 Carrega todos os produtos ao iniciar
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // 🔹 Pesquisa: envia campos `identifier` e `search` para o backend
   const handleSearch = async ({ identifier, search }) => {
     if (!identifier || !search) {
-      await fetchProducts(); // se limpar os filtros, volta a exibir tudo
+      await fetchProducts();
       return;
     }
     await fetchProducts({ identifier, search });
   };
 
-  // 🔹 Ações básicas
-  const handleView = (row) => console.log("Visualizar", row);
-  const handleEdit = (row) => console.log("Editar", row);
-  const handleDelete = (row) => console.log("Excluir", row);
-  const handleSaveProduct = (produto) => {
-    console.log("Novo produto salvo:", produto);
-    fetchProducts(); // atualiza tabela após salvar novo produto
+  const handleView = async (row) => {
+    const product = row.raw;
+    setSelectedProduct(product);
+    setModalMode("view");
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = async (row) => {
+    const product = row.raw;
+    setSelectedProduct(product);
+    setModalMode("edit");
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (row) => {
+    if (!window.confirm("Deseja excluir este produto?")) return;
+
+    try {
+      await deleteProduct(row.raw._id);
+      fetchProducts();
+    } catch {
+      alert("Erro ao excluir produto.");
+    }
+  };
+
+  const handleSaveProduct = () => {
+    fetchProducts();
   };
 
   return (
     <div>
-      <Header title="Produtos" onNew={() => setIsModalOpen(true)}>
+      <Header title="Produtos" onNew={() => {
+        setModalMode("create");
+        setSelectedProduct(null);
+        setIsModalOpen(true);
+      }}>
         + Novo Produto
       </Header>
 
@@ -91,7 +117,7 @@ const TelaProdutos = () => {
         columns={columns}
         data={data}
         searchOptions={searchOptions}
-        onSearch={handleSearch} // 🔹 mesma estrutura de pesquisa
+        onSearch={handleSearch}
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
@@ -99,6 +125,8 @@ const TelaProdutos = () => {
 
       {isModalOpen && (
         <CriarProduto
+          mode={modalMode}
+          data={selectedProduct}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveProduct}
         />

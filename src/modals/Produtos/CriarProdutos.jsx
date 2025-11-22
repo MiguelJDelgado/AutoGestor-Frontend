@@ -33,6 +33,11 @@ const Input = styled.input`
   border-radius: 6px;
   text-align: center;
 
+  &[disabled] {
+    background: #e5e7eb;
+    cursor: not-allowed;
+  }
+
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -66,9 +71,16 @@ const IconButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
+
+  &[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 `;
 
-const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPicker }) => {
+const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave = () => {}, onOpenSupplierPicker }) => {
+  const isView = mode === "view";
+
   const [form, setForm] = useState({
     descricao: "",
     fornecedor: "",
@@ -80,22 +92,40 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
     estoque: 0,
   });
 
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false); 
+  useEffect(() => {
+    if (data) {
+      setForm({
+        descricao: data.name || "",
+        fornecedor: data.providerIds?.[0] || "",
+        valorPago: data.costUnitPrice || "",
+        margem: data.grossProfitMargin || "",
+        valorVenda: data.salePrice || "",
+        unidade: data.unitMeasure || "",
+        data: data.createdAt ? data.createdAt.split("T")[0] : "",
+        estoque: data.quantity || 0,
+      });
+    }
+  }, [data]);
+
+  const [, setErrors] = useState({});
+  const [, setLoading] = useState(false);
   const firstInputRef = useRef(null);
 
   useEffect(() => {
-    firstInputRef.current?.focus();
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
+    if (!isView) firstInputRef.current?.focus();
+  }, [isView]);
+
+  const handleChange = (field) => (e) => {
+    if (isView) return;
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  };
 
   useEffect(() => {
+    if (isView) return;
+
     const vp = parseFloat(String(form.valorPago).replace(",", "."));
     const mg = parseFloat(String(form.margem).replace(",", "."));
+
     if (!isNaN(vp)) {
       const margin = isNaN(mg) ? 0 : mg;
       const venda = vp * (1 + margin / 100);
@@ -108,15 +138,9 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
     }
   }, [form.valorPago, form.margem]);
 
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleInc = (val) => {
-    setForm((prev) => ({ ...prev, estoque: Math.max(0, prev.estoque + val) }));
-  };
-
   const validate = () => {
+    if (isView) return true;
+
     const err = {};
     if (!form.descricao || form.descricao.trim().length < 2)
       err.descricao = "Descrição é obrigatória";
@@ -127,11 +151,13 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
       isNaN(parseFloat(String(form.valorPago).replace(",", ".")))
     )
       err.valorPago = "Informe um valor válido";
+
     setErrors(err);
     return Object.keys(err).length === 0;
   };
 
   const handleSave = async () => {
+    if (isView) return onClose();
     if (!validate()) return;
 
     setLoading(true);
@@ -143,69 +169,59 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
         salePrice: form.valorVenda ? parseFloat(String(form.valorVenda).replace(",", ".")) : undefined,
         grossProfitMargin: form.margem ? parseFloat(String(form.margem).replace(",", ".")) : undefined,
         unitMeasure: form.unidade || undefined,
-        providerIds: form.fornecedor ? [form.fornecedor] : [], 
+        providerIds: form.fornecedor ? [form.fornecedor] : [],
       };
 
       const response = await createProduct(novoProduto);
 
       onSave(response || novoProduto);
       onClose();
-    } catch (error) {
-      console.error("Erro ao criar produto:", error);
-      alert("Erro ao salvar produto. Tente novamente.");
+    } catch {
+      alert("Erro ao salvar produto.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenSupplierPicker = () => {
-    if (typeof onOpenSupplierPicker === "function") {
-      onOpenSupplierPicker({
-        onSelect: (fornecedor) => setForm((prev) => ({ ...prev, fornecedor })),
-      });
-    }
-  };
-
   return (
-    <LayoutModal title="Adicionar Novo Produto" onClose={onClose} onSave={handleSave}>
+    <LayoutModal
+      title={
+        mode === "view" ? "Visualizar Produto"
+        : mode === "edit" ? "Editar Produto"
+        : "Adicionar Novo Produto"
+      }
+      onClose={onClose}
+      onSave={isView ? null : handleSave}
+      hideSaveButton={isView}
+    >
       <FormGrid>
         <Full>
           <Label>Descrição</Label>
           <InputWrapper>
             <Input
+              disabled={isView}
               ref={firstInputRef}
-              placeholder="Descrição do produto"
               value={form.descricao}
               onChange={handleChange("descricao")}
-              aria-invalid={!!errors.descricao}
             />
-            <IconButton title="Pesquisar descrição">
+            <IconButton disabled={isView}>
               <img src={PesquisaIcon} alt="Pesquisar" style={{ width: 18, height: 18 }} />
             </IconButton>
-
           </InputWrapper>
-          {errors.descricao && (
-            <small style={{ color: "crimson" }}>{errors.descricao}</small>
-          )}
         </Full>
 
         <Full>
           <Label>Fornecedor</Label>
           <InputWrapper>
             <Input
-              placeholder="Nome do fornecedor"
+              disabled={isView}
               value={form.fornecedor}
               onChange={handleChange("fornecedor")}
-              aria-invalid={!!errors.fornecedor}
             />
-            <IconButton title="Selecionar fornecedor" onClick={handleOpenSupplierPicker}>
+            <IconButton disabled={isView} onClick={onOpenSupplierPicker}>
               <img src={PesquisaIcon} alt="Selecionar fornecedor" style={{ width: 18, height: 18 }} />
             </IconButton>
-
           </InputWrapper>
-          {errors.fornecedor && (
-            <small style={{ color: "crimson" }}>{errors.fornecedor}</small>
-          )}
         </Full>
 
         <div>
@@ -213,52 +229,39 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
           <InputWrapper>
             <CurrencyPrefix>R$</CurrencyPrefix>
             <Input
+              disabled={isView}
               type="number"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
               value={form.valorPago}
               onChange={handleChange("valorPago")}
-              aria-invalid={!!errors.valorPago}
             />
           </InputWrapper>
-          {errors.valorPago && (
-            <small style={{ color: "crimson" }}>{errors.valorPago}</small>
-          )}
         </div>
 
         <div>
           <Label>Margem Bruta</Label>
           <InputWrapper>
             <SmallInput
+              disabled={isView}
               type="number"
-              step="0.01"
-              min="0"
-              placeholder="0"
               value={form.margem}
               onChange={handleChange("margem")}
             />
-            <span style={{ fontSize: 14, color: "#0f2f43" }}>%</span>
+            <span>%</span>
           </InputWrapper>
         </div>
 
         <Full>
-          <Label>Valor Unit. Venda (calculado)</Label>
+          <Label>Valor Unit. Venda</Label>
           <InputWrapper>
             <CurrencyPrefix>R$</CurrencyPrefix>
-            <Input
-              readOnly
-              value={form.valorVenda !== "" ? Number(form.valorVenda).toFixed(2) : ""}
-              aria-readonly="true"
-              placeholder="—"
-            />
+            <Input readOnly value={form.valorVenda} />
           </InputWrapper>
         </Full>
 
         <div>
           <Label>Unidade de Medida</Label>
           <Input
-            placeholder="Ex: UN, KG, LT"
+            disabled={isView}
             value={form.unidade}
             onChange={handleChange("unidade")}
           />
@@ -267,6 +270,7 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
         <div>
           <Label>Data</Label>
           <Input
+            disabled={isView}
             type="date"
             value={form.data}
             onChange={handleChange("data")}
@@ -275,26 +279,14 @@ const CriarProduto = ({ onClose = () => {}, onSave = () => {}, onOpenSupplierPic
 
         <Full>
           <Label>Estoque Disponível</Label>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <IconButton onClick={() => handleInc(-1)} aria-label="Diminuir estoque">
-              −
-            </IconButton>
-            <Input
-              type="number"
-              min="0"
-              value={form.estoque}
-              onChange={(e) =>
-                setForm((p) => ({
-                  ...p,
-                  estoque: Math.max(0, Number(e.target.value || 0)),
-                }))
-              }
-              style={{ textAlign: "center", width: 120 }}
-            />
-            <IconButton onClick={() => handleInc(1)} aria-label="Aumentar estoque">
-              +
-            </IconButton>
-          </div>
+          <Input
+            disabled={isView}
+            type="number"
+            value={form.estoque}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, estoque: Number(e.target.value) }))
+            }
+          />
         </Full>
       </FormGrid>
     </LayoutModal>
