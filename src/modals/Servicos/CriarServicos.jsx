@@ -5,6 +5,8 @@ import {
   createService,
   updateService,
 } from "../../services/ServicoService";
+import SuccessModal from "../Sucesso/SucessoModal";
+import ErrorModal from "../Erro/ErroModal";
 
 const FormGrid = styled.div`
   display: grid;
@@ -90,7 +92,10 @@ const CriarServico = ({ mode = "create", data = null, onClose, onSave }) => {
     valorTotal: "",
   });
 
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
 
   const isView = mode === "view";
 
@@ -132,7 +137,6 @@ const CriarServico = ({ mode = "create", data = null, onClose, onSave }) => {
   const handleSave = async () => {
     if (isView) return;
 
-    setLoading(true);
     try {
       const payload = {
         title: form.titulo,
@@ -144,19 +148,18 @@ const CriarServico = ({ mode = "create", data = null, onClose, onSave }) => {
 
       if (mode === "edit" && data?._id) {
         await updateService(data._id, payload);
+        setSuccessMessage("Serviço atualizado com sucesso!");
       } else {
         await createService(payload);
+        setSuccessMessage("Serviço criado com sucesso!");
       }
-
-      onSave();
-      onClose();
     } catch (err) {
-      console.error("Erro ao salvar serviço:", err);
-      alert("Erro ao salvar serviço.");
-    } finally {
-      setLoading(false);
+      setErrorMessage(
+        err?.response?.data?.message || "Erro ao salvar serviço."
+      );
     }
   };
+
 
   return (
     <LayoutModal
@@ -169,9 +172,26 @@ const CriarServico = ({ mode = "create", data = null, onClose, onSave }) => {
       }
       onClose={onClose}
       onSave={isView ? null : handleSave}
-      disableSave={loading || isView}
       hideSaveButton={isView}
     >
+      {successMessage && (
+    <SuccessModal
+      message={successMessage}
+      onClose={() => {
+        setSuccessMessage("");
+        onSave();
+        onClose();
+      }}
+    />
+  )}
+
+  {errorMessage && (
+    <ErrorModal
+      message={errorMessage}
+      onClose={() => setErrorMessage("")}
+    />
+  )}
+
       <FormGrid>
         <Full>
           <Label>Título</Label>
