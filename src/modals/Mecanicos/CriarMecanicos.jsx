@@ -3,6 +3,8 @@ import styled from "styled-components";
 import LayoutModal from "../Layout";
 import { createMechanic } from "../../services/ColaboradorService";
 import { getAddressByCep } from "../../services/CepService";
+import SuccessModal from "../Sucesso/SucessoModal";
+import ErrorModal from "../Erro/ErroModal";
 
 const FormGrid = styled.div`
   display: flex;
@@ -87,6 +89,9 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const firstInputRef = useRef(null);
 
   useEffect(() => {
@@ -139,6 +144,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
     if (!validate()) return;
 
     setLoading(true);
+
     try {
       const novoColaborador = {
         name: form.nome,
@@ -155,17 +161,38 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
       };
 
       const response = await createMechanic(novoColaborador);
-      onSave(response.data || novoColaborador);
-      onClose();
+
+      setSuccessMessage("Colaborador cadastrado com sucesso!");
     } catch (error) {
       console.error("Erro ao criar colaborador:", error);
-      alert("Erro ao salvar colaborador. Tente novamente.");
+
+      setErrorMessage(
+        error?.response?.data?.message ||
+          "Erro ao salvar colaborador. Tente novamente."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
+    <>
+    <SuccessModal
+      message={successMessage}
+      onClose={() => {
+        setSuccessMessage("");
+        onSave(form);
+        onClose();
+      }}
+    />
+
+
+
+      <ErrorModal
+        message={errorMessage}
+        onClose={() => setErrorMessage("")}
+      />
+
     <LayoutModal
       title="Adicionar Novo Mecânico"
       onClose={onClose}
@@ -290,6 +317,7 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
         </Field>
       </FormGrid>
     </LayoutModal>
+    </>
   );
 };
 
