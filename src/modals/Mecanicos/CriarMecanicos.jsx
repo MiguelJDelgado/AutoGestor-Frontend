@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import LayoutModal from "../Layout";
-import { createMechanic } from "../../services/ColaboradorService";
+import {
+  createMechanic,
+  updateMechanic,
+} from "../../services/MecanicoService";
 import { getAddressByCep } from "../../services/CepService";
-import SuccessModal from "../Sucesso/SucessoModal";
-import ErrorModal from "../Erro/ErroModal";
 
 const FormGrid = styled.div`
   display: flex;
@@ -40,8 +41,9 @@ const Input = styled.input`
   padding: 8px;
   border-radius: 6px;
   border: 1px solid #d5dde3;
-  background: #e9edf0;
   width: 90%;
+
+  background: ${({ disabled }) => (disabled ? "#e9edf0" : "#fff")};
 
   &:focus {
     outline: none;
@@ -55,10 +57,11 @@ const TextArea = styled.textarea`
   padding: 40px;
   border-radius: 6px;
   border: 1px solid #d5dde3;
-  background: #e9edf0;
   width: 100%;
   min-height: 80px;
   resize: vertical;
+
+  background: ${({ disabled }) => (disabled ? "#e9edf0" : "#fff")};
 
   &:focus {
     outline: none;
@@ -72,7 +75,15 @@ const ErrorMsg = styled.small`
   margin-top: 4px;
 `;
 
-const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
+const CriarColaborador = ({
+  mode = "create",
+  initialData = null,
+  onClose = () => {},
+  onSaved = () => {},
+}) => {
+  const isView = mode === "view";
+  const isEdit = mode === "edit";
+
   const [form, setForm] = useState({
     nome: "",
     cpf: "",
@@ -90,45 +101,59 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const firstInputRef = useRef(null);
 
   useEffect(() => {
-    firstInputRef.current?.focus();
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    firstInputRef.current?.focus();
     return () => {
       document.body.style.overflow = prev;
     };
   }, []);
 
   useEffect(() => {
-    const fetchAddress = async () => {
-      const cep = form.cep.replace(/\D/g, ""); 
-      if (cep.length === 8) {
-        try {
-          const data = await getAddressByCep(cep);
+    if (initialData) {
+      setForm({
+        nome: initialData.Nome || initialData.name || "",
+        cpf: initialData.CPF || initialData.cpf || "",
+        cargo: initialData.Cargo || initialData.position || "",
+        cep: initialData.CEP || initialData.cep || "",
+        endereco: initialData.Endereço || initialData.address || "",
+        numero: initialData.Número || initialData.number || "",
+        municipio: initialData.Município || initialData.city || "",
+        uf: initialData.UF || initialData.state || "",
+        email: initialData.Email || initialData.email || "",
+        telefone: initialData.Telefone || initialData.cellphone || "",
+        anotacao: initialData.Anotação || initialData.notes || "",
+      });
+    }
+  }, [initialData]);
+
+  useEffect(() => {
+    const digits = (form.cep || "").replace(/\D/g, "");
+    if (digits.length === 8) {
+      getAddressByCep(digits)
+        .then((addr) => {
+          if (!addr) return;
           setForm((prev) => ({
             ...prev,
-            endereco: data.logradouro || "",
-            municipio: data.localidade || "",
-            uf: data.uf || "",
+            endereco: addr.logradouro || prev.endereco,
+            municipio: addr.localidade || prev.municipio,
+            uf: addr.uf || prev.uf,
           }));
-        } catch (err) {
-          console.error("Erro ao buscar endereço pelo CEP:", err);
-        }
-      }
-    };
-
-    fetchAddress();
-  }, [form.cep]); 
+        })
+        .catch(() => {});
+    }
+  }, [form.cep]);
 
   const handleChange = (field) => (e) => {
+    if (isView) return;
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   const validate = () => {
+    if (isView) return true;
     const err = {};
     if (!form.nome.trim()) err.nome = "Nome é obrigatório";
     if (!form.cpf.trim()) err.cpf = "CPF é obrigatório";
@@ -141,63 +166,52 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
   };
 
   const handleSave = async () => {
+    if (isView) return onClose();
     if (!validate()) return;
-
     setLoading(true);
 
+    const payload = {
+      name: form.nome,
+      cpf: form.cpf,
+      position: form.cargo,
+      cep: form.cep,
+      address: form.endereco,
+      number: form.numero,
+      city: form.municipio,
+      state: form.uf,
+      email: form.email,
+      cellphone: form.telefone,
+      notes: form.anotacao,
+    };
+
     try {
-      const novoColaborador = {
-        name: form.nome,
-        cpf: form.cpf,
-        position: form.cargo,
-        cep: form.cep,
-        address: form.endereco,
-        number: form.numero,
-        city: form.municipio,
-        state: form.uf,
-        email: form.email,
-        cellphone: form.telefone,
-        notes: form.anotacao,
-      };
-
-      const response = await createMechanic(novoColaborador);
-
-      setSuccessMessage("Colaborador cadastrado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao criar colaborador:", error);
-
-      setErrorMessage(
-        error?.response?.data?.message ||
-          "Erro ao salvar colaborador. Tente novamente."
-      );
+      if (isEdit) {
+        await updateMechanic(initialData._id, payload);
+      } else {
+        await createMechanic(payload);
+      }
+      onSaved();
+      onClose();
+    } catch (err) {
+      console.error("Erro ao salvar:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-    <SuccessModal
-      message={successMessage}
-      onClose={() => {
-        setSuccessMessage("");
-        onSave(form);
-        onClose();
-      }}
-    />
-
-
-
-      <ErrorModal
-        message={errorMessage}
-        onClose={() => setErrorMessage("")}
-      />
-
     <LayoutModal
-      title="Adicionar Novo Mecânico"
+      title={
+        mode === "view"
+          ? "Visualizar Mecânico"
+          : mode === "edit"
+          ? "Editar Mecânico"
+          : "Adicionar Novo Mecânico"
+      }
       onClose={onClose}
-      onSave={handleSave}
+      onSave={isView ? null : handleSave}
       disableSave={loading}
+      hideSaveButton={isView}
     >
       <FormGrid>
         <Row>
@@ -208,27 +222,29 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.nome}
               onChange={handleChange("nome")}
               placeholder="Nome completo"
-              disabled={loading}
+              disabled={loading || isView}
             />
             {errors.nome && <ErrorMsg>{errors.nome}</ErrorMsg>}
           </Field>
+
           <Field>
             <Label>CPF</Label>
             <Input
               value={form.cpf}
               onChange={handleChange("cpf")}
               placeholder="000.000.000-00"
-              disabled={loading}
+              disabled={loading || isView}
             />
             {errors.cpf && <ErrorMsg>{errors.cpf}</ErrorMsg>}
           </Field>
+
           <Field>
             <Label>Cargo</Label>
             <Input
               value={form.cargo}
               onChange={handleChange("cargo")}
-              placeholder="Cargo do colaborador"
-              disabled={loading}
+              placeholder="Cargo"
+              disabled={loading || isView}
             />
             {errors.cargo && <ErrorMsg>{errors.cargo}</ErrorMsg>}
           </Field>
@@ -241,25 +257,27 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.cep}
               onChange={handleChange("cep")}
               placeholder="00000-000"
-              disabled={loading}
+              disabled={loading || isView}
             />
           </Field>
+
           <Field style={{ flex: 2 }}>
             <Label>Endereço</Label>
             <Input
               value={form.endereco}
               onChange={handleChange("endereco")}
               placeholder="Rua, Avenida..."
-              disabled={loading}
+              disabled={loading || isView}
             />
           </Field>
+
           <Field style={{ maxWidth: "120px" }}>
             <Label>Número</Label>
             <Input
               value={form.numero}
               onChange={handleChange("numero")}
               placeholder="Nº"
-              disabled={loading}
+              disabled={loading || isView}
             />
           </Field>
         </Row>
@@ -271,9 +289,10 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               value={form.municipio}
               onChange={handleChange("municipio")}
               placeholder="Cidade"
-              disabled={loading}
+              disabled={loading || isView}
             />
           </Field>
+
           <Field style={{ maxWidth: "100px" }}>
             <Label>UF</Label>
             <Input
@@ -281,26 +300,28 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
               onChange={handleChange("uf")}
               placeholder="SP"
               maxLength={2}
-              disabled={loading}
+              disabled={loading || isView}
             />
           </Field>
+
           <Field>
             <Label>Telefone</Label>
             <Input
               value={form.telefone}
               onChange={handleChange("telefone")}
               placeholder="(11) 99999-9999"
-              disabled={loading}
+              disabled={loading || isView}
             />
             {errors.telefone && <ErrorMsg>{errors.telefone}</ErrorMsg>}
           </Field>
+
           <Field>
             <Label>Email</Label>
             <Input
               value={form.email}
               onChange={handleChange("email")}
               placeholder="email@empresa.com"
-              disabled={loading}
+              disabled={loading || isView}
             />
             {errors.email && <ErrorMsg>{errors.email}</ErrorMsg>}
           </Field>
@@ -312,12 +333,11 @@ const CriarColaborador = ({ onClose = () => {}, onSave = () => {} }) => {
             value={form.anotacao}
             onChange={handleChange("anotacao")}
             placeholder="Observações adicionais..."
-            disabled={loading}
+            disabled={loading || isView}
           />
         </Field>
       </FormGrid>
     </LayoutModal>
-    </>
   );
 };
 
