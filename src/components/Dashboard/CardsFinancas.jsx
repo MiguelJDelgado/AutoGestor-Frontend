@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import {
+  downloadDashboardPDF,
   getAnnualBilling,
   getDashboardMonthly,
   getServiceOrdersNearDeadline,
@@ -174,10 +175,27 @@ function FinanceSummary() {
   const monthName = months[monthIndex];
   const currentYear = currentDate.getFullYear();
 
-  const handleDownloadReport = () => {
-    // futuro: chamar rota tipo GET /billing/report?date=XXXX-YY
-    alert("Função para baixar relatório será conectada aqui.");
-  };
+  const handleDownloadReport = async () => {
+  try {
+    const monthParam = `${currentYear}-${String(monthIndex + 1).padStart(2, "0")}`;
+
+    const pdfArrayBuffer = await downloadDashboardPDF(monthParam);
+
+    const blob = new Blob([pdfArrayBuffer], { type: "application/pdf" });
+
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `relatorio-dashboard-${monthParam}.pdf`;
+    link.click();
+
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Erro ao baixar relatório:", err);
+  }
+};
+
 
   useEffect(() => {
     async function fetchData() {

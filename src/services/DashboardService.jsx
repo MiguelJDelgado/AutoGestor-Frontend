@@ -33,3 +33,14 @@ export const getServiceOrdersPastDeadline = async () => {
   if (!res.ok) throw new Error("Erro ao buscar dashboard");
   return res.json();
 };
+
+export const downloadDashboardPDF = async (date) => {
+  const res = await fetch(`${API_URL}/export-report-pdf?date=${date}`, {
+    method: "GET",
+    headers: getAuthHeaders()
+  });
+
+  if (!res.ok) throw new Error("Erro ao gerar PDF");
+
+  return res.arrayBuffer();
+};
