@@ -3,6 +3,8 @@ import styled from "styled-components";
 import LayoutModal from "../Layout";
 import PesquisaIcon from "../../assets/pesquisa.png";
 import { createProduct } from "../../services/ProdutoService";
+import SuccessModal from "../Sucesso/SucessoModal";
+import ErrorModal from "../Erro/ErroModal";
 
 const FormGrid = styled.div`
   display: grid;
@@ -107,6 +109,10 @@ const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave
     }
   }, [data]);
 
+  
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
   const [, setErrors] = useState({});
   const [, setLoading] = useState(false);
   const firstInputRef = useRef(null);
@@ -172,16 +178,20 @@ const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave
         providerIds: form.fornecedor ? [form.fornecedor] : [],
       };
 
-      const response = await createProduct(novoProduto);
+      await createProduct(novoProduto);
 
-      onSave(response || novoProduto);
-      onClose();
-    } catch {
-      alert("Erro ao salvar produto.");
+      // MOSTRAR MODAL DE SUCESSO
+      setSuccessMessage("Produto cadastrado com sucesso!");
+      
+    } catch (error) {
+      setErrorMessage(
+        error?.response?.data?.message || "Erro ao salvar produto."
+      );
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <LayoutModal
@@ -194,6 +204,25 @@ const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave
       onSave={isView ? null : handleSave}
       hideSaveButton={isView}
     >
+
+      {successMessage && (
+    <SuccessModal
+      message={successMessage}
+      onClose={() => {
+        setSuccessMessage("");
+        onSave();   // Agora sim dispara o pai
+        onClose();  // Agora sim fecha o modal raiz
+      }}
+    />
+  )}
+
+  {errorMessage && (
+    <ErrorModal
+      message={errorMessage}
+      onClose={() => setErrorMessage("")}
+    />
+  )}
+
       <FormGrid>
         <Full>
           <Label>Descrição</Label>
