@@ -9,6 +9,10 @@ const Section = styled.div`
   margin-bottom: 24px;
   padding: 16px;
   overflow: hidden;
+
+  /* 🔥 Mantém o card inteiro apagado e travado */
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
+  pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;
 
 const Icon = styled.img`
@@ -60,35 +64,27 @@ const ButtonsWrapper = styled.div`
   flex-wrap: wrap;
 `;
 
-const SaveButton = styled.button`
-  background-color: #2b3e50;
+const CalculateButton = styled.button`
+  background-color: ${(props) => (props.disabled ? "#a0a0a0" : "#007bff")};
   color: #fff;
   border: none;
   border-radius: 6px;
   padding: 10px 16px;
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
   transition: background 0.2s;
 
   &:hover {
-    background-color: #1f2a38;
+    background-color: ${(props) => (props.disabled ? "#a0a0a0" : "#0056b3")};
   }
 `;
 
-// Novo botão para calcular totais
-const CalculateButton = styled(SaveButton)`
-  background-color: #007bff;
-
-  &:hover {
-    background-color: #0056b3;
-  }
-`;
-
-
-const ValoresTotais = ({ value, onChange, products = [], services = [], descontoData }) => {
+const ValoresTotais = ({ value, onChange, products = [], services = [], descontoData, isLocked = false }) => {
 
   const handleCalcularTotais = async () => {
+    if (isLocked) return;
+
     try {
       const payload = {
         discountType: descontoData?.tipo || "none",
@@ -100,7 +96,7 @@ const ValoresTotais = ({ value, onChange, products = [], services = [], desconto
       };
 
       const res = await calculateServiceOrderTotals(payload);
-      
+
       if (onChange) {
         onChange({
           valorProdutos: res.totalValue.totalValueProducts || 0,
@@ -116,7 +112,7 @@ const ValoresTotais = ({ value, onChange, products = [], services = [], desconto
   };
 
   return (
-    <Section>
+    <Section disabled={isLocked}>
       <SectionHeader>
         <Icon src={CalculadoraIcon} alt="Cálculo Total" />
         Valores Totais
@@ -125,47 +121,27 @@ const ValoresTotais = ({ value, onChange, products = [], services = [], desconto
       <Grid>
         <Field>
           <Label>Valor Produtos</Label>
-          <Input
-            type="number"
-            value={value?.valorProdutos || ""}
-            placeholder="0,00"
-            disabled
-          />
+          <Input type="number" value={value?.valorProdutos || ""} placeholder="0,00" disabled />
         </Field>
 
         <Field>
           <Label>Valor Serviços</Label>
-          <Input
-            type="number"
-            value={value?.valorServicos || ""}
-            placeholder="0,00"
-            disabled
-          />
+          <Input type="number" value={value?.valorServicos || ""} placeholder="0,00" disabled />
         </Field>
 
         <Field>
           <Label>Valor Total</Label>
-          <Input
-            type="number"
-            value={value?.valorTotal || ""}
-            placeholder="0,00"
-            disabled
-          />
+          <Input type="number" value={value?.valorTotal || ""} placeholder="0,00" disabled />
         </Field>
 
         <Field>
           <Label>Total com Desconto</Label>
-          <Input
-            type="number"
-            value={value?.totalComDesconto || ""}
-            placeholder="0,00"
-            disabled
-          />
+          <Input type="number" value={value?.totalComDesconto || ""} placeholder="0,00" disabled />
         </Field>
       </Grid>
 
       <ButtonsWrapper>
-        <CalculateButton type="button" onClick={handleCalcularTotais}>
+        <CalculateButton type="button" disabled={isLocked} onClick={handleCalcularTotais}>
           CALCULAR TOTAIS
         </CalculateButton>
       </ButtonsWrapper>
