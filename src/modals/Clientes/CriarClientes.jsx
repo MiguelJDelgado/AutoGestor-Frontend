@@ -14,7 +14,9 @@ import {
   createVehicle,
   getVehicleById,
   updateVehicle,
+  getConsultarPlacaApi,
 } from "../../services/VeiculoService";
+import { getAddressByCep } from "../../services/CepService";
 
 const Overlay = styled.div`
   position: fixed;
@@ -301,6 +303,72 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
     loadAll();
   }, [data, mode]);
 
+  // Buscar endereço pelo CEP automaticamente
+  useEffect(() => {
+    const rawCep = form.cep?.replace(/\D/g, "");
+
+    if (rawCep?.length === 8) {
+      async function fetchAddress() {
+        try {
+          const data = await getAddressByCep(rawCep);
+
+          setForm((prev) => ({
+            ...prev,
+            address: data.logradouro || "",
+            city: data.localidade || "",
+            state: data.uf || "",
+          }));
+
+        } catch (err) {
+          console.error("Erro ao buscar CEP:", err);
+          setErrorMessage("CEP não encontrado.");
+        }
+      }
+
+      fetchAddress();
+    }
+  }, [form.cep]);
+
+  // Autocompletar veículo pela placa AAA0000
+  useEffect(() => {
+    veiculos.forEach((v, index) => {
+      const placa = (v.licensePlate || "").toUpperCase().trim();
+
+      if (placa === "AAA0000" && !v._fetched) {
+        async function fetchVehicleData() {
+          try {
+            const response = await getConsultarPlacaApi(placa);
+            const dados = response?.dados?.informacoes_veiculo?.dados_veiculo;
+            if (!dados) return;
+
+            const updated = [...veiculos];
+
+            updated[index] = {
+              ...updated[index],
+              licensePlate: dados.placa || "",
+              brand: dados.marca || "",
+              name: dados.modelo || "",
+              year: dados.ano_modelo || "",
+              fuel: dados.combustivel || "",
+              chassis: dados.chassi || "",
+              km: updated[index].km || "",
+              _fetched: true, // ← impede novas requisições
+            };
+
+            setVeiculos(updated);
+          } catch (err) {
+            console.error("Erro ao consultar placa:", err);
+            setErrorMessage("Erro ao consultar placa AAA0000.");
+          }
+        }
+
+        fetchVehicleData();
+      }
+    });
+  }, [veiculos]);
+
+
+
   const handleChange = (field, value) => {
     if (isView) return;
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -527,7 +595,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
                     disabled={isView}
                     value={v.licensePlate || ""}
                     onChange={(e) =>
-                      handleVehicleChange(i, "licensePlate", e.target.value)
+                    handleVehicleChange(i, "licensePlate", e.target.value.toUpperCase())
                     }
                   />
                 </Field>

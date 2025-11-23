@@ -75,3 +75,17 @@ export const deleteVehicle = async (id) => {
 
   return res.json();
 };
+
+export const getConsultarPlacaApi = async (placa) => {
+  const res = await fetch(`${API_URL}/get-datas/${placa}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  })
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Erro ao criar veículo");
+  }
+
+  return res.json();
+}
