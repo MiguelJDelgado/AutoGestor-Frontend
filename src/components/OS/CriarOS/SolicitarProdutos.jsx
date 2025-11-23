@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import xIcon from "../../../assets/XIcon.png";
+import { getProducts } from "../../../services/ProdutoService";
+import { createSolicitacao } from "../../../services/SolicitacaoService";
 
 const Overlay = styled.div`
   position: fixed;
@@ -37,29 +39,40 @@ const Modal = styled.div`
 `;
 
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #dcdfe6;
-  padding-bottom: 8px;
-  margin-bottom: 20px;
+const SearchInput = styled.input`
+  height: 34px;
+  border-radius: 4px;
+  border: 1px solid #dcdfe6;
+  background: #f3f6f9;
+  font-size: 14px;
+  color: #0f2f43;
+  padding: 0 8px;
+  width: 100%;
 `;
 
-const Title = styled.h3`
-  font-size: 16px;
-  font-weight: 700;
-  color: #1a1a1a;
-`;
+const OptionsList = styled.ul`
+  position: absolute;
+  top: 68px;
+  left: 0;
+  width: 100%;
+  max-height: 160px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  list-style: none;
+  padding: 4px 0;
+  z-index: 10;
 
-const CloseButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: #666;
-  cursor: pointer;
-  &:hover {
-    color: #000;
+  li {
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #0f2f43;
+
+    &:hover {
+      background: #f3f6f9;
+    }
   }
 `;
 
@@ -202,31 +215,64 @@ const AddButton = styled.button`
   }
 `;
 
-export default function SolicitarProdutoModal({ onClose, onAdd }) {
+function SolicitarProdutoModal({
+  onClose,
+  onAdd,
+  serviceOrderId,
+  serviceOrderCode,
+}) {
   const [produtos, setProdutos] = useState([
-    { produto: "", lista: [], quantidade: 1 },
+    { produtoNome: "", produtoId: "", quantidade: 1, lista: [] },
   ]);
 
-  const buscarProdutos = async (texto, index) => {
-    if (texto.trim().length < 2) return;
-    try {
-      const response = await fetch(`/api/produtos?nome=${encodeURIComponent(texto)}`);
-      if (!response.ok) throw new Error("Erro ao buscar produtos");
-      const data = await response.json();
-      setProdutos((prev) =>
-        prev.map((p, i) => (i === index ? { ...p, lista: data } : p))
-      );
-    } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
-    }
+  const [listaProdutos, setListaProdutos] = useState([]);
+  const [filtro, setFiltro] = useState("");
+  const [showOptionsIndex, setShowOptionsIndex] = useState(null);
+
+  /* -------- BUSCA TODOS OS PRODUTOS AO ABRIR O MODAL -------- */
+
+  useEffect(() => {
+    const fetchProdutos = async () => {
+      try {
+        const response = await getProducts();
+
+        const arr =
+          Array.isArray(response)
+            ? response
+            : response?.data ?? response?.products ?? [];
+
+        setListaProdutos(arr);
+      } catch (error) {
+        console.error("Erro ao buscar produtos:", error);
+      }
+    };
+
+    fetchProdutos();
+  }, []);
+
+  /* ----------- Selecionar produto digitado ----------- */
+
+  const handleSearch = (index, value) => {
+    const updated = [...produtos];
+    updated[index].produtoNome = value;
+    setProdutos(updated);
+
+    setFiltro(value);
+    setShowOptionsIndex(index);
   };
 
-  const handleChangeProduto = (value, index) => {
-    setProdutos((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, produto: value } : p))
-    );
-    buscarProdutos(value, index);
+  const handleSelectProduto = (index, produto) => {
+    const updated = [...produtos];
+    updated[index].produtoId = produto._id;
+    updated[index].produtoNome = produto.name;
+    updated[index].code = produto.code;
+    setProdutos(updated);
+
+    setShowOptionsIndex(null);
+    setFiltro("");
   };
+
+  /* ---------------- Quantidade ---------------- */
 
   const handleQuantidade = (index, op) => {
     setProdutos((prev) =>
@@ -236,62 +282,102 @@ export default function SolicitarProdutoModal({ onClose, onAdd }) {
     );
   };
 
-  const adicionarProduto = () => {
-    setProdutos((prev) => [...prev, { produto: "", lista: [], quantidade: 1 }]);
-  };
+  /* ---------------- Adicionar / Remover ---------------- */
 
-  const removerProduto = (index) => {
-    setProdutos((prev) => prev.filter((_, i) => i !== index));
-  };
+  const adicionarProduto = () =>
+    setProdutos([
+      ...produtos,
+      { produtoNome: "", produtoId: "", quantidade: 1, lista: [] },
+    ]);
 
-  const handleAdd = () => {
-    if (produtos.some((p) => !p.produto))
+  const removerProduto = (index) =>
+    setProdutos(produtos.filter((_, i) => i !== index));
+
+  /* ---------------- Salvar ---------------- */
+
+  const handleAdd = async () => {
+    if (produtos.some((p) => !p.produtoNome))
       return alert("Preencha todos os produtos!");
-    onAdd(produtos);
-    onClose();
+
+    try {
+      const payload = {
+        serviceOrderId,
+        serviceOrderCode,
+        status: "pending",
+        products: produtos.map((p) => ({
+          name: p.produtoNome,
+          quantity: p.quantidade,
+          productId: p.produtoId || undefined,
+          code: p.code || undefined,
+        })),
+      };
+
+      await createSolicitacao(payload);
+
+      onAdd({
+        produtos,
+        serviceOrderId,
+        serviceOrderCode,
+        status: "pending",
+      });
+
+      onClose();
+    } catch (err) {
+      console.error("Erro ao criar solicitação:", err);
+      alert("Erro ao criar solicitação.");
+    }
   };
+
+  /* -------------------------------------------------- */
+  /* ---------------------- RENDER -------------------- */
+  /* -------------------------------------------------- */
 
   return (
     <Overlay>
       <Modal>
-        <Header>
-          <Title>Solicitar Produto</Title>
-          <CloseButton onClick={onClose}>×</CloseButton>
-        </Header>
+        <h3>Solicitar Produto</h3>
 
-        {produtos.map((p, index) => (
+        {produtos.map((produto, index) => (
           <ProductBlock key={index}>
-            {produtos.length > 0 && (
-              <RemoveButton
-                onClick={() => removerProduto(index)}
-                aria-label={`Remover produto ${index + 1}`}
-                title="Remover"
-              >
-                <img src={xIcon} alt="Remover" />
-              </RemoveButton>
-            )}
+            <RemoveButton onClick={() => removerProduto(index)}>
+              <img src={xIcon} alt="Remover" />
+            </RemoveButton>
 
             <Field>
-              <Label>Produto {index + 1}</Label>
-              <Input
-                list={`lista-produtos-${index}`}
+              <Label>Produto</Label>
+              <SearchInput
+                type="text"
                 placeholder="Digite para buscar..."
-                value={p.produto}
-                onChange={(e) => handleChangeProduto(e.target.value, index)}
+                value={produto.produtoNome}
+                onChange={(e) => handleSearch(index, e.target.value)}
+                onFocus={() => setShowOptionsIndex(index)}
               />
-              <datalist id={`lista-produtos-${index}`}>
-                {p.lista.map((item) => (
-                  <option key={item.id} value={item.nome} />
-                ))}
-              </datalist>
+
+              {showOptionsIndex === index && filtro.length > 0 && (
+                <OptionsList>
+                  {listaProdutos
+                    .filter((p) =>
+                      p.name?.toLowerCase().includes(filtro.toLowerCase())
+                    )
+                    .map((p) => (
+                      <li key={p._id} onClick={() => handleSelectProduto(index, p)}>
+                        {p.name}
+                      </li>
+                    ))}
+                </OptionsList>
+              )}
             </Field>
 
             <Field>
               <Label>Quantidade O.S</Label>
               <QuantityContainer>
-                <QuantityButton onClick={() => handleQuantidade(index, -1)}>−</QuantityButton>
-                <QuantityDisplay>{p.quantidade}</QuantityDisplay>
-                <QuantityButton onClick={() => handleQuantidade(index, 1)}>+</QuantityButton>
+                <QuantityButton onClick={() => handleQuantidade(index, -1)}>
+                  −
+                </QuantityButton>
+                <QuantityDisplay>{produto.quantidade}</QuantityDisplay>
+                <QuantityButton onClick={() => handleQuantidade(index, 1)}>
+                  +
+                </QuantityButton>
               </QuantityContainer>
             </Field>
           </ProductBlock>
@@ -309,3 +395,5 @@ export default function SolicitarProdutoModal({ onClose, onAdd }) {
     </Overlay>
   );
 }
+
+export default SolicitarProdutoModal;
