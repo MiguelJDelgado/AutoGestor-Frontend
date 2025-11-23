@@ -78,6 +78,8 @@ const SaveExitButton = styled.button`
 `;
 
 function CriarOS() {
+  const [isLocked, setIsLocked] = useState(true);
+
   const statusMap = {
     analise: "request",
     pendente: "budget",
@@ -127,12 +129,14 @@ function CriarOS() {
 
   const handleSave = async () => {
     try {
+
+      const servicosValidos = servicos.filter(s => s.serviceId);
+
       const payload = {
         clientId,
         vehicleId,
-
         technicalAnalysis: dadosOS.technicalAnalysis,
-        status: statusMap[dadosOS.status] || "request",
+        status: statusMap.analise,
         descriptionClient: dadosOS.descriptionClient,
         notes: observacao,
         entryDate: dadosOS.entryDate,
@@ -145,7 +149,7 @@ function CriarOS() {
         discountType: descontoData.tipo,
         discountValue: descontoData.valor,
 
-        services: servicos.map((s) => ({
+        services: servicosValidos.map((s) => ({
           serviceId: s.serviceId,
           title: s.title,
           description: s.description || "",
@@ -173,6 +177,7 @@ function CriarOS() {
 
       alert("✅ Ordem de serviço criada com sucesso!");
       console.log("Resposta do backend:", res);
+      setIsLocked(false);
     } catch (error) {
       console.error("❌ Erro ao criar OS:", error);
       alert("Erro ao criar ordem de serviço: " + error.message);
@@ -189,8 +194,8 @@ function CriarOS() {
       <DadosOSSection dadosOS={dadosOS} setDadosOS={setDadosOS} />
       <ClienteOS clientId={clientId} setClientId={setClientId} />
       <VeiculoOS vehicleId={vehicleId} setVehicleId={setVehicleId} />
-      <ServicosSection servicos={servicos} setServicos={setServicos} />
-      <ProdutosSection products={products} setProducts={setProducts} />
+      <ServicosSection servicos={servicos} setServicos={setServicos} isLocked={isLocked}/>
+      <ProdutosSection products={products} setProducts={setProducts} isLocked={isLocked}/>
 
       <SolicitacaoCliente
         value={dadosOS.descriptionClient}
@@ -204,9 +209,10 @@ function CriarOS() {
         onChange={(value) =>
           setDadosOS({ ...dadosOS, technicalAnalysis: value })
         }
+        isLocked={isLocked}
       />
 
-      <DescontoTotal value={descontoData} onChange={setDescontoData} />
+      <DescontoTotal value={descontoData} onChange={setDescontoData} isLocked={isLocked}/>
 
       <CustoTotal
         value={custoTotal}
@@ -214,9 +220,10 @@ function CriarOS() {
         products={products}
         services={servicos}
         descontoData={descontoData}
+        isLocked={isLocked}
       />
 
-      <PagamentosOS value={pagamento} onChange={setPagamento} />
+      <PagamentosOS value={pagamento} onChange={setPagamento} isLocked={isLocked}/>
 
       <ObservacaoOS value={observacao} onChange={setObservacao} />
 

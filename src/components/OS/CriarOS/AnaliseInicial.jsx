@@ -7,6 +7,9 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
+
+  opacity: ${(props) => (props.isLocked ? 0.6 : 1)};
+  pointer-events: ${(props) => (props.isLocked ? "none" : "auto")};
 `;
 
 const Icon = styled.img`
@@ -35,17 +38,18 @@ const TextArea = styled.textarea`
   resize: vertical;
 `;
 
-const AnaliseInicial = ({ value, onChange }) => {
+const AnaliseInicial = ({ value, onChange, isLocked = false }) => {
   return (
-    <Section>
+    <Section isLocked={isLocked}>
       <SectionHeader>
         <Icon src={AnaliseIcon} alt="Análise Inicial / Diagnóstico" />
         Análise Inicial / Diagnóstico
       </SectionHeader>
+
       <TextArea
         placeholder="Descrição do diagnóstico"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => !isLocked && onChange(e.target.value)}
       />
     </Section>
   );

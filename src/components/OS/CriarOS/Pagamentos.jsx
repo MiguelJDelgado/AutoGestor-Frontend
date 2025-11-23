@@ -7,13 +7,13 @@ const Section = styled.div`
   border-radius: 6px;
   margin-bottom: 24px;
   padding: 16px;
-  overflow: hidden;
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
+  pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;
 
 const Icon = styled.img`
   width: 35px;
   height: 25px;
-  vertical-align: middle;
   margin-right: 5px;
 `;
 
@@ -61,21 +61,18 @@ const Input = styled.input`
   font-size: 14px;
 `;
 
-const PagamentosOS = ({ value, onChange }) => {
+const PagamentosOS = ({ value, onChange, isLocked = false }) => {
   const handleChange = (field) => (e) => {
+    if (isLocked) return;
+
     const val =
       e.target.type === "checkbox" ? e.target.checked : e.target.value;
 
-    if (onChange) {
-      onChange({
-        ...value,
-        [field]: val,
-      });
-    }
+    onChange({ ...value, [field]: val });
   };
 
   return (
-    <Section>
+    <Section disabled={isLocked}>
       <SectionHeader>
         <Icon src={PagamentoIcon} alt="Pagamento" />
         Pagamento
@@ -87,6 +84,7 @@ const PagamentosOS = ({ value, onChange }) => {
           <Select
             value={value?.paymentType || ""}
             onChange={handleChange("paymentType")}
+            disabled={isLocked}
           >
             <option value="">Selecione...</option>
             <option value="pix">Pix</option>
@@ -97,19 +95,21 @@ const PagamentosOS = ({ value, onChange }) => {
         </Field>
 
         <Field>
-            <Label>Foi Pago?</Label>
-            <Select
-                value={value?.paid ? "sim" : "não"}
-                onChange={(e) =>
-                onChange({
-                    ...value,
-                    paid: e.target.value === "sim",
-                })
-                }
-            >
-                <option value="sim">Sim</option>
-                <option value="não">Não</option>
-            </Select>
+          <Label>Foi Pago?</Label>
+          <Select
+            value={value?.paid ? "sim" : "não"}
+            onChange={(e) =>
+              !isLocked &&
+              onChange({
+                ...value,
+                paid: e.target.value === "sim",
+              })
+            }
+            disabled={isLocked}
+          >
+            <option value="sim">Sim</option>
+            <option value="não">Não</option>
+          </Select>
         </Field>
 
         <Field>
@@ -118,6 +118,7 @@ const PagamentosOS = ({ value, onChange }) => {
             type="date"
             value={value?.paymentDate || ""}
             onChange={handleChange("paymentDate")}
+            disabled={isLocked}
           />
         </Field>
       </Grid>

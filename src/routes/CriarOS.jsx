@@ -5,7 +5,7 @@ import CriarOSComponent from '../components/OS/CriarOS/CriarOS'
 const AppContainer = styled.div`
   width: 100vw;
   min-height: 100vh;
-  background-color: #ffffff
+  background-color: #7f929d;
 `
 
 function CriarOS() {

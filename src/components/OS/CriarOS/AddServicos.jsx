@@ -14,6 +14,10 @@ const Section = styled.div`
   padding: 16px;
   overflow-x: auto;
   max-width: 100%;
+
+  /* 🔥 Card inteiro travado + apagado */
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
+  pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;
 
 const Icon = styled.img`
@@ -61,7 +65,6 @@ const RemoveButton = styled.button`
   img {
     width: 20px;
     height: 20px;
-    object-fit: contain;
   }
 `;
 
@@ -116,7 +119,12 @@ const AddButton = styled.button`
   cursor: pointer;
   transition: 0.2s;
 
-  &:hover {
+  &:disabled {
+    background: #bfbfbf;
+    cursor: not-allowed;
+  }
+
+  &:hover:not(:disabled) {
     background: #00b248;
   }
 `;
@@ -146,30 +154,24 @@ const AddColabButton = styled.button`
   background: transparent;
   border: none;
   padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
-  transition: 0.2s;
 
   img {
     width: 20px;
     height: 20px;
   }
 
-  &:hover img {
-    transform: scale(1.1);
-    filter: brightness(1.2);
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 `;
 
-
-function ServicosSection({ servicos, setServicos }) {
+function ServicosSection({ servicos, setServicos, isLocked = false }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [isColabModalOpen, setIsColabModalOpen] = useState(false);
-  const [serviceList, setServiceList] = useState([]); // lista vinda do backend
+  const [serviceList, setServiceList] = useState([]);
 
-  // 🔹 Carrega todos os serviços ao montar o componente
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -183,12 +185,15 @@ function ServicosSection({ servicos, setServicos }) {
   }, []);
 
   const adicionarServico = () =>
-    setServicos([...servicos, { colaboradores: [] }]);
+    !isLocked && setServicos([...servicos, { colaboradores: [] }]);
 
   const removerServico = (index) =>
+    !isLocked &&
     setServicos(servicos.filter((_, i) => i !== index));
 
   const handleSaveColaboradores = (colabs) => {
+    if (isLocked) return;
+
     setServicos((prev) =>
       prev.map((srv, i) =>
         i === selectedIndex ? { ...srv, colaboradores: colabs } : srv
@@ -197,8 +202,9 @@ function ServicosSection({ servicos, setServicos }) {
     setIsColabModalOpen(false);
   };
 
-  // 🔹 Quando o usuário escolhe um serviço no select
   const handleSelectService = (index, serviceId) => {
+    if (isLocked) return;
+
     const selectedService = serviceList.find((s) => s._id === serviceId);
     if (!selectedService) return;
 
@@ -212,15 +218,16 @@ function ServicosSection({ servicos, setServicos }) {
               workHours: selectedService.workHours,
               hourValue: selectedService.hourValue,
               totalValue: selectedService.totalValue,
-              quantidade: 1, // valor padrão editável
+              quantidade: 1,
             }
           : srv
       )
     );
   };
 
-  // 🔹 Atualiza o campo de quantidade manualmente
   const handleChangeQuantidade = (index, value) => {
+    if (isLocked) return;
+
     setServicos((prev) =>
       prev.map((srv, i) =>
         i === index
@@ -238,7 +245,7 @@ function ServicosSection({ servicos, setServicos }) {
   };
 
   return (
-    <Section>
+    <Section disabled={isLocked}>
       <SectionHeader>
         <Icon src={ServicoIcon} alt="Serviço" />
         Serviços
@@ -246,14 +253,17 @@ function ServicosSection({ servicos, setServicos }) {
 
       {servicos.map((servico, index) => (
         <FormWrapper key={index}>
-          <RemoveButton onClick={() => removerServico(index)}>
-            <img src={xIcon} alt="Remover" />
-          </RemoveButton>
+          {!isLocked && (
+            <RemoveButton onClick={() => removerServico(index)}>
+              <img src={xIcon} alt="Remover" />
+            </RemoveButton>
+          )}
 
           <FormGrid>
             <Field>
               <Label>Título do serviço</Label>
               <Select
+                disabled={isLocked}
                 value={servico.serviceId || ""}
                 onChange={(e) => handleSelectService(index, e.target.value)}
               >
@@ -268,11 +278,7 @@ function ServicosSection({ servicos, setServicos }) {
 
             <Field>
               <Label>Horas de trabalho</Label>
-              <Input
-                disabled
-                placeholder="Puxado da área de serviços"
-                value={servico.workHours || ""}
-              />
+              <Input disabled value={servico.workHours || ""} />
             </Field>
 
             <Field>
@@ -280,7 +286,7 @@ function ServicosSection({ servicos, setServicos }) {
               <Input
                 type="number"
                 min="1"
-                placeholder="Editável"
+                disabled={isLocked}
                 value={servico.quantidade || ""}
                 onChange={(e) =>
                   handleChangeQuantidade(index, Number(e.target.value))
@@ -290,18 +296,13 @@ function ServicosSection({ servicos, setServicos }) {
 
             <Field>
               <Label>Valor hora</Label>
-              <Input
-                disabled
-                placeholder="Puxado da área de serviços"
-                value={servico.hourValue || ""}
-              />
+              <Input disabled value={servico.hourValue || ""} />
             </Field>
 
             <Field>
               <Label>Valor unitário</Label>
               <Input
                 disabled
-                placeholder="Puxado da área de serviços"
                 value={
                   servico.workHours && servico.hourValue
                     ? servico.workHours * servico.hourValue
@@ -312,27 +313,24 @@ function ServicosSection({ servicos, setServicos }) {
 
             <Field>
               <Label>Valor total</Label>
-              <Input
-                disabled
-                placeholder="cálculo final"
-                value={servico.totalValue || ""}
-              />
+              <Input disabled value={servico.totalValue || ""} />
             </Field>
 
             <Field>
-              <Label>Mecanicos</Label>
+              <Label>Mecânicos</Label>
               <ChipsContainer>
                 {servico.colaboradores.map((colab, i) => (
                   <Chip key={i}>{colab}</Chip>
                 ))}
+
                 <AddColabButton
+                  disabled={isLocked}
                   onClick={() => {
                     setSelectedIndex(index);
                     setIsColabModalOpen(true);
                   }}
-                  title="Adicionar colaborador"
                 >
-                  <img src={plusIcon} alt="Adicionar colaborador" />
+                  <img src={plusIcon} alt="Adicionar" />
                 </AddColabButton>
               </ChipsContainer>
             </Field>
@@ -340,9 +338,11 @@ function ServicosSection({ servicos, setServicos }) {
         </FormWrapper>
       ))}
 
-      <AddButton onClick={adicionarServico}>+</AddButton>
+      <AddButton onClick={adicionarServico} disabled={isLocked}>
+        +
+      </AddButton>
 
-      {isColabModalOpen && (
+      {!isLocked && isColabModalOpen && (
         <MecanicosModal
           onClose={() => setIsColabModalOpen(false)}
           onSave={handleSaveColaboradores}

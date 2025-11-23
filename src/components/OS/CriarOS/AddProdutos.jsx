@@ -12,8 +12,12 @@ const Section = styled.div`
   margin-bottom: 24px;
   padding: 16px;
   width: 100%;
-  overflow-x: auto; /* evita que o conteúdo vaze */
+  overflow-x: auto;
   box-sizing: border-box;
+
+  /* 🔒 Bloqueio exatamente igual ao usado em Valores Totais */
+  opacity: ${(props) => (props.disabled ? 0.6 : 1)};
+  pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;
 
 const Icon = styled.img`
@@ -44,6 +48,11 @@ const RequestButton = styled.button`
 
   &:hover {
     background: #46e08c;
+  }
+
+  &:disabled {
+    background: #9cc8a8;
+    cursor: not-allowed;
   }
 `;
 
@@ -79,13 +88,18 @@ const RemoveButton = styled.button`
     height: 20px;
     object-fit: contain;
   }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
 `;
 
 const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
-  min-width: 600px; /* garante scroll horizontal se faltar espaço */
+  min-width: 600px;
 
   @media (max-width: 768px) {
     min-width: 500px;
@@ -115,16 +129,6 @@ const Input = styled.input`
   color: #333;
 `;
 
-const Select = styled.select`
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  background: #f3f6f9;
-  font-size: 14px;
-  color: #333;
-`;
-
 const AddButton = styled.button`
   width: 100%;
   background: #00c853;
@@ -139,6 +143,11 @@ const AddButton = styled.button`
 
   &:hover {
     background: #00b248;
+  }
+
+  &:disabled {
+    background: #9be7af;
+    cursor: not-allowed;
   }
 `;
 
@@ -171,22 +180,19 @@ const DropdownItem = styled.li`
   }
 `;
 
-function ProdutosSection({ products, setProducts }) {
+function ProdutosSection({ products, setProducts, isLocked }) {
   const [todosProdutos, setTodosProdutos] = useState([]);
-  const [buscas, setBuscas] = useState([""]); // 🔹 inicia com 1 busca vazia
+  const [buscas, setBuscas] = useState([""]);
   const [dropdownAtivo, setDropdownAtivo] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
 
-  // 🔹 Adiciona 1 produto vazio SOMENTE na primeira renderização
   useEffect(() => {
     if (!products || products.length === 0) {
       setProducts([{}]);
       setBuscas([""]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // <-- apenas na montagem
+  }, []);
 
-  // Buscar produtos
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
@@ -201,11 +207,13 @@ function ProdutosSection({ products, setProducts }) {
   }, []);
 
   const adicionarProduto = () => {
+    if (isLocked) return;
     setProducts([...products, {}]);
     setBuscas([...buscas, ""]);
   };
 
   const removerProduto = (index) => {
+    if (isLocked) return;
     const novosProdutos = products.filter((_, i) => i !== index);
     const novasBuscas = buscas.filter((_, i) => i !== index);
     setProducts(novosProdutos);
@@ -213,6 +221,8 @@ function ProdutosSection({ products, setProducts }) {
   };
 
   const handleBuscaChange = (index, termo) => {
+    if (isLocked) return;
+
     const novasBuscas = [...buscas];
     novasBuscas[index] = termo;
     setBuscas(novasBuscas);
@@ -224,6 +234,8 @@ function ProdutosSection({ products, setProducts }) {
   };
 
   const handleSelectProduto = (index, produto) => {
+    if (isLocked) return;
+
     const novosProdutos = [...products];
     novosProdutos[index] = {
       productId: produto._id,
@@ -247,6 +259,8 @@ function ProdutosSection({ products, setProducts }) {
   };
 
   const handleQuantidadeChange = (index, quantidade) => {
+    if (isLocked) return;
+
     const novosProdutos = [...products];
     const p = novosProdutos[index] || {};
     p.quantity = quantidade;
@@ -262,13 +276,13 @@ function ProdutosSection({ products, setProducts }) {
   };
 
   return (
-    <Section>
+    <Section disabled={isLocked}>
       <SectionHeader>
         <Icon src={ProdutoIcon} alt="Produto" />
         Produtos
       </SectionHeader>
 
-      <RequestButton onClick={() => setModalAberto(true)}>
+      <RequestButton disabled={isLocked} onClick={() => setModalAberto(true)}>
         + Solicitar Produto
       </RequestButton>
 
@@ -280,103 +294,99 @@ function ProdutosSection({ products, setProducts }) {
       )}
 
       {products.map((produto, index) => (
-          <FormWrapper key={index}>
-            <RemoveButton onClick={() => removerProduto(index)}>
-              <img src={xIcon} alt="Remover" />
-            </RemoveButton>
+        <FormWrapper key={index}>
+          <RemoveButton
+            onClick={() => removerProduto(index)}
+            disabled={isLocked}
+          >
+            <img src={xIcon} alt="Remover" />
+          </RemoveButton>
 
-            <FormGrid>
-              <Field style={{ position: "relative" }}>
-                <Label>Descrição</Label>
-                <Input
-                  type="text"
-                  placeholder="Digite para buscar..."
-                  value={buscas[index] || produto.name || ""}
-                  onChange={(e) => handleBuscaChange(index, e.target.value)}
-                  onFocus={() => setDropdownAtivo(index)}
-                  autoComplete="off"
-                />
+          <FormGrid>
+            <Field style={{ position: "relative" }}>
+              <Label>Descrição</Label>
+              <Input
+                type="text"
+                placeholder="Digite para buscar..."
+                value={buscas[index] || produto.name || ""}
+                onChange={(e) => handleBuscaChange(index, e.target.value)}
+                onFocus={() => setDropdownAtivo(index)}
+                autoComplete="off"
+                disabled={isLocked}
+              />
 
-                {dropdownAtivo === index &&
-                  buscas[index] &&
-                  produtosFiltrados(buscas[index]).length > 0 && (
-                    <Dropdown style={{ zIndex: 50 }}>
-                      {produtosFiltrados(buscas[index])
-                        .slice(0, 8)
-                        .map((p) => (
-                          <DropdownItem
-                            key={p._id}
-                            onClick={() => handleSelectProduto(index, p)}
-                          >
-                            {p.name}
-                          </DropdownItem>
-                        ))}
-                    </Dropdown>
-                  )}
-              </Field>
+              {dropdownAtivo === index &&
+                !isLocked &&
+                buscas[index] &&
+                produtosFiltrados(buscas[index]).length > 0 && (
+                  <Dropdown>
+                    {produtosFiltrados(buscas[index])
+                      .slice(0, 8)
+                      .map((p) => (
+                        <DropdownItem
+                          key={p._id}
+                          onClick={() => handleSelectProduto(index, p)}
+                        >
+                          {p.name}
+                        </DropdownItem>
+                      ))}
+                  </Dropdown>
+                )}
+            </Field>
 
-              <Field>
-                <Label>UN</Label>
-                <Input
-                  disabled
-                  value={produto.unitMeasure || ""}
-                  placeholder="Puxado da área de produtos"
-                />
-              </Field>
+            <Field>
+              <Label>UN</Label>
+              <Input disabled={isLocked} value={produto.unitMeasure || ""} />
+            </Field>
 
-              <Field>
-                <Label>Estoque</Label>
-                <Input
-                  disabled
-                  value={produto.stock ?? produto.quantity ?? ""}
-                  placeholder="Puxado da área de produtos"
-                />
-              </Field>
+            <Field>
+              <Label>Estoque</Label>
+              <Input disabled={isLocked} value={produto.stock ?? produto.quantity ?? ""} />
+            </Field>
 
-              <Field>
-                <Label>Quantidade</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={produto.quantity || ""}
-                  onChange={(e) =>
-                    handleQuantidadeChange(index, Number(e.target.value))
-                  }
-                  placeholder="Editável"
-                />
-              </Field>
+            <Field>
+              <Label>Quantidade</Label>
+              <Input
+                type="number"
+                min="1"
+                value={produto.quantity || ""}
+                onChange={(e) =>
+                  handleQuantidadeChange(index, Number(e.target.value))
+                }
+                disabled={isLocked}
+              />
+            </Field>
 
-              <Field>
-                <Label>Valor unitário</Label>
-                <Input
-                  disabled
-                  value={
-                    produto.salePrice !== undefined && produto.salePrice !== null
-                      ? `R$ ${Number(produto.salePrice).toFixed(2)}`
-                      : ""
-                  }
-                  placeholder="Puxado da área de produtos"
-                />
-              </Field>
+            <Field>
+              <Label>Valor unitário</Label>
+              <Input
+                disabled={isLocked}
+                value={
+                  produto.salePrice !== undefined && produto.salePrice !== null
+                    ? `R$ ${Number(produto.salePrice).toFixed(2)}`
+                    : ""
+                }
+              />
+            </Field>
 
-              <Field>
-                <Label>Valor total</Label>
-                <Input
-                  disabled
-                  value={
-                    produto.total !== undefined && produto.total !== null
-                      ? `R$ ${Number(produto.total).toFixed(2)}`
-                      : ""
-                  }
-                  placeholder="Cálculo final"
-                />
-              </Field>
-            </FormGrid>
-          </FormWrapper>
-        ))
-      }
+            <Field>
+              <Label>Valor total</Label>
+              <Input
+                disabled={isLocked}
+                value={
+                  produto.total !== undefined && produto.total !== null
+                    ? `R$ ${Number(produto.total).toFixed(2)}`
+                    : ""
+                }
+              />
+            </Field>
+          </FormGrid>
+        </FormWrapper>
+      ))}
 
-      <AddButton onClick={adicionarProduto}>+</AddButton>
+      <AddButton onClick={adicionarProduto} disabled={isLocked}>
+        +
+      </AddButton>
     </Section>
   );
 }
