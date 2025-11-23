@@ -39,7 +39,7 @@ export const createVehicle = async (vehicleData) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Erro ao criar veículo");
+    throw new Error(errorData.message || "Erro ao criar veículo");
   }
 
   return res.json();
@@ -55,7 +55,7 @@ export const updateVehicle = async (id, vehicleData) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Erro ao atualizar veículo");
+    throw new Error(errorData.message || "Erro ao atualizar veículo");
   }
 
   return res.json();
@@ -70,7 +70,7 @@ export const deleteVehicle = async (id) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Erro ao excluir veículo");
+    throw new Error(errorData.message || "Erro ao excluir veículo");
   }
 
   return res.json();
@@ -84,7 +84,7 @@ export const getConsultarPlacaApi = async (placa) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Erro ao criar veículo");
+    throw new Error(errorData.message || "Erro ao buscar veículo");
   }
 
   return res.json();

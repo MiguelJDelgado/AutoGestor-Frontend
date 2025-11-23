@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
 import ModalCliente from "../../../modals/Clientes/CriarClientes";
+import ConfirmModal from "../../../modals/Confirmacao/ConfirmacaoModal";
+import SuccessModal from "../../../modals/Sucesso/SucessoModal"
+import ErrorModal from "../../../modals/Erro/ErroModal";
 
 import { 
   getAllClients, 
@@ -29,6 +32,11 @@ const TelaClientes = () => {
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // ➕ Estados dos novos modais
+  const [confirmData, setConfirmData] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const searchOptions = [
     { label: "Nome", value: "name" },
@@ -105,15 +113,18 @@ const TelaClientes = () => {
     }
   };
 
-  const handleDelete = async (row) => {
-    const confirmDelete = window.confirm(
-      "Tem certeza que deseja excluir este cliente e todos os veículos associados?"
-    );
+  const handleDelete = (row) => {
+    setConfirmData({
+      id: row._id,
+      message: "Tem certeza que deseja excluir este cliente e todos os veículos associados?"
+    });
+  };
 
-    if (!confirmDelete) return;
+  const confirmDeleteAction = async () => {
+    if (!confirmData) return;
 
     try {
-      const client = await getClientById(row._id);
+      const client = await getClientById(confirmData.id);
 
       if (client.vehicleIds && client.vehicleIds.length > 0) {
         for (const vehicleId of client.vehicleIds) {
@@ -121,14 +132,31 @@ const TelaClientes = () => {
         }
       }
 
-      await deleteClient(row._id);
+      await deleteClient(confirmData.id);
 
-      fetchClients();
+      await fetchClients();
+      setSuccessMessage("Cliente excluído com sucesso!");
+
     } catch (error) {
-      console.error("Erro ao excluir cliente:", error.message);
-      alert("Erro ao excluir cliente");
+      console.log("🔥 ERRO COMPLETO:", error);
+  console.log("🔥 error.response:", error.response);
+  console.log("🔥 error.request:", error.request);
+  console.log("🔥 error.message:", error.message);
+
+      console.error("Erro ao excluir cliente:", error);
+
+      let extractedMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Erro ao excluir cliente.";
+
+      setErrorMessage(extractedMessage);
+
+    } finally {
+      setConfirmData(null);
     }
   };
+
 
   const handleSaveCliente = () => {
     fetchClients();
@@ -163,6 +191,33 @@ const TelaClientes = () => {
           onSave={handleSaveCliente}
         />
       )}
+
+      {/* 🟡 Modal de confirmação */}
+      {confirmData && (
+        <ConfirmModal
+          title="Confirmação"
+          message={confirmData.message}
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
+
+      {/* 🟢 Modal de sucesso */}
+      {successMessage && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => setSuccessMessage("")}
+        />
+      )}
+
+      {/* 🔴 Modal de erro */}
+      {errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setErrorMessage("")}
+        />
+      )}
+
     </div>
   );
 };

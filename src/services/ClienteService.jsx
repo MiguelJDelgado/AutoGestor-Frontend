@@ -64,7 +64,7 @@ export const deleteClient = async (id) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Erro ao excluir cliente");
+    throw new Error(errorData.message || "Erro ao excluir cliente");
   }
 
   return res.json();
