@@ -92,7 +92,6 @@ const CriarServico = ({ mode = "create", data = null, onClose, onSave }) => {
     valorTotal: "",
   });
 
-  // const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 

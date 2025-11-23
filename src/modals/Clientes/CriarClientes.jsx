@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import styled from "styled-components";
 import xIcon from "../../assets/XIcon.png";
+import SuccessModal from "../Sucesso/SucessoModal";
+import ErrorModal from "../Erro/ErroModal";
 
 import {
   createClient,
@@ -211,6 +213,10 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
 
   const [veiculos, setVeiculos] = useState([{}]);
 
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+
   const formatCPFouCNPJ = (value) => {
     const digits = value.replace(/\D/g, "");
 
@@ -327,8 +333,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
         if (v._id) {
           const updated = await updateVehicle(v._id, v);
           savedVehicleIds.push(updated._id);
-        }
-        else {
+        } else {
           const created = await createVehicle({
             ...v,
             name: v.name || v.model || "",
@@ -345,15 +350,35 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
       if (isEdit) await updateClient(data._id, payload);
       if (isCreate) await createClient(payload);
 
-      if (onSave) onSave();
-      onClose();
+      setSuccessMessage("Cliente salvo com sucesso!");
+
     } catch (err) {
-      console.error("Erro ao salvar:", err);
-      alert("Erro ao salvar cliente.");
+      console.error("Erro ao salvar cliente:", err);
+      setErrorMessage(
+        err?.response?.data?.message || "Erro ao salvar cliente."
+      );
     }
   };
 
   return (
+    <>
+    {successMessage && (
+      <SuccessModal
+        message={successMessage}
+        onClose={() => {
+          setSuccessMessage("");
+          if (onSave) onSave();
+          onClose();
+        }}
+      />
+    )}
+
+    {errorMessage && (
+      <ErrorModal
+        message={errorMessage}
+        onClose={() => setErrorMessage("")}
+      />
+    )}
     <Overlay>
       <ModalContainer>
         <Header>
@@ -593,6 +618,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
         </Footer>
       </ModalContainer>
     </Overlay>
+    </>
   );
 };
 
