@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import Table from "../Table";
 import Header from "../../Header/Header";
 import CriarColaborador from "../../../modals/Mecanicos/CriarMecanicos";
-import { getAllMechanics } from "../../../services/ColaboradorService";
+import {
+  getAllMechanics,
+  deleteMechanic,
+} from "../../../services/MecanicoService";
 
 const TelaColaboradores = () => {
   const columns = [
@@ -19,63 +22,68 @@ const TelaColaboradores = () => {
   ];
 
   const [data, setData] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [modalConfig, setModalConfig] = useState({
+    open: false,
+    mode: "create",
+    mechanic: null,
+  });
+
+  const loadMechanics = async () => {
+    try {
+      const response = await getAllMechanics();
+      const mechanicsArray = Array.isArray(response) ? response : [];
+
+      const formattedData = mechanicsArray.map((m) => ({
+        _id: m._id,
+        Nome: m.name || "-",
+        CPF: m.cpf || "-",
+        CEP: m.cep || "-",
+        Cargo: m.position || "-",
+        Telefone: m.cellphone || "-",
+        Email: m.email || "-",
+        Endereço: m.address || "-",
+        Número: m.number || "-",
+        Município: m.city || "-",
+        UF: m.state || "-",
+        Anotação: m.notes || "-",
+      }));
+
+      setData(formattedData);
+    } catch (err) {
+      console.error("Erro ao carregar mecânicos:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchMechanics = async () => {
-      try {
-        const response = await getAllMechanics();
-        const mechanicsArray = Array.isArray(response) ? response : [];
-
-        const formattedData = mechanicsArray.map((m) => ({
-          Nome: m.name || "-",
-          CPF: m.cpf || "-",
-          Cargo: m.position || "-",
-          Telefone: m.cellphone || "-",
-          Email: m.email || "-",
-          Endereço: m.address || "-",
-          Número: m.number || "-",
-          Município: m.city || "-",
-          UF: m.state || "-",
-          Anotação: m.notes || "-",
-        }));
-
-        setData(formattedData);
-      } catch (error) {
-        console.error("Erro ao carregar colaboradores:", error.message);
-      }
-    };
-
-    fetchMechanics();
+    loadMechanics();
   }, []);
 
-  const handleView = (row) => console.log("Visualizar Colaborador:", row);
-  const handleEdit = (row) => console.log("Editar Colaborador:", row);
-  const handleDelete = (row) => console.log("Excluir Colaborador:", row);
+  const openModal = (mode, mechanic = null) => {
+    setModalConfig({ open: true, mode, mechanic });
+  };
 
-  const handleSaveColaborador = (novoColaborador) => {
-    setData((prevData) => [
-      ...prevData,
-      {
-        Nome: novoColaborador.name,
-        CPF: novoColaborador.cpf,
-        Cargo: novoColaborador.position,
-        Telefone: novoColaborador.cellphone,
-        Email: novoColaborador.email,
-        Endereço: novoColaborador.address,
-        Número: novoColaborador.number,
-        Município: novoColaborador.city,
-        UF: novoColaborador.state,
-        Anotação: novoColaborador.notes || "-",
-      },
-    ]);
-    setIsModalOpen(false);
-    console.log("Novo colaborador salvo:", novoColaborador);
+  const closeModal = () => {
+    setModalConfig({
+      open: false,
+      mode: "create",
+      mechanic: null,
+    });
+  };
+
+  const handleDelete = async (row) => {
+    if (!window.confirm("Deseja excluir este mecânico?")) return;
+    try {
+      await deleteMechanic(row._id);
+      await loadMechanics();
+    } catch (err) {
+      console.error("Erro ao excluir:", err.message);
+    }
   };
 
   return (
     <div>
-      <Header title="Mecânicos" onNew={() => setIsModalOpen(true)}>
+      <Header title="Mecânicos" onNew={() => openModal("create")}>
         + Novo Mecânico
       </Header>
 
@@ -83,15 +91,20 @@ const TelaColaboradores = () => {
         columns={columns}
         data={data}
         searchOptions={columns}
-        onView={handleView}
-        onEdit={handleEdit}
+        onView={(row) => openModal("view", row)}
+        onEdit={(row) => openModal("edit", row)}
         onDelete={handleDelete}
       />
 
-      {isModalOpen && (
+      {modalConfig.open && (
         <CriarColaborador
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveColaborador}
+          mode={modalConfig.mode}
+          initialData={modalConfig.mechanic}
+          onClose={closeModal}
+          onSaved={() => {
+            loadMechanics();
+            closeModal();
+          }}
         />
       )}
     </div>

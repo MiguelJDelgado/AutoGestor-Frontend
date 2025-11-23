@@ -2,7 +2,6 @@ import { getAuthHeaders } from "../utils/Token";
 
 const API_URL = import.meta.env.VITE_API + "/auth/providers";
 
-// Buscar todos com paginação
 export const getSuppliers = async ({ page, limit, date, identifier, search } = {}) => {
   const queryParams = new URLSearchParams();
 
@@ -20,7 +19,6 @@ export const getSuppliers = async ({ page, limit, date, identifier, search } = {
   return res.json();
 };
 
-// Buscar por ID
 export const getSupplierById = async (id) => {
   const res = await fetch(`${API_URL}/${id}`, {
     headers: getAuthHeaders(),
@@ -29,7 +27,6 @@ export const getSupplierById = async (id) => {
   return res.json();
 };
 
-// Criar
 export const createSupplier = async (supplierData) => {
   const res = await fetch(API_URL, {
     method: "POST",
@@ -40,7 +37,6 @@ export const createSupplier = async (supplierData) => {
   return res.json();
 };
 
-// Atualizar
 export const updateSupplier = async (id, supplierData) => {
   const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
@@ -51,7 +47,6 @@ export const updateSupplier = async (id, supplierData) => {
   return res.json();
 };
 
-// Deletar
 export const deleteSupplier = async (id) => {
   const res = await fetch(`${API_URL}/${id}`, {
     method: "DELETE",
