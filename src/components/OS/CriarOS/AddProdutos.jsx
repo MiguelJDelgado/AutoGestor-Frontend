@@ -180,7 +180,7 @@ const DropdownItem = styled.li`
   }
 `;
 
-function ProdutosSection({ products, setProducts, isLocked }) {
+function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serviceOrderCode }) {
   const [todosProdutos, setTodosProdutos] = useState([]);
   const [buscas, setBuscas] = useState([""]);
   const [dropdownAtivo, setDropdownAtivo] = useState(null);
@@ -290,6 +290,8 @@ function ProdutosSection({ products, setProducts, isLocked }) {
         <SolicitarProdutoModal
           onClose={() => setModalAberto(false)}
           onAdd={(novoProduto) => setProducts([...products, novoProduto])}
+          serviceOrderId={serviceOrderId}
+          serviceOrderCode={serviceOrderCode}
         />
       )}
 

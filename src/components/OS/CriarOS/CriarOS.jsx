@@ -99,6 +99,8 @@ function CriarOS() {
     deadline: "",
   });
 
+  const [serviceOrderId, setServiceOrderId] = useState(null);
+  const [serviceOrderCode, setServiceOrderCode] = useState(null);
   const [clientId, setClientId] = useState(null);
   const [vehicleId, setVehicleId] = useState(null);
 
@@ -177,6 +179,8 @@ function CriarOS() {
 
       alert("✅ Ordem de serviço criada com sucesso!");
       console.log("Resposta do backend:", res);
+      setServiceOrderId(res._id);
+      setServiceOrderCode(res.code);
       setIsLocked(false);
     } catch (error) {
       console.error("❌ Erro ao criar OS:", error);
@@ -195,7 +199,13 @@ function CriarOS() {
       <ClienteOS clientId={clientId} setClientId={setClientId} />
       <VeiculoOS vehicleId={vehicleId} setVehicleId={setVehicleId} />
       <ServicosSection servicos={servicos} setServicos={setServicos} isLocked={isLocked}/>
-      <ProdutosSection products={products} setProducts={setProducts} isLocked={isLocked}/>
+      <ProdutosSection 
+        products={products}
+        setProducts={setProducts}
+        isLocked={isLocked}
+        serviceOrderId={serviceOrderId}
+        serviceOrderCode={serviceOrderCode}
+      />
 
       <SolicitacaoCliente
         value={dadosOS.descriptionClient}
