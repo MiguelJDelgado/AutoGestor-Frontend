@@ -331,6 +331,8 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
 
   // Autocompletar veículo pela placa AAA0000
   useEffect(() => {
+    if (isView) return;
+
     veiculos.forEach((v, index) => {
       const placa = (v.licensePlate || "").toUpperCase().trim();
 
@@ -352,20 +354,20 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
               fuel: dados.combustivel || "",
               chassis: dados.chassi || "",
               km: updated[index].km || "",
-              _fetched: true, // ← impede novas requisições
+              _fetched: true,
             };
 
             setVeiculos(updated);
           } catch (err) {
             console.error("Erro ao consultar placa:", err);
-            setErrorMessage("Erro ao consultar placa AAA0000.");
           }
         }
 
         fetchVehicleData();
       }
     });
-  }, [veiculos]);
+  }, [veiculos, isView]);
+
 
 
 
@@ -392,6 +394,7 @@ const ModalCliente = ({ mode, data, onClose, onSave }) => {
   };
 
   const handleSubmit = async () => {
+    if (isView) return;
     try {
       const savedVehicleIds = [];
 
