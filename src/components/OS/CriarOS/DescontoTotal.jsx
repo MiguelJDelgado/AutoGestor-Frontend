@@ -8,8 +8,6 @@ const Section = styled.div`
   margin-bottom: 24px;
   padding: 16px;
   overflow: hidden;
-
-  /* 🔥 Comportamento idêntico ao ValoresTotais */
   opacity: ${(props) => (props.disabled ? 0.6 : 1)};
   pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;

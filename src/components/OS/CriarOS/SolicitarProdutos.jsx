@@ -122,16 +122,6 @@ const Label = styled.label`
   margin-bottom: 6px;
 `;
 
-const Input = styled.input`
-  height: 34px;
-  border-radius: 4px;
-  border: 1px solid #dcdfe6;
-  background: #f3f6f9;
-  font-size: 14px;
-  color: #0f2f43;
-  padding: 0 8px;
-`;
-
 const QuantityContainer = styled.div`
   display: flex;
   align-items: center;
@@ -229,8 +219,6 @@ function SolicitarProdutoModal({
   const [filtro, setFiltro] = useState("");
   const [showOptionsIndex, setShowOptionsIndex] = useState(null);
 
-  /* -------- BUSCA TODOS OS PRODUTOS AO ABRIR O MODAL -------- */
-
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
@@ -249,8 +237,6 @@ function SolicitarProdutoModal({
 
     fetchProdutos();
   }, []);
-
-  /* ----------- Selecionar produto digitado ----------- */
 
   const handleSearch = (index, value) => {
     const updated = [...produtos];
@@ -272,8 +258,6 @@ function SolicitarProdutoModal({
     setFiltro("");
   };
 
-  /* ---------------- Quantidade ---------------- */
-
   const handleQuantidade = (index, op) => {
     setProdutos((prev) =>
       prev.map((p, i) =>
@@ -281,8 +265,6 @@ function SolicitarProdutoModal({
       )
     );
   };
-
-  /* ---------------- Adicionar / Remover ---------------- */
 
   const adicionarProduto = () =>
     setProdutos([
@@ -292,8 +274,6 @@ function SolicitarProdutoModal({
 
   const removerProduto = (index) =>
     setProdutos(produtos.filter((_, i) => i !== index));
-
-  /* ---------------- Salvar ---------------- */
 
   const handleAdd = async () => {
     if (produtos.some((p) => !p.produtoNome))
@@ -314,12 +294,14 @@ function SolicitarProdutoModal({
 
       await createSolicitacao(payload);
 
-      onAdd({
-        produtos,
-        serviceOrderId,
-        serviceOrderCode,
-        status: "pending",
-      });
+      onAdd(
+        produtos.map((p) => ({
+          productId: p.produtoId || null,
+          code: p.code || "",
+          name: p.produtoNome,
+          quantity: p.quantidade,
+        }))
+      );
 
       onClose();
     } catch (err) {
@@ -327,10 +309,6 @@ function SolicitarProdutoModal({
       alert("Erro ao criar solicitação.");
     }
   };
-
-  /* -------------------------------------------------- */
-  /* ---------------------- RENDER -------------------- */
-  /* -------------------------------------------------- */
 
   return (
     <Overlay>

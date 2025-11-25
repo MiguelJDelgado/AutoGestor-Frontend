@@ -9,8 +9,6 @@ const Section = styled.div`
   margin-bottom: 24px;
   padding: 16px;
   overflow: hidden;
-
-  /* 🔥 Mantém o card inteiro apagado e travado */
   opacity: ${(props) => (props.disabled ? 0.6 : 1)};
   pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;

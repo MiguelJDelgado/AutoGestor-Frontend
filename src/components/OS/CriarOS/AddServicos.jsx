@@ -14,8 +14,6 @@ const Section = styled.div`
   padding: 16px;
   overflow-x: auto;
   max-width: 100%;
-
-  /* 🔥 Card inteiro travado + apagado */
   opacity: ${(props) => (props.disabled ? 0.6 : 1)};
   pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;
@@ -120,7 +118,7 @@ const AddButton = styled.button`
   transition: 0.2s;
 
   &:disabled {
-    background: #bfbfbf;
+    background: #9be7af;
     cursor: not-allowed;
   }
 
