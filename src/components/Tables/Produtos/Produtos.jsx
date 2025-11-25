@@ -6,6 +6,9 @@ import {
   deleteProduct,
 } from "../../../services/ProdutoService";
 import CriarProduto from "../../../modals/Produtos/CriarProdutos";
+import ModalConfirmacao from "../../../modals/Confirmacao/ConfirmacaoModal";
+import ModalSucesso from "../../../modals/Sucesso/SucessoModal"
+import ModalErro from "../../../modals/Erro/ErroModal";
 
 const TelaProdutos = () => {
   const columns = [
@@ -21,6 +24,10 @@ const TelaProdutos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create");
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const [confirmData, setConfirmData] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const searchOptions = [
     { label: "Código", value: "code" },
@@ -88,14 +95,33 @@ const TelaProdutos = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (row) => {
-    if (!window.confirm("Deseja excluir este produto?")) return;
+  const handleDelete = (row) => {
+    setConfirmData(row);
+  };
+
+  const confirmDeleteAction = async () => {
+    if (!confirmData) return;
+
+    const id = confirmData.raw?._id;
 
     try {
-      await deleteProduct(row.raw._id);
-      fetchProducts();
-    } catch {
-      alert("Erro ao excluir produto.");
+      await deleteProduct(id);
+
+      setData((prev) => prev.filter((item) => item.raw._id !== id));
+
+      setSuccessMessage("Produto excluído com sucesso!");
+
+    } catch (error) {
+      console.error("Erro ao excluir produto:", error);
+
+      const extracted =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Erro ao excluir produto.";
+
+      setErrorMessage(extracted);
+    } finally {
+      setConfirmData(null);
     }
   };
 
@@ -106,10 +132,11 @@ const TelaProdutos = () => {
   return (
     <div>
       <Header title="Produtos" onNew={() => {
-        setModalMode("create");
-        setSelectedProduct(null);
-        setIsModalOpen(true);
-      }}>
+          setModalMode("create");
+          setSelectedProduct(null);
+          setIsModalOpen(true);
+        }}
+      >
         + Novo Produto
       </Header>
 
@@ -129,6 +156,32 @@ const TelaProdutos = () => {
           data={selectedProduct}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveProduct}
+        />
+      )}
+
+      {/* 🟦 Modal de Confirmação */}
+      {confirmData && (
+        <ModalConfirmacao
+          title="Excluir Produto"
+          message={`Tem certeza que deseja excluir o produto ${confirmData["Nome"]}?`}
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
+
+      {/* 🟩 Modal de Sucesso */}
+      {successMessage && (
+        <ModalSucesso
+          message={successMessage}
+          onClose={() => setSuccessMessage("")}
+        />
+      )}
+
+      {/* 🟥 Modal de Erro */}
+      {errorMessage && (
+        <ModalErro
+          message={errorMessage}
+          onClose={() => setErrorMessage("")}
         />
       )}
     </div>
