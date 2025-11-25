@@ -11,6 +11,9 @@ import ModalAceita from "../../../modals/Solicitacoes/SolicitacaoAceita";
 import ModalRejeitada from "../../../modals/Solicitacoes/SolicitacaoRejeitada";
 import ModalFinalizada from "../../../modals/Solicitacoes/SolicitacaoFinalizada";
 import ModalSolicitacaoComprada from "../../../modals/Solicitacoes/SolicitacaoComprada";
+import ModalConfirmacao from "../../../modals/Confirmacao/ConfirmacaoModal";
+import ModalSucesso from "../../../modals/Sucesso/SucessoModal"
+import ModalErro from "../../../modals/Erro/ErroModal";
 
 const TelaSolicitacoes = () => {
   const columns = [
@@ -35,6 +38,10 @@ const TelaSolicitacoes = () => {
   const [modalTipo, setModalTipo] = useState(null);
   const [solicitacaoSelecionada, setSolicitacaoSelecionada] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmData, setConfirmData] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
 
   const renderStatus = (status) => {
     const style = {
@@ -161,25 +168,33 @@ const TelaSolicitacoes = () => {
     setSolicitacaoSelecionada(null);
   };
 
-  const excluirSolicitacao = async (row) => {
-    const id = row.rawData?._id;
+  const confirmDeleteAction = async () => {
+    if (!confirmData) return;
+
+    const id = confirmData.rawData?._id;
     if (!id) {
-      alert("ID da solicitação não encontrado.");
+      setErrorMessage("ID da solicitação não encontrado.");
       return;
     }
 
-    const confirm = window.confirm(
-      `Tem certeza que deseja excluir a solicitação ${row.OS}?`
-    );
-    if (!confirm) return;
-
     try {
       await deleteSolicitacao(id);
-      alert("Solicitação excluída com sucesso!");
+
       setData((prev) => prev.filter((item) => item.rawData._id !== id));
+
+      setSuccessMessage("Solicitação excluída com sucesso!");
+
     } catch (error) {
-      console.error("Erro ao excluir solicitação:", error.message);
-      alert("Erro ao excluir solicitação.");
+      console.error("Erro ao excluir solicitação:", error);
+
+      const extracted =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Erro ao excluir solicitação.";
+
+      setErrorMessage(extracted);
+    } finally {
+      setConfirmData(null);
     }
   };
 
@@ -200,7 +215,7 @@ const TelaSolicitacoes = () => {
         searchOptions={searchOptions}
         onSearch={handleSearch}
         onView={abrirModalVisualizacao}
-        onDelete={excluirSolicitacao}
+        onDelete={(row) => setConfirmData(row)}
         loading={isLoading}
       />
 
@@ -239,6 +254,31 @@ const TelaSolicitacoes = () => {
         <ModalFinalizada
           solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
+        />
+      )}
+      {/* Modal de Confirmação */}
+      {confirmData && (
+        <ModalConfirmacao
+          title="Excluir Solicitação"
+          message={`Tem certeza que deseja excluir essa solicitação de compra?`}
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
+
+      {/* Modal de Sucesso */}
+      {successMessage && (
+        <ModalSucesso
+          message={successMessage}
+          onClose={() => setSuccessMessage("")}
+        />
+      )}
+
+      {/* Modal de Erro */}
+      {errorMessage && (
+        <ModalErro
+          message={errorMessage}
+          onClose={() => setErrorMessage("")}
         />
       )}
     </div>
