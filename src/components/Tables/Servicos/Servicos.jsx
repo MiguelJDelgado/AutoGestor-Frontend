@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import Header from "../../Header/Header";
 import Table from "../Table";
 import CriarServico from "../../../modals/Servicos/CriarServicos";
+
 import {
   getAllServices,
   getServiceById,
   deleteService,
 } from "../../../services/ServicoService";
+import ModalConfirmacao from "../../../modals/Confirmacao/ConfirmacaoModal";
+import ModalSucesso from "../../../modals/Sucesso/SucessoModal"
+import ModalErro from "../../../modals/Erro/ErroModal";
 
 const TelaServicos = () => {
   const columns = [
@@ -21,6 +25,10 @@ const TelaServicos = () => {
   const [modalMode, setModalMode] = useState("create");
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [confirmData, setConfirmData] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const searchOptions = [
     { label: "Título", value: "title" },
@@ -54,6 +62,7 @@ const TelaServicos = () => {
       setData(formatServices(servicesArray));
     } catch (error) {
       console.error("Erro ao carregar serviços:", error.message);
+      setErrorMessage("Erro ao carregar lista de serviços.");
     }
   };
 
@@ -77,6 +86,7 @@ const TelaServicos = () => {
       setIsModalOpen(true);
     } catch (e) {
       console.error("Erro ao visualizar serviço:", e);
+      setErrorMessage("Erro ao carregar dados do serviço.");
     }
   };
 
@@ -88,18 +98,40 @@ const TelaServicos = () => {
       setIsModalOpen(true);
     } catch (e) {
       console.error("Erro ao editar serviço:", e);
+      setErrorMessage("Erro ao carregar dados para edição.");
     }
   };
 
-  const handleDelete = async (row) => {
-    if (!window.confirm("Tem certeza que deseja excluir este serviço?")) return;
+  const handleDelete = (row) => {
+    setConfirmData({
+      id: row._id,
+      titulo: row.Título,
+    });
+  };
+
+  const confirmDeleteAction = async () => {
+    if (!confirmData?.id) {
+      setErrorMessage("ID do serviço não encontrado.");
+      return;
+    }
 
     try {
-      await deleteService(row._id);
+      await deleteService(confirmData.id);
+
+      setSuccessMessage("Serviço excluído com sucesso!");
       fetchServices();
-    } catch (e) {
-      alert("Erro ao excluir serviço.");
-      console.error(e);
+
+    } catch (error) {
+      console.error("Erro ao excluir serviço:", error);
+
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Erro ao excluir serviço.";
+
+      setErrorMessage(msg);
+    } finally {
+      setConfirmData(null);
     }
   };
 
@@ -109,7 +141,14 @@ const TelaServicos = () => {
 
   return (
     <div>
-      <Header title="Serviços" onNew={() => { setModalMode("create"); setSelectedService(null); setIsModalOpen(true); }}>
+      <Header
+        title="Serviços"
+        onNew={() => {
+          setModalMode("create");
+          setSelectedService(null);
+          setIsModalOpen(true);
+        }}
+      >
         + Novo Serviço
       </Header>
 
@@ -129,6 +168,32 @@ const TelaServicos = () => {
           data={selectedService}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveServico}
+        />
+      )}
+
+      {/* Modal de confirmação */}
+      {confirmData && (
+        <ModalConfirmacao
+          title="Excluir Serviço"
+          message={`Tem certeza que deseja excluir o serviço "${confirmData.titulo}"?`}
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmData(null)}
+        />
+      )}
+
+      {/* Modal de sucesso */}
+      {successMessage && (
+        <ModalSucesso
+          message={successMessage}
+          onClose={() => setSuccessMessage("")}
+        />
+      )}
+
+      {/* Modal de erro */}
+      {errorMessage && (
+        <ModalErro
+          message={errorMessage}
+          onClose={() => setErrorMessage("")}
         />
       )}
     </div>
