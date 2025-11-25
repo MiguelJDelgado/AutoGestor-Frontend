@@ -89,7 +89,7 @@ const ModalSolicitacaoPendente = ({ onClose, solicitacao }) => {
             <Label>Status</Label>
             <Select defaultValue={solicitacao?.status || "Pendente"}>
               <option value="Pendente">Pendente</option>
-              <option value="Aprovado">Aceita</option>
+              <option value="Aprovado">Aprovada</option>
               <option value="Rejeitado">Rejeitada</option>
             </Select>
           </Field>

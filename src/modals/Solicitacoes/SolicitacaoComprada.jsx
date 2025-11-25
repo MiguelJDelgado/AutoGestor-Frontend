@@ -120,6 +120,7 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
             <Label>Status</Label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="Comprada">Comprada</option>
+              <option value="Rejeitado">Rejeitada</option>
               <option value="Finalizada">Finalizada</option>
             </Select>
           </Field>

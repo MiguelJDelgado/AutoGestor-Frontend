@@ -127,7 +127,8 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
             <Label>Status</Label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="Autorizada">Autorizada</option>
-              <option value="Finalizada">Finalizada</option>
+              <option value="Comprada">Comprada</option>
+              <option value="Rejeitada">Rejeitada</option>
             </Select>
           </Field>
         </Row>
