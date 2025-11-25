@@ -3,6 +3,9 @@ import Table from "../Table";
 import Header from "../../Header/Header";
 import { getAllVehicles, deleteVehicle } from "../../../services/VeiculoService";
 import AcoesVeiculos from "../../../modals/Veiculos/AcoesVeiculos";
+import ConfirmModal from "../../../modals/Confirmacao/ConfirmacaoModal";
+import SuccessModal from "../../../modals/Sucesso/SucessoModal"
+import ErrorModal from "../../../modals/Erro/ErroModal";
 
 const TelaVeiculos = () => {
   const columns = [
@@ -21,6 +24,10 @@ const TelaVeiculos = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [confirmData, setConfirmData] = useState(null);
+
   const searchOptions = [
     { label: "Marca", value: "brand" },
     { label: "Modelo", value: "name" },
@@ -31,10 +38,9 @@ const TelaVeiculos = () => {
     { label: "Tipo de Combustível", value: "fuel" },
   ];
 
-  // ✅ Garante que o ID venha formatado corretamente
   const formatVehicles = (vehiclesArray) =>
     vehiclesArray.map((v) => ({
-      id: v._id || v.id, // 🔹 normaliza o id
+      id: v._id || v.id,
       Marca: v.brand ?? "-",
       Modelo: v.name ?? "-",
       Placa: v.licensePlate ?? "-",
@@ -42,7 +48,7 @@ const TelaVeiculos = () => {
       "Tipo de Combustível": v.fuel ?? "-",
       Chassi: v.chassi ?? "-",
       Km: v.km !== undefined ? `${v.km} km` : "-",
-      rawData: v, // mantém o original para edição/visualização
+      rawData: v,
     }));
 
   const fetchVehicles = async (filters = {}) => {
@@ -58,6 +64,7 @@ const TelaVeiculos = () => {
       setData(formatVehicles(vehiclesArray));
     } catch (error) {
       console.error("Erro ao carregar veículos:", error.message);
+      setErrorMessage("Erro ao carregar veículos.");
     } finally {
       setIsLoading(false);
     }
@@ -79,51 +86,47 @@ const TelaVeiculos = () => {
     setIsModalOpen(true);
   };
 
-  // ✅ Corrigido: garante que o id seja enviado corretamente
-  const handleDelete = async (row) => {
+  const handleDelete = (row) => {
     const placa = row["Placa"];
-    const confirmDelete = window.confirm(
-      `Tem certeza que deseja excluir o veículo com placa ${placa}?`
-    );
-    if (!confirmDelete) return;
+    const id = row.id || row.rawData?._id || row.rawData?.id;
+
+    if (!id) {
+      setErrorMessage("ID do veículo não encontrado.");
+      return;
+    }
+
+    setConfirmData({
+      id,
+      message: `Tem certeza que deseja excluir o veículo com placa ${placa}?`,
+    });
+  };
+
+  const confirmDeleteAction = async () => {
+    if (!confirmData) return;
 
     try {
-      const id = row.id || row.rawData?._id || row.rawData?.id;
-      if (!id) {
-        alert("ID do veículo não encontrado. Operação cancelada.");
-        console.error("Erro: ID do veículo não encontrado:", row);
-        return;
-      }
+      await deleteVehicle(confirmData.id);
 
-      await deleteVehicle(id);
+      setData((prev) => prev.filter((v) => v.id !== confirmData.id));
 
-      setData((prevData) =>
-        prevData.filter((item) => item["Placa"] !== placa)
-      );
-      alert(`Veículo com placa ${placa} excluído com sucesso.`);
+      setSuccessMessage("Veículo excluído com sucesso!");
     } catch (error) {
-      console.error("Erro ao excluir veículo:", error.message);
-      alert("Erro ao excluir o veículo. Tente novamente.");
+      console.error("Erro ao excluir veículo:", error);
+
+      const extractedMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Erro ao excluir veículo.";
+
+      setErrorMessage(extractedMessage);
+    } finally {
+      setConfirmData(null);
     }
   };
 
-  const handleSaveVehicle = (updatedVehicle) => {
-    setData((prev) =>
-      prev.map((item) =>
-        item["Placa"] === updatedVehicle.licensePlate
-          ? {
-              ...item,
-              Marca: updatedVehicle.brand,
-              Modelo: updatedVehicle.name,
-              Ano: updatedVehicle.year,
-              "Tipo de Combustível": updatedVehicle.fuel,
-              Chassi: updatedVehicle.chassi || "-",
-              Km: updatedVehicle.km ? `${updatedVehicle.km} km` : "-",
-              rawData: { ...updatedVehicle },
-            }
-          : item
-      )
-    );
+  const handleSaveVehicle = () => {
+    fetchVehicles();
+    setSuccessMessage("Veículo salvo com sucesso!");
   };
 
   const handleSearch = async ({ identifier, search }) => {
@@ -159,6 +162,31 @@ const TelaVeiculos = () => {
             setModalMode(null);
           }}
           onSave={handleSaveVehicle}
+        />
+      )}
+
+      {/* 🔹 Modal de sucesso */}
+      {successMessage && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => setSuccessMessage("")}
+        />
+      )}
+
+      {/* 🔹 Modal de erro */}
+      {errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setErrorMessage("")}
+        />
+      )}
+
+      {/* 🔹 Modal de confirmação */}
+      {confirmData && (
+        <ConfirmModal
+          message={confirmData.message}
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmData(null)}
         />
       )}
     </div>
