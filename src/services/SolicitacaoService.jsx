@@ -23,7 +23,7 @@ export const getSolicitacaoById = async (id) => {
   const res = await fetch(`${API_URL}/${id}`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("Erro ao buscar usuário");
+  if (!res.ok) throw new Error("Erro ao buscar solicitação");
   return res.json();
 };
 
@@ -31,7 +31,7 @@ export const getHistoricoSolicitacao = async (id) => {
   const res = await fetch(`${API_URL}/history/${id}`, {
     headers: getAuthHeaders(),
   });
-  if (!res.ok) throw new Error("Erro ao buscar usuário");
+  if (!res.ok) throw new Error("Erro ao buscar histórico da solicitação");
   return res.json();
 };
 
@@ -44,7 +44,7 @@ export const createSolicitacao = async (solicitacaoData) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Erro ao criar usuário");
+    throw new Error(errorData.message || "Erro ao criar solicitação");
   }
 
   return res.json();
@@ -59,7 +59,7 @@ export const updateSolicitacao = async (id, solicitacaoData) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Erro ao atualizar usuário");
+    throw new Error(errorData.message || "Erro ao atualizar solicitação");
   }
 
   return res.json();
@@ -73,8 +73,24 @@ export const deleteSolicitacao = async (id) => {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Erro ao excluir usuário");
+    throw new Error(errorData.message || "Erro ao excluir solicitação");
   }
 
   return res.json();
 };
+
+export const authorize = async (id) => {
+  const res = await fetch(`${API_URL}/${id}/authorize`, {
+    method: "put",
+    headers: getAuthHeaders()
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || "Erro ao autorizar solicitação de compra");
+  }
+
+  return res.json();
+};
+
+
