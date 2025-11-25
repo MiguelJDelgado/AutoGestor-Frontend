@@ -14,8 +14,6 @@ const Section = styled.div`
   width: 100%;
   overflow-x: auto;
   box-sizing: border-box;
-
-  /* 🔒 Bloqueio exatamente igual ao usado em Valores Totais */
   opacity: ${(props) => (props.disabled ? 0.6 : 1)};
   pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
 `;
@@ -186,12 +184,7 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
   const [dropdownAtivo, setDropdownAtivo] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
 
-  useEffect(() => {
-    if (!products || products.length === 0) {
-      setProducts([{}]);
-      setBuscas([""]);
-    }
-  }, []);
+  const listaDeProdutos = products?.length > 0 ? products : [{}];
 
   useEffect(() => {
     const fetchProdutos = async () => {
@@ -295,7 +288,7 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
         />
       )}
 
-      {products.map((produto, index) => (
+      {listaDeProdutos.map((produto, index) => (
         <FormWrapper key={index}>
           <RemoveButton
             onClick={() => removerProduto(index)}

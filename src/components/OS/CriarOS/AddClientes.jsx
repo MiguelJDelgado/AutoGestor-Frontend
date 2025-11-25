@@ -114,7 +114,6 @@ const ClienteOS = ({ clientId, setClientId }) => {
     uf: "",
   });
 
-  // Buscar clientes
   useEffect(() => {
     const fetchClientes = async () => {
       try {
@@ -128,7 +127,6 @@ const ClienteOS = ({ clientId, setClientId }) => {
     fetchClientes();
   }, []);
 
-  // Filtrar clientes conforme busca
   useEffect(() => {
     const termo = busca.toLowerCase();
     const filtrados = clientes.filter((c) =>
@@ -137,10 +135,9 @@ const ClienteOS = ({ clientId, setClientId }) => {
     setFilteredClientes(filtrados);
   }, [busca, clientes]);
 
-  // Quando cliente é selecionado
   const handleSelectCliente = (cliente) => {
     setClienteSelecionado(cliente);
-    setClientId(cliente._id); // 🔹 Envia ID para o CriarOS
+    setClientId(cliente._id);
     setBusca(cliente.name);
 
     setDadosCliente({
