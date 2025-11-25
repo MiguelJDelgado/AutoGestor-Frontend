@@ -121,7 +121,7 @@ const AcoesVeiculos = ({ onClose = () => {}, onSave = () => {}, veiculo = {}, mo
               ref={i === 0 ? firstInputRef : null}
               value={form[key]}
               onChange={handleChange(key)}
-              disabled={isViewMode || key !== "Km"}
+              disabled={isViewMode}
             />
           </Field>
         ))}
