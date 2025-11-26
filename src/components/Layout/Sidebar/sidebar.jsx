@@ -85,20 +85,29 @@ const UserInfo = styled.div`
 const LogoutMenu = styled.div`
   position: absolute;
   top: 48px;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%); /* ✅ centraliza perfeitamente */
   background: #ffffff;
   color: #00273d;
-  padding: 10px 15px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
   white-space: nowrap;
   font-size: 14px;
   cursor: pointer;
   z-index: 999;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  display: ${({ show }) => (show ? "block" : "none")};
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  display: ${({ show }) => (show ? "flex" : "none")};
+  align-items: center;
+  gap: 8px; /* ✅ espaçamento entre ícone e texto */
+  font-weight: 500;
+
+  opacity: ${({ show }) => (show ? 1 : 0)};
+  transform: ${({ show }) =>
+    show ? "translateX(-50%) translateY(0)" : "translateX(-50%) translateY(-5px)"};
+  transition: all 0.2s ease-in-out;
 
   &:hover {
-    background: #e6eef3;
+    background: #eef4f8;
   }
 `;
 
@@ -203,7 +212,7 @@ function Sidebar({ isOpen, onToggle }) {
             <span>{roleLabels[user?.role] || ""}</span>
           </UserInfo>
           <LogoutMenu show={showLogout} onClick={handleLogout}>
-            🚪 Sair
+            ⏻ Sair
           </LogoutMenu>
         </UserSection>
         <ToggleButton src={sidebar} alt="Menu" onClick={onToggle} />
