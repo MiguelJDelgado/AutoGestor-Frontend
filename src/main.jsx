@@ -16,6 +16,7 @@ import TelaClientes from './routes/Clientes.jsx'
 import TelaFornecedores from './routes/Fornecedores.jsx'
 import TelaConfiguracoes from './routes/Configuracoes.jsx'
 import TelaPerfil from './routes/Perfil.jsx'
+import { AuthProvider } from './auth/AuthContext.jsx'
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -92,24 +93,26 @@ button:focus-visible {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <GlobalStyle />
-    <BrowserRouter>
-      <Routes>
-        <Route path='/' element={<Home />}/>
-        <Route path='/dashboard' element={<Home />}/>
-        <Route path='/login' element={<Login />}/>
-        <Route path='/cadastro' element={<CadastroComponent />}/>
-        <Route path='/produtos' element={<Produtos />}/>
-        <Route path='/serviços' element={<Servicos />}/>
-        <Route path='/ordem-de-serviço' element={<Os />}/>
-        <Route path='/criar-ordem-de-serviço' element={<CriarOS />}/>
-        <Route path='/solicitações' element={<TelaSolicitacoes />}/>
-        <Route path='/mecânicos' element={<TelaMecanicos />}/>
-        <Route path='/veículos' element={<TelaVeiculos />}/>
-        <Route path='/clientes' element={<TelaClientes />}/>
-        <Route path='/fornecedores' element={<TelaFornecedores />}/>
-        <Route path='/configurações' element={<TelaConfiguracoes />}/>
-        <Route path='/perfil' element={<TelaPerfil />}/>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/' element={<Home />}/>
+          <Route path='/dashboard' element={<Home />}/>
+          <Route path='/login' element={<Login />}/>
+          <Route path='/cadastro' element={<CadastroComponent />}/>
+          <Route path='/produtos' element={<Produtos />}/>
+          <Route path='/serviços' element={<Servicos />}/>
+          <Route path='/ordem-de-serviço' element={<Os />}/>
+          <Route path='/criar-ordem-de-serviço' element={<CriarOS />}/>
+          <Route path='/solicitações' element={<TelaSolicitacoes />}/>
+          <Route path='/mecânicos' element={<TelaMecanicos />}/>
+          <Route path='/veículos' element={<TelaVeiculos />}/>
+          <Route path='/clientes' element={<TelaClientes />}/>
+          <Route path='/fornecedores' element={<TelaFornecedores />}/>
+          <Route path='/configurações' element={<TelaConfiguracoes />}/>
+          <Route path='/perfil' element={<TelaPerfil />}/>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   </StrictMode>,
 )

@@ -14,6 +14,9 @@ import Mecanico from '../../../assets/mecanico.png';
 import sidebar from '../../../assets/sidebar.png';
 import profile from '../../../assets/profile.svg';
 import settings from '../../../assets/configuracoes.png';
+import { useContext, useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../../auth/AuthContext";
 
 const opcoesMenu = [
   { texto: 'Ordem de Serviço', icone: OS },
@@ -50,14 +53,22 @@ const Header = styled.div`
   gap: ${({ isOpen }) => (isOpen ? "0" : "10px")};
 `;
 
+const UserSection = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: white;
+  cursor: pointer;
+`;
+
 const UserIcon = styled.img`
   width: 35px;
   height: 35px;
   cursor: pointer;
-  transition: transform 0.2s;
 
   &:hover {
-    transform: scale(1.2);
+    transform: scale(1.1);
+    transition: 0.2s;
   }
 `;
 
@@ -66,16 +77,29 @@ const UserInfo = styled.div`
   flex-direction: column;
   margin-left: 10px;
   color: white;
-  font-size: 14px;
 
   strong { font-size: 15px; }
   span { font-size: 12px; color: #ccc; }
 `;
 
-const UserSection = styled.div`
-  display: flex;
-  align-items: center;
-  color: white;
+const LogoutMenu = styled.div`
+  position: absolute;
+  top: 48px;
+  left: 0;
+  background: #ffffff;
+  color: #00273d;
+  padding: 10px 15px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 999;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+  display: ${({ show }) => (show ? "block" : "none")};
+
+  &:hover {
+    background: #e6eef3;
+  }
 `;
 
 const ToggleButton = styled.img`
@@ -142,17 +166,45 @@ const LogoFooter = styled.img`
 `;
 
 function Sidebar({ isOpen, onToggle }) {
+  const { user, setUser, logout  } = useContext(AuthContext);
+  const [showLogout, setShowLogout] = useState(false);
+  const navigate = useNavigate();
+  const logoutRef = useRef(null);
+
+  const roleLabels = {
+    admin: "Administrador",
+    manager: "Gerente",
+    employer: "Usuário"
+  };
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
+
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (logoutRef.current && !logoutRef.current.contains(event.target)) {
+        setShowLogout(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <SidebarContainer isOpen={isOpen}>
       <Header isOpen={isOpen}>
-        <UserSection>
-          <Link to="/perfil">
-            <UserIcon src={profile} alt="Usuário" />
-          </Link>
+        <UserSection onClick={() => setShowLogout((prev) => !prev)} ref={logoutRef}>
+          <UserIcon src={profile} alt="Usuário" />
           <UserInfo isOpen={isOpen}>
-            <strong>João Pedro</strong>
-            <span>Administrador</span>
+            <strong>{user?.name || "Carregando..."}</strong>
+            <span>{roleLabels[user?.role] || ""}</span>
           </UserInfo>
+          <LogoutMenu show={showLogout} onClick={handleLogout}>
+            🚪 Sair
+          </LogoutMenu>
         </UserSection>
         <ToggleButton src={sidebar} alt="Menu" onClick={onToggle} />
       </Header>

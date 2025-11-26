@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import logo from '../../assets/logo.png';
 import * as API from '../../services/LoginService';
-import {jwtDecode} from 'jwt-decode';
-
+import { useContext } from 'react';
+import { AuthContext } from '../../auth/AuthContext';
 
 const Container = styled.div`
   background-color: #f9f8fb;
@@ -115,6 +115,7 @@ const Botao = styled.button`
 `;
 
 const Login = () => {
+  const { setUser } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');
@@ -128,26 +129,11 @@ const Login = () => {
       const data = await API.loginUser(email, senha);
 
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
 
-      const decoded = jwtDecode(data.token);
-      console.log('Decoded token:', decoded);
+      setUser(data.user);
 
-      const role = decoded.role;
-
-      if (!role) {
-        setErro('Erro: Role não encontrada no token');
-        return;
-      }
-
-      if (role === 1) {
-        navigate('/menuAluno');
-      } else if (role === 2) {
-        navigate('/menu-professor');
-      } else if (role === 3) {
-        navigate('/menu-admin');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (err) {
       console.error(err);
       setErro(err.message || 'Erro de conexão com o servidor');
