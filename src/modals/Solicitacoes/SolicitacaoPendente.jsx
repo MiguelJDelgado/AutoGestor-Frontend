@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import LayoutModal from "../Layout";
+import { useState } from "react";
+import { authorize } from "../../services/SolicitacaoService";
 
 const Container = styled.div`
   display: flex;
@@ -36,11 +38,15 @@ const Input = styled.input`
 `;
 
 const Select = styled.select`
+  width: 100%;
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
   background: #fff;
+  color: #333;
+  font-size: 14px;
 `;
+
 
 const Table = styled.table`
   width: 100%;
@@ -72,37 +78,64 @@ const TextArea = styled.textarea`
   pointer-events: none;
 `;
 
-const ModalSolicitacaoPendente = ({ onClose, solicitacao }) => {
-  const handleSave = () => {
-    onClose();
+const ModalSolicitacaoPendente = ({ onClose, solicitacao, onStatusUpdated }) => {
+  const [status, setStatus] = useState(
+    solicitacao?.status?.toLowerCase() || "pending"
+  );
+
+  const handleSave = async () => {
+    try {
+      if (status === "approved") {
+        await authorize(solicitacao._id, true); // aprovar
+      } else if (status === "rejected") {
+        await authorize(solicitacao._id, false); // rejeitar
+      }
+
+      if (onStatusUpdated) await onStatusUpdated();
+      onClose();
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao atualizar status da solicitação");
+    }
   };
 
   return (
-    <LayoutModal title="Editar Solicitação" onClose={onClose} onSave={handleSave}>
+    <LayoutModal title="Solicitação Pendente" onClose={onClose} onSave={handleSave}>
       <Container>
         <Row>
           <Field>
             <Label>Solicitante</Label>
-            <Input type="text" value={solicitacao?.solicitante || ""} readOnly />
+            <Input type="text" value={solicitacao?.userName || "—"} readOnly />
           </Field>
+
           <Field>
             <Label>Status</Label>
-            <Select defaultValue={solicitacao?.status || "Pendente"}>
-              <option value="Pendente">Pendente</option>
-              <option value="Aprovado">Aprovada</option>
-              <option value="Rejeitado">Rejeitada</option>
+            <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="pending">Pendente</option>
+              <option value="approved">Autorizada</option>
+              <option value="rejected">Rejeitada</option>
             </Select>
+
           </Field>
         </Row>
 
         <Row>
           <Field>
             <Label>O.S</Label>
-            <Input type="text" value={solicitacao?.os || "-"} readOnly />
+            <Input type="text" value={solicitacao?.serviceOrderCode || "-"} readOnly />
           </Field>
+
           <Field>
             <Label>Data Solicitação</Label>
-            <Input type="text" value={solicitacao?.data || ""} readOnly />
+            <Input
+              type="text"
+              value={
+                solicitacao?.requestDate
+                  ? new Date(solicitacao.requestDate).toLocaleString("pt-BR")
+                  : "-"
+              }
+              readOnly
+            />
           </Field>
         </Row>
 
@@ -112,14 +145,14 @@ const ModalSolicitacaoPendente = ({ onClose, solicitacao }) => {
             <thead>
               <tr>
                 <Th>Quantidade</Th>
-                <Th>Itens solicitados</Th>
+                <Th>Item</Th>
               </tr>
             </thead>
             <tbody>
-              {solicitacao?.itens?.map((item, index) => (
+              {solicitacao?.products?.map((item, index) => (
                 <tr key={index}>
-                  <Td>{item.quantidade}</Td>
-                  <Td>{item.nome}</Td>
+                  <Td>{item.quantity}</Td>
+                  <Td>{item.name}</Td>
                 </tr>
               ))}
             </tbody>
@@ -128,7 +161,7 @@ const ModalSolicitacaoPendente = ({ onClose, solicitacao }) => {
 
         <div>
           <Label>Observação</Label>
-          <TextArea readOnly value={solicitacao?.observacao || ""} />
+          <TextArea readOnly value={solicitacao?.notes || "—"} />
         </div>
       </Container>
     </LayoutModal>

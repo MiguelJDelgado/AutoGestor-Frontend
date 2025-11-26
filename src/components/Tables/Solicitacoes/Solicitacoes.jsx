@@ -228,9 +228,11 @@ const TelaSolicitacoes = () => {
 
       {modalAberto && modalTipo === "pendente" && (
         <ModalPendente
-          solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
+          solicitacao={solicitacaoSelecionada}
+          onStatusUpdated={fetchSolicitacoes}
         />
+
       )}
       {modalAberto && modalTipo === "autorizada" && (
         <ModalAceita

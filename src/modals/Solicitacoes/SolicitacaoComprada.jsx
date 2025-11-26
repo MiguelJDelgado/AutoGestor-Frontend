@@ -1,6 +1,9 @@
 import styled from "styled-components";
 import LayoutModal from "../Layout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { authorize } from "../../services/SolicitacaoService";
+import { updateSolicitacao } from "../../services/SolicitacaoService";
+import { getSupplierById } from "../../services/FornecedorService";
 
 const Container = styled.div`
   display: flex;
@@ -22,6 +25,13 @@ const Field = styled.div`
   gap: 4px;
 `;
 
+const Select = styled.select`
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+`;
+
 const Label = styled.label`
   font-weight: bold;
   font-size: 14px;
@@ -34,13 +44,6 @@ const Input = styled.input`
   background: #eee;
   color: #666;
   pointer-events: none;
-`;
-
-const Select = styled.select`
-  padding: 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
 `;
 
 const Table = styled.table`
@@ -61,26 +64,6 @@ const Td = styled.td`
   border-top: 1px solid #ddd;
 `;
 
-const TableInput = styled.input`
-  width: 100%;
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #eee;
-  color: #666;
-  pointer-events: none;
-`;
-
-const TableSelect = styled.select`
-  width: 100%;
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #eee;
-  color: #666;
-  pointer-events: none;
-`;
-
 const TextArea = styled.textarea`
   width: 98%;
   height: 70px;
@@ -94,34 +77,65 @@ const TextArea = styled.textarea`
 `;
 
 const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
-  // Status inicial = "Comprada"
-  const [status, setStatus] = useState("Comprada");
+  const [status, setStatus] = useState("purchased");
+  const [supplierNames, setSupplierNames] = useState({}); // <- armazena nomes dos fornecedores
 
-  const handleSave = () => {
-    const dadosAtualizados = { ...solicitacao, status };
-    console.log("Solicitação comprada salva:", dadosAtualizados);
-    onClose();
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      if (!solicitacao?.products) return;
+
+      const ids = [
+        ...new Set(
+          solicitacao.products.map((p) => p.providerIds?.[0]).filter(Boolean)
+        ),
+      ];
+
+      const results = {};
+      for (const id of ids) {
+        try {
+          const supplier = await getSupplierById(id);
+          results[id] = supplier.name;
+        } catch {
+          results[id] = "—";
+        }
+      }
+
+      setSupplierNames(results);
+    };
+
+    loadSuppliers();
+  }, [solicitacao]);
+
+  const handleSave = async () => {
+    try {
+      if (status === "rejected") {
+        await authorize(solicitacao._id, { approved: false });
+      } else if (status === "delivered") {
+        await updateSolicitacao(solicitacao._id, { status: "delivered" });
+      }
+
+      onClose();
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao alterar status!");
+    }
   };
 
   return (
-    <LayoutModal
-      title="Solicitação Comprada"
-      onClose={onClose}
-      onSave={handleSave}
-    >
+    <LayoutModal title="Solicitação Comprada" onClose={onClose} onSave={handleSave}>
       <Container>
         <Row>
           <Field>
             <Label>Solicitante</Label>
-            <Input type="text" value={solicitacao?.solicitante || ""} readOnly />
+            <Input type="text" value={solicitacao?.userName || ""} readOnly />
           </Field>
 
           <Field>
             <Label>Status</Label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="Comprada">Comprada</option>
-              <option value="Rejeitado">Rejeitada</option>
-              <option value="Finalizada">Finalizada</option>
+              <option value="purchased">Comprada</option>
+              <option value="rejected">Rejeitada</option>
+              <option value="delivered">Finalizada</option>
             </Select>
           </Field>
         </Row>
@@ -129,11 +143,16 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
         <Row>
           <Field>
             <Label>O.S</Label>
-            <Input type="text" value={solicitacao?.os || "-"} readOnly />
+            <Input type="text" value={solicitacao?.serviceOrderCode || "-"} readOnly />
           </Field>
+
           <Field>
             <Label>Data Solicitação</Label>
-            <Input type="text" value={solicitacao?.data || ""} readOnly />
+            <Input
+              type="text"
+              value={new Date(solicitacao?.requestDate).toLocaleDateString()}
+              readOnly
+            />
           </Field>
         </Row>
 
@@ -143,7 +162,7 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
             <thead>
               <tr>
                 <Th>Quantidade</Th>
-                <Th>Itens solicitados</Th>
+                <Th>Item</Th>
                 <Th>Fornecedor</Th>
                 <Th>UN</Th>
                 <Th>Valor Pago</Th>
@@ -151,33 +170,32 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
             </thead>
 
             <tbody>
-              {solicitacao?.itens?.map((item, index) => (
-                <tr key={index}>
-                  <Td>{item.quantidade}</Td>
-                  <Td>{item.nome}</Td>
+              {solicitacao?.products?.map((item, index) => {
+                const supplierId = item.providerIds?.[0];
+                const supplierName = supplierNames[supplierId] || "Carregando...";
 
-                  <Td>
-                    <TableSelect value={item.fornecedor || ""} disabled>
-                      <option value={item.fornecedor}>{item.fornecedorNome}</option>
-                    </TableSelect>
-                  </Td>
-
-                  <Td>
-                    <TableInput type="text" value={item.un || ""} disabled />
-                  </Td>
-
-                  <Td>
-                    <TableInput type="number" value={item.valorPago || ""} disabled />
-                  </Td>
-                </tr>
-              ))}
+                return (
+                  <tr key={index}>
+                    <Td>{item.quantity}</Td>
+                    <Td>{item.name}</Td>
+                    <Td>{supplierName}</Td>
+                    <Td>{item.quantityToStock + item.quantityToServiceOrder}</Td>
+                    <Td>
+                      {item.costUnitPrice
+                        ? `R$ ${Number(item.costUnitPrice).toFixed(2)}`
+                        : "—"}
+                    </Td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
         </div>
 
+
         <div>
           <Label>Observação</Label>
-          <TextArea readOnly value={solicitacao?.observacao || ""} />
+          <TextArea readOnly value={solicitacao?.notes || ""} />
         </div>
       </Container>
     </LayoutModal>

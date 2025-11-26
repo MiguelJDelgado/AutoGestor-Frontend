@@ -26,7 +26,7 @@ const Label = styled.label`
   font-size: 14px;
 `;
 
-const Input = styled.input`
+const ReadonlyInput = styled.input`
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -35,7 +35,8 @@ const Input = styled.input`
   pointer-events: none;
 `;
 
-const Select = styled.select`
+const ReadonlySelect = styled.select`
+  width: 100%;
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -77,32 +78,51 @@ const TextArea = styled.textarea`
 const ModalSolicitacaoRejeitada = ({ onClose, solicitacao }) => {
   return (
     <LayoutModal
-      title="Visualizar Solicitação"
+      title="Solicitação Rejeitada"
       onClose={onClose}
       hideSaveButton
     >
       <Container>
+
         <Row>
           <Field>
             <Label>Solicitante</Label>
-            <Input type="text" value={solicitacao?.solicitante || ""} readOnly />
+            <ReadonlyInput
+              type="text"
+              value={solicitacao?.userName || "—"}
+              readOnly
+            />
           </Field>
+
           <Field>
             <Label>Status</Label>
-            <Select value="Rejeitado" disabled>
-              <option value="Rejeita">Rejeitada</option>
-            </Select>
+            <ReadonlySelect value="rejected" disabled>
+              <option value="rejected">Rejeitada</option>
+            </ReadonlySelect>
           </Field>
         </Row>
 
         <Row>
           <Field>
             <Label>O.S</Label>
-            <Input type="text" value={solicitacao?.os || "-"} readOnly />
+            <ReadonlyInput
+              type="text"
+              value={solicitacao?.serviceOrderCode || "-"}
+              readOnly
+            />
           </Field>
+
           <Field>
             <Label>Data Solicitação</Label>
-            <Input type="text" value={solicitacao?.data || ""} readOnly />
+            <ReadonlyInput
+              type="text"
+              value={
+                solicitacao?.requestDate
+                  ? new Date(solicitacao.requestDate).toLocaleString("pt-BR")
+                  : "-"
+              }
+              readOnly
+            />
           </Field>
         </Row>
 
@@ -112,14 +132,15 @@ const ModalSolicitacaoRejeitada = ({ onClose, solicitacao }) => {
             <thead>
               <tr>
                 <Th>Quantidade</Th>
-                <Th>Itens solicitados</Th>
+                <Th>Item</Th>
               </tr>
             </thead>
+
             <tbody>
-              {solicitacao?.itens?.map((item, index) => (
+              {solicitacao?.products?.map((item, index) => (
                 <tr key={index}>
-                  <Td>{item.quantidade}</Td>
-                  <Td>{item.nome}</Td>
+                  <Td>{item.quantity}</Td>
+                  <Td>{item.name}</Td>
                 </tr>
               ))}
             </tbody>
@@ -128,8 +149,9 @@ const ModalSolicitacaoRejeitada = ({ onClose, solicitacao }) => {
 
         <div>
           <Label>Observação</Label>
-          <TextArea readOnly value={solicitacao?.observacao || ""} />
+          <TextArea readOnly value={solicitacao?.notes || "—"} />
         </div>
+
       </Container>
     </LayoutModal>
   );

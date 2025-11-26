@@ -1,6 +1,8 @@
 import styled from "styled-components";
 import LayoutModal from "../Layout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { authorize, updateSolicitacao } from "../../services/SolicitacaoService";
+import { getSuppliers } from "../../services/FornecedorService";
 
 const Container = styled.div`
   display: flex;
@@ -87,48 +89,132 @@ const TextArea = styled.textarea`
   pointer-events: none;
 `;
 
-const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
-  const [status, setStatus] = useState(solicitacao?.status || "Autorizada");
-  const [itens, setItens] = useState(solicitacao?.itens || []);
+const formatInitialItems = (solicitacao) => {
+  const products = solicitacao?.products || [];
+  return products.map((p) => ({
+    productId: p.productId || p._id || null,
+    quantidade: p.quantity ?? 0,
+    nome: p.name ?? "",
+    fornecedor: (p.providerIds && p.providerIds[0]) || "",
+    un: p.unit || "",
+    valorPago: p.paidPrice ?? "",
+  }));
+};
+
+const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
+  const [status, setStatus] = useState(
+    solicitacao?.status?.toLowerCase() || "approved"
+  );
+  const [itens, setItens] = useState(formatInitialItems(solicitacao));
+  const [listaFornecedores, setListaFornecedores] = useState([]);
+
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      try {
+        const res = await getSuppliers();
+        setListaFornecedores(res.data || []);
+      } catch (err) {
+        console.error("Erro ao carregar fornecedores:", err);
+      }
+    };
+
+    loadSuppliers();
+  }, []);
 
   const handleChangeItem = (index, field, value) => {
-    const novosItens = [...itens];
-    novosItens[index][field] = value;
-    setItens(novosItens);
+    const novos = [...itens];
+    novos[index] = { ...novos[index], [field]: value };
+    setItens(novos);
   };
 
-  const handleSave = () => {
-    if (status === "Finalizada") {
-      for (let i = 0; i < itens.length; i++) {
-        const item = itens[i];
-        if (!item.fornecedor || !item.un || !item.valorPago) {
-          alert(
-            `Preencha todos os campos obrigatórios antes de finalizar a solicitação. (Linha ${i + 1})`
-          );
-          return;
-        }
+  const handleSave = async () => {
+    try {
+      if (status === "rejected") {
+        await authorize(solicitacao._id, false);
+        onStatusUpdated?.();
+        onClose();
+        return;
       }
-    }
 
-    const dadosAtualizados = { ...solicitacao, status, itens };
-    console.log("Solicitação salva:", dadosAtualizados);
-    onClose();
+      if (status === "approved") {
+        await authorize(solicitacao._id, true);
+        onStatusUpdated?.();
+        onClose();
+        return;
+      }
+
+      if (status === "purchased") {
+        // validação
+        for (let i = 0; i < itens.length; i++) {
+          const it = itens[i];
+          if (!it.fornecedor || !it.un || it.valorPago === "") {
+            alert(`Preencha fornecedor, UN e valor pago no item ${i + 1}`);
+            return;
+          }
+        }
+
+        const hasServiceOrder = !!solicitacao.serviceOrderId;
+
+        // REGRAS:
+        // Se possui OS → quantityToServiceOrder = quantidade, quantityToStock = 0
+        // Se não possui OS → quantityToStock = quantidade, quantityToServiceOrder = 0
+        const updatedProducts = itens.map((it, idx) => {
+          const original = solicitacao.products[idx];
+
+          return {
+            productId: original.productId,
+            name: original.name,
+            code: original.code,
+            quantity: original.quantity,
+
+            quantityToServiceOrder: hasServiceOrder ? Number(it.quantidade) : 0,
+            quantityToStock: hasServiceOrder ? 0 : Number(it.quantidade),
+
+            providerIds: [it.fornecedor],
+            costUnitPrice: Number(it.valorPago),
+            salePrice: original.salePrice,
+            grossProfitMargin: original.grossProfitMargin,
+          };
+        });
+
+        const payload = {
+          status: "purchased", // backend espera "delivered" e não "purchased"
+          products: updatedProducts,
+        };
+
+        await updateSolicitacao(solicitacao._id, payload);
+        onStatusUpdated?.();
+        onClose();
+        return;
+      }
+
+      onClose();
+    } catch (err) {
+      console.error("Erro ao salvar solicitação:", err);
+      alert(err?.message || "Erro ao atualizar solicitação");
+    }
   };
 
   return (
     <LayoutModal title="Editar Solicitação" onClose={onClose} onSave={handleSave}>
       <Container>
+        
         <Row>
           <Field>
             <Label>Solicitante</Label>
-            <Input type="text" value={solicitacao?.solicitante || ""} readOnly />
+            <Input
+              type="text"
+              value={solicitacao?.userName || solicitacao?.userId?.name || "—"}
+              readOnly
+            />
           </Field>
+
           <Field>
             <Label>Status</Label>
             <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="Autorizada">Autorizada</option>
-              <option value="Comprada">Comprada</option>
-              <option value="Rejeitada">Rejeitada</option>
+              <option value="approved">Autorizada</option>
+              <option value="purchased">Comprada</option>
+              <option value="rejected">Rejeitada</option>
             </Select>
           </Field>
         </Row>
@@ -136,11 +222,20 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
         <Row>
           <Field>
             <Label>O.S</Label>
-            <Input type="text" value={solicitacao?.os || "-"} readOnly />
+            <Input type="text" value={solicitacao?.serviceOrderCode || "-"} readOnly />
           </Field>
+
           <Field>
             <Label>Data Solicitação</Label>
-            <Input type="text" value={solicitacao?.data || ""} readOnly />
+            <Input
+              type="text"
+              value={
+                solicitacao?.requestDate
+                  ? new Date(solicitacao.requestDate).toLocaleString("pt-BR")
+                  : "-"
+              }
+              readOnly
+            />
           </Field>
         </Row>
 
@@ -156,6 +251,7 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
                 <Th>Valor Pago</Th>
               </tr>
             </thead>
+
             <tbody>
               {itens.map((item, index) => (
                 <tr key={index}>
@@ -170,15 +266,15 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
                       }
                     >
                       <option value="">Selecione</option>
-                      {fornecedores?.map((f, i) => (
-                        <option key={i} value={f.id}>
-                          {f.nome}
+
+                      {listaFornecedores.map((f) => (
+                        <option key={f._id} value={f._id}>
+                          {f.name}
                         </option>
                       ))}
                     </TableSelect>
                   </Td>
 
-                  {/* UN */}
                   <Td>
                     <TableInput
                       type="text"
@@ -207,10 +303,12 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, fornecedores }) => {
           </Table>
         </div>
 
-
         <div>
           <Label>Observação</Label>
-          <TextArea readOnly value={solicitacao?.observacao || ""} />
+          <TextArea
+            readOnly
+            value={solicitacao?.observation || solicitacao?.observacao || ""}
+          />
         </div>
       </Container>
     </LayoutModal>

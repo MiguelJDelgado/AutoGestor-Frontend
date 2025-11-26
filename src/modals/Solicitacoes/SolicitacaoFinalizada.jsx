@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import LayoutModal from "../Layout";
+import { useEffect, useState } from "react";
+import { getSupplierById } from "../../services/FornecedorService";
 
 const Container = styled.div`
   display: flex;
@@ -26,7 +28,7 @@ const Label = styled.label`
   font-size: 14px;
 `;
 
-const Input = styled.input`
+const ReadonlyInput = styled.input`
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -35,7 +37,7 @@ const Input = styled.input`
   pointer-events: none;
 `;
 
-const Select = styled.select`
+const ReadonlySelect = styled.select`
   padding: 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -75,9 +77,37 @@ const TextArea = styled.textarea`
 `;
 
 const ModalSolicitacaoFinalizada = ({ onClose, solicitacao }) => {
+  const [supplierNames, setSupplierNames] = useState({});
+
+  useEffect(() => {
+    const loadSuppliers = async () => {
+      if (!solicitacao?.products) return;
+
+      const ids = [
+        ...new Set(
+          solicitacao.products.map((p) => p.providerIds?.[0]).filter(Boolean)
+        ),
+      ];
+
+      const results = {};
+      for (const id of ids) {
+        try {
+          const supplier = await getSupplierById(id);
+          results[id] = supplier.name;
+        } catch {
+          results[id] = "—";
+        }
+      }
+
+      setSupplierNames(results);
+    };
+
+    loadSuppliers();
+  }, [solicitacao]);
+
   return (
     <LayoutModal
-      title="Visualizar Solicitação"
+      title="Solicitação Finalizada"
       onClose={onClose}
       hideSaveButton
     >
@@ -85,24 +115,42 @@ const ModalSolicitacaoFinalizada = ({ onClose, solicitacao }) => {
         <Row>
           <Field>
             <Label>Solicitante</Label>
-            <Input type="text" value={solicitacao?.solicitante || ""} readOnly />
+            <ReadonlyInput
+              type="text"
+              value={solicitacao?.userName || solicitacao?.userId?.name || "—"}
+              readOnly
+            />
           </Field>
+
           <Field>
             <Label>Status</Label>
-            <Select value="Finalizada" disabled>
-              <option value="Finalizada">Finalizada</option>
-            </Select>
+            <ReadonlySelect value="delivered" disabled>
+              <option value="delivered">Finalizada</option>
+            </ReadonlySelect>
           </Field>
         </Row>
 
         <Row>
           <Field>
             <Label>O.S</Label>
-            <Input type="text" value={solicitacao?.os || "-"} readOnly />
+            <ReadonlyInput
+              type="text"
+              value={solicitacao?.serviceOrderCode || "-"}
+              readOnly
+            />
           </Field>
+
           <Field>
             <Label>Data Solicitação</Label>
-            <Input type="text" value={solicitacao?.data || ""} readOnly />
+            <ReadonlyInput
+              type="text"
+              value={
+                solicitacao?.requestDate
+                  ? new Date(solicitacao.requestDate).toLocaleString("pt-BR")
+                  : "-"
+              }
+              readOnly
+            />
           </Field>
         </Row>
 
@@ -112,23 +160,42 @@ const ModalSolicitacaoFinalizada = ({ onClose, solicitacao }) => {
             <thead>
               <tr>
                 <Th>Quantidade</Th>
-                <Th>Itens solicitados</Th>
+                <Th>Item</Th>
+                <Th>Fornecedor</Th>
+                <Th>UN</Th>
+                <Th>Valor Pago</Th>
               </tr>
             </thead>
+
             <tbody>
-              {solicitacao?.itens?.map((item, index) => (
-                <tr key={index}>
-                  <Td>{item.quantidade}</Td>
-                  <Td>{item.nome}</Td>
-                </tr>
-              ))}
+              {solicitacao?.products?.map((p, index) => {
+                const supplierId = p.providerIds?.[0];
+                const supplierName = supplierNames[supplierId] || "Carregando...";
+
+                return (
+                  <tr key={index}>
+                    <Td>{p.quantity}</Td>
+                    <Td>{p.name}</Td>
+                    <Td>{supplierName}</Td>
+                    <Td>{p.quantityToStock + p.quantityToServiceOrder}</Td>
+                    <Td>
+                      {p.costUnitPrice
+                        ? `R$ ${Number(p.costUnitPrice).toFixed(2)}`
+                        : "—"}
+                    </Td>
+                  </tr>
+                );
+              })}
             </tbody>
           </Table>
         </div>
 
         <div>
           <Label>Observação</Label>
-          <TextArea readOnly value={solicitacao?.observacao || ""} />
+          <TextArea
+            readOnly
+            value={solicitacao?.observation || solicitacao?.notes || ""}
+          />
         </div>
       </Container>
     </LayoutModal>

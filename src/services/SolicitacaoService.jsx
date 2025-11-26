@@ -79,18 +79,23 @@ export const deleteSolicitacao = async (id) => {
   return res.json();
 };
 
-export const authorize = async (id) => {
+export const authorize = async (id, authorization) => {
   const res = await fetch(`${API_URL}/${id}/authorize`, {
-    method: "put",
-    headers: getAuthHeaders()
+    method: "PUT",
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ authorization })
   });
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.message || "Erro ao autorizar solicitação de compra");
+    throw new Error(errorData.message || "Erro ao autorizar solicitação");
   }
 
   return res.json();
 };
+
 
 
