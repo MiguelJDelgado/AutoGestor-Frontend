@@ -12,7 +12,7 @@ const Section = styled.div`
   margin-bottom: 24px;
   padding: 16px;
   width: 100%;
-  overflow-x: auto;
+  overflow-x: visible;
   box-sizing: border-box;
   opacity: ${(props) => (props.disabled ? 0.6 : 1)};
   pointer-events: ${(props) => (props.disabled ? "none" : "auto")};
@@ -55,13 +55,13 @@ const RequestButton = styled.button`
 `;
 
 const FormWrapper = styled.div`
-  position: relative;
+  position: static;
   border: 1px solid #e0e0e0;
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 16px;
   background: #fafafa;
-  overflow-x: auto;
+  overflow-x: visible;
 `;
 
 const RemoveButton = styled.button`
@@ -106,6 +106,8 @@ const FormGrid = styled.div`
 
 const Field = styled.div`
   display: flex;
+  position: relative;
+  z-index: 2;
   flex-direction: column;
   min-width: 150px;
 `;
@@ -159,7 +161,7 @@ const Dropdown = styled.ul`
   border-radius: 6px;
   max-height: 200px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 9999;
   list-style: none;
   padding: 4px 0;
   margin: 0;
