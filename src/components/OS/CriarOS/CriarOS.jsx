@@ -14,6 +14,8 @@ import { createServiceOrder } from "../../../services/OrdemServicoService";
 import ClienteOS from "./AddClientes";
 import VeiculoOS from "./AddVeiculos";
 import PagamentosOS from "./Pagamentos";
+import ModalSucesso from "../../../modals/Sucesso/SucessoModal";
+import ModalErro from "../../../modals/Erro/ErroModal";
 
 const Container = styled.div`
   background: #7f929d;
@@ -80,6 +82,17 @@ const SaveExitButton = styled.button`
 function CriarOS() {
   const [isLocked, setIsLocked] = useState(true);
 
+   const [modalSuccess, setModalSuccess] = useState({
+     open: false,
+     message: "",
+   });
+
+   const [modalError, setModalError] = useState({
+     open: false,
+     message: "",
+   });
+
+
   const statusMap = {
     analise: "request",
     pendente: "budget",
@@ -129,12 +142,10 @@ function CriarOS() {
     total: 0,
   });
 
-  const handleSave = async () => {
-    try {
+   const saveOrder = async () => {
+     const servicosValidos = servicos.filter((s) => s.serviceId);
 
-      const servicosValidos = servicos.filter(s => s.serviceId);
-
-      const payload = {
+     const payload = {
         clientId,
         vehicleId,
         technicalAnalysis: dadosOS.technicalAnalysis,
@@ -175,16 +186,48 @@ function CriarOS() {
         })),
       };
 
-      const res = await createServiceOrder(payload);
+     return await createServiceOrder(payload);
+  };
 
-      alert("✅ Ordem de serviço criada com sucesso!");
-      console.log("Resposta do backend:", res);
+  const handleSaveAndExit = async () => {
+   try {
+     await saveOrder();
+
+     setModalSuccess({
+       open: true,
+       message: "Ordem de Serviço salva com sucesso!",
+     });
+
+     setTimeout(() => {
+       window.location.href = "/ordem-de-serviço";
+     }, 1200);
+
+   } catch (error) {
+     setModalError({
+       open: true,
+       message: "Erro ao salvar OS: " + error.message,
+     });
+   }
+ };
+
+  const handleSave = async () => {
+    try {
+      const res = await saveOrder();
+
       setServiceOrderId(res._id);
       setServiceOrderCode(res.code);
       setIsLocked(false);
+
+      setModalSuccess({
+        open: true,
+        message: "Ordem de serviço salva com sucesso!",
+      });
     } catch (error) {
       console.error("❌ Erro ao criar OS:", error);
-      alert("Erro ao criar ordem de serviço: " + error.message);
+      setModalError({
+        open: true,
+        message: "Erro ao salvar OS: " + error.message,
+      });
     }
   };
 
@@ -239,8 +282,20 @@ function CriarOS() {
 
       <ButtonsWrapper>
         <SaveButton onClick={handleSave}>SALVAR</SaveButton>
-        <SaveExitButton>SALVAR E SAIR</SaveExitButton>
+        <SaveExitButton onClick={handleSaveAndExit}>SALVAR E SAIR</SaveExitButton>
       </ButtonsWrapper>
+      {modalSuccess.open && (
+        <ModalSucesso
+          message={modalSuccess.message}
+          onClose={() => setModalSuccess({ open: false, message: "" })}
+        />
+      )}
+      {modalError.open && (
+        <ModalErro
+          message={modalError.message}
+          onClose={() => setModalError({ open: false, message: "" })}
+        />
+      )}
     </Container>
   );
 }
