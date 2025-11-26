@@ -3,6 +3,9 @@ import Table from "../Table";
 import Header from "../../Header/Header";
 import { getSuppliers, deleteSupplier } from "../../../services/FornecedorService";
 import CriarFornecedor from "../../../modals/Fornecedores/CriarFornecedores";
+import ConfirmModal from "../../../modals/Confirmacao/ConfirmacaoModal";
+import SuccessModal from "../../../modals/Sucesso/SucessoModal"
+import ErrorModal from "../../../modals/Erro/ErroModal";
 
 const TelaFornecedores = () => {
   const fieldMap = {
@@ -33,9 +36,12 @@ const TelaFornecedores = () => {
 
   const [data, setData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [modalMode, setModalMode] = useState("new");
   const [selectedFornecedor, setSelectedFornecedor] = useState(null);
+
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [confirmData, setConfirmData] = useState(null);
 
   const handleSearch = async ({ identifier, search }) => {
     try {
@@ -65,6 +71,7 @@ const TelaFornecedores = () => {
       setData(formattedData);
     } catch (error) {
       console.error("Erro ao buscar fornecedores:", error.message);
+      setErrorMessage("Erro ao buscar fornecedores.");
     }
   };
 
@@ -92,6 +99,7 @@ const TelaFornecedores = () => {
         setData(formattedData);
       } catch (error) {
         console.error("Erro ao carregar fornecedores:", error.message);
+        setErrorMessage("Erro ao carregar fornecedores.");
       }
     };
 
@@ -110,73 +118,63 @@ const TelaFornecedores = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (row) => {
+  const handleDelete = (row) => {
     const fornecedor = row.__raw;
 
-    if (!window.confirm(`Tem certeza que deseja excluir o fornecedor "${fornecedor.name}"?`)) {
-      return;
-    }
+    setConfirmData({
+      id: fornecedor._id,
+      message: `Tem certeza que deseja excluir o fornecedor "${fornecedor.name}"?`,
+    });
+  };
+
+  const confirmDeleteAction = async () => {
+    if (!confirmData) return;
 
     try {
-      await deleteSupplier(fornecedor._id);
+      await deleteSupplier(confirmData.id);
 
       setData((prev) =>
-        prev.filter((item) => item.__raw._id !== fornecedor._id)
+        prev.filter((item) => item.__raw._id !== confirmData.id)
       );
 
-      console.log("Fornecedor excluído com sucesso.");
+      setSuccessMessage("Fornecedor excluído com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir fornecedor:", error);
-      alert("Erro ao excluir fornecedor.");
+
+      const extractedMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Erro ao excluir fornecedor.";
+
+      setErrorMessage(extractedMessage);
+    } finally {
+      setConfirmData(null);
     }
   };
 
-  const handleSaveFornecedor = (novoFornecedor) => {
-    if (!novoFornecedor) return;
+  const handleSaveFornecedor = () => {
+    setSuccessMessage("Fornecedor salvo com sucesso!");
+    setIsModalOpen(false);
 
-    setData((prev) => {
-      const exists = prev.some(
-        (item) => item.__raw._id === novoFornecedor._id
-      );
+    getSuppliers().then((response) => {
+      const suppliersArray = response.data || response;
 
-      if (exists) {
-        return prev.map((item) =>
-          item.__raw._id === novoFornecedor._id
-            ? {
-                Nome: novoFornecedor.name,
-                Endereço: novoFornecedor.address,
-                Celular: novoFornecedor.cellphone,
-                CNPJ: novoFornecedor.cnpj,
-                "Inscrição Estadual": novoFornecedor.stateRegistration,
-                Email: novoFornecedor.email,
-                Número: novoFornecedor.number,
-                Município: novoFornecedor.city,
-                Estado: novoFornecedor.state,
-                CEP: novoFornecedor.cep,
-                Anotação: novoFornecedor.notes,
-                __raw: novoFornecedor,
-              }
-            : item
-        );
-      }
+      const formattedData = suppliersArray.map((f) => ({
+        Nome: f.name,
+        Endereço: f.address,
+        Celular: f.cellphone,
+        CNPJ: f.cnpj,
+        "Inscrição Estadual": f.stateRegistration,
+        Email: f.email,
+        Número: f.number,
+        Município: f.city,
+        Estado: f.state,
+        CEP: f.cep,
+        Anotação: f.notes,
+        __raw: f,
+      }));
 
-      return [
-        {
-          Nome: novoFornecedor.name,
-          Endereço: novoFornecedor.address,
-          Celular: novoFornecedor.cellphone,
-          CNPJ: novoFornecedor.cnpj,
-          "Inscrição Estadual": novoFornecedor.stateRegistration,
-          Email: novoFornecedor.email,
-          Número: novoFornecedor.number,
-          Município: novoFornecedor.city,
-          Estado: novoFornecedor.state,
-          CEP: novoFornecedor.cep,
-          Anotação: novoFornecedor.notes,
-          __raw: novoFornecedor,
-        },
-        ...prev,
-      ];
+      setData(formattedData);
     });
   };
 
@@ -220,6 +218,31 @@ const TelaFornecedores = () => {
           fornecedor={selectedFornecedor}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveFornecedor}
+        />
+      )}
+
+      {/* 🔹 Modal de sucesso */}
+      {successMessage && (
+        <SuccessModal
+          message={successMessage}
+          onClose={() => setSuccessMessage("")}
+        />
+      )}
+
+      {/* 🔹 Modal de erro */}
+      {errorMessage && (
+        <ErrorModal
+          message={errorMessage}
+          onClose={() => setErrorMessage("")}
+        />
+      )}
+
+      {/* 🔹 Modal de confirmação */}
+      {confirmData && (
+        <ConfirmModal
+          message={confirmData.message}
+          onConfirm={confirmDeleteAction}
+          onCancel={() => setConfirmData(null)}
         />
       )}
     </div>

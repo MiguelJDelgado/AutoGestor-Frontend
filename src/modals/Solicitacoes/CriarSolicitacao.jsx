@@ -196,7 +196,7 @@ const AddButton = styled.button`
   }
 `;
 
-const ModalNovaSolicitacao = ({ onClose }) => {
+const ModalNovaSolicitacao = ({ onClose, onSave }) => {
   const [produtos, setProdutos] = useState([
     { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" }
   ]);
@@ -369,8 +369,11 @@ const ModalNovaSolicitacao = ({ onClose }) => {
     />
     <SuccessModal
       message={successMessage}
-      onClose={() => { setSuccessMessage(""); 
-        onClose(); }}
+      onClose={() => {
+        setSuccessMessage("");
+        if (onSave) onSave();
+        onClose();
+      }}
     />
     </>
   );

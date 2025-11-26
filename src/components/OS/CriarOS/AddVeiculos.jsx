@@ -203,11 +203,6 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
         </Field>
 
         <Field>
-          <Label>Placa</Label>
-          <Input value={dadosVeiculo.placa} disabled />
-        </Field>
-
-        <Field>
           <Label>Ano</Label>
           <Input value={dadosVeiculo.ano} disabled />
         </Field>

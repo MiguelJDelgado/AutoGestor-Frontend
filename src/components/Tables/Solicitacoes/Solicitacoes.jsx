@@ -86,9 +86,8 @@ const TelaSolicitacoes = () => {
     solicitacoes.map((s) => {
       const produtoPrincipal = s.products?.[0];
       const quantidade =
-        produtoPrincipal?.quantityToServiceOrder ||
-        produtoPrincipal?.quantity ||
-        0;
+        (produtoPrincipal?.quantityToServiceOrder ?? 0) +
+        (produtoPrincipal?.quantityToStock ?? 0);
 
       return {
         OS: s.serviceOrderCode ? `${s.serviceOrderCode}` : "-",
