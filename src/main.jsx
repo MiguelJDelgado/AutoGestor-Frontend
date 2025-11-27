@@ -18,6 +18,7 @@ import TelaConfiguracoes from './routes/Configuracoes.jsx'
 import TelaPerfil from './routes/Perfil.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
 import RequireAdmin from "./auth/RequireAdmin";
+import RequireAuth from "./auth/RequireAuth";
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -96,19 +97,19 @@ createRoot(document.getElementById('root')).render(
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path='/' element={<Home />}/>
-          <Route path='/dashboard' element={<Home />}/>
+          <Route path='/' element={<RequireAuth><Home /></RequireAuth>}/>
+          <Route path='/dashboard' element={<RequireAuth><Home /></RequireAuth>}/>
           <Route path='/login' element={<Login />}/>
           <Route path='/cadastro' element={<CadastroComponent />}/>
-          <Route path='/produtos' element={<Produtos />}/>
-          <Route path='/serviços' element={<Servicos />}/>
-          <Route path='/ordem-de-serviço' element={<Os />}/>
-          <Route path='/criar-ordem-de-serviço' element={<CriarOS />}/>
-          <Route path='/solicitações' element={<TelaSolicitacoes />}/>
-          <Route path='/mecânicos' element={<TelaMecanicos />}/>
-          <Route path='/veículos' element={<TelaVeiculos />}/>
-          <Route path='/clientes' element={<TelaClientes />}/>
-          <Route path='/fornecedores' element={<TelaFornecedores />}/>
+          <Route path='/produtos' element={<RequireAuth><Produtos /></RequireAuth>}/>
+          <Route path='/serviços' element={<RequireAuth><Servicos /></RequireAuth>}/>
+          <Route path='/ordem-de-serviço' element={<RequireAuth><Os /></RequireAuth>}/>
+          <Route path='/criar-ordem-de-serviço' element={<RequireAuth><CriarOS /></RequireAuth>}/>
+          <Route path='/solicitações' element={<RequireAuth><TelaSolicitacoes /></RequireAuth>}/>
+          <Route path='/mecânicos' element={<RequireAuth><TelaMecanicos /></RequireAuth>}/>
+          <Route path='/veículos' element={<RequireAuth><TelaVeiculos /></RequireAuth>}/>
+          <Route path='/clientes' element={<RequireAuth><TelaClientes /></RequireAuth>}/>
+          <Route path='/fornecedores' element={<RequireAuth><TelaFornecedores /></RequireAuth>}/>
           <Route 
             path='/configurações'
             element={
