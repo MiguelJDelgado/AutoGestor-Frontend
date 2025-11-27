@@ -5,6 +5,7 @@ import xIcon from "../../../assets/XIcon.png";
 import plusIcon from "../../../assets/plusIcon.png";
 import MecanicosModal from "../../../modals/Mecanicos/AdicionarMecanicoOS";
 import { getAllServices } from "../../../services/ServicoService";
+import { getAllMechanics } from "../../../services/MecanicoService";
 
 const Section = styled.div`
   background: #fff;
@@ -170,6 +171,12 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
   const [isColabModalOpen, setIsColabModalOpen] = useState(false);
   const [serviceList, setServiceList] = useState([]);
 
+  const [mechanics, setMechanics] = useState([]);
+
+  useEffect(() => {
+  getAllMechanics().then(setMechanics);
+}, []);
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -317,9 +324,17 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
             <Field>
               <Label>Mecânicos</Label>
               <ChipsContainer>
-                {servico.colaboradores.map((colab, i) => (
-                  <Chip key={i}>{colab}</Chip>
-                ))}
+                {servico.colaboradores.map((colab, i) => {
+  const mecId = typeof colab === "object" ? colab._id : colab;
+  const mec = mechanics.find(m => m._id === mecId);
+
+  return (
+    <Chip key={i}>
+      {mec ? mec.name : mecId}
+    </Chip>
+  );
+})}
+
 
                 <AddColabButton
                   disabled={isLocked}
