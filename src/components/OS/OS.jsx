@@ -423,18 +423,15 @@ function Os({
             veiculoDescricao: vehicleDescription,
             placa: vehiclePlate,
             status: order.status,
-            statusLabel:
-              order.status === "budget"
-                ? "Análise/Orçamento"
-                : order.status === "pending"
-                ? "Pendente"
-                : order.status === "finalized"
-                ? "Finalizado"
-                : order.status === "canceled"
-                ? "Cancelado"
-                : order.status === "request"
-                ? "Solicitação"
-                : order.status,
+            statusLabel: {
+              request: "Solicitação",
+              pending_product: "Pendente de Produto",
+              budget: "Orçamento",
+              in_progress: "Em Progresso",
+              completed: "Concluído",
+              canceled: "Cancelado",
+            }[order.status] || "—",
+
             dataEntrada: order.entryDate,
             dataFinalizacao: order.deadline,
             valor: order.totalValueWithDiscount ?? order.totalValueGeneral,
