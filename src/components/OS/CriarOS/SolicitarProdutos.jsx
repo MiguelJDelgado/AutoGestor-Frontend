@@ -205,16 +205,10 @@ const AddButton = styled.button`
   }
 `;
 
-function SolicitarProdutoModal({
-  onClose,
-  onAdd,
-  serviceOrderId,
-  serviceOrderCode,
-}) {
+function SolicitarProdutoModal({ onClose, onAdd, serviceOrderId, serviceOrderCode }) {
   const [produtos, setProdutos] = useState([
-    { produtoNome: "", produtoId: "", quantidade: 1, lista: [] },
+    { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" },
   ]);
-
   const [listaProdutos, setListaProdutos] = useState([]);
   const [filtro, setFiltro] = useState("");
   const [showOptionsIndex, setShowOptionsIndex] = useState(null);
@@ -223,18 +217,14 @@ function SolicitarProdutoModal({
     const fetchProdutos = async () => {
       try {
         const response = await getProducts();
-
-        const arr =
-          Array.isArray(response)
-            ? response
-            : response?.data ?? response?.products ?? [];
-
+        const arr = Array.isArray(response)
+          ? response
+          : response?.data ?? response?.products ?? [];
         setListaProdutos(arr);
       } catch (error) {
         console.error("Erro ao buscar produtos:", error);
       }
     };
-
     fetchProdutos();
   }, []);
 
@@ -242,7 +232,6 @@ function SolicitarProdutoModal({
     const updated = [...produtos];
     updated[index].produtoNome = value;
     setProdutos(updated);
-
     setFiltro(value);
     setShowOptionsIndex(index);
   };
@@ -253,7 +242,6 @@ function SolicitarProdutoModal({
     updated[index].produtoNome = produto.name;
     updated[index].code = produto.code;
     setProdutos(updated);
-
     setShowOptionsIndex(null);
     setFiltro("");
   };
@@ -267,13 +255,9 @@ function SolicitarProdutoModal({
   };
 
   const adicionarProduto = () =>
-    setProdutos([
-      ...produtos,
-      { produtoNome: "", produtoId: "", quantidade: 1, lista: [] },
-    ]);
+    setProdutos([...produtos, { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" }]);
 
-  const removerProduto = (index) =>
-    setProdutos(produtos.filter((_, i) => i !== index));
+  const removerProduto = (index) => setProdutos(produtos.filter((_, i) => i !== index));
 
   const handleAdd = async () => {
     if (produtos.some((p) => !p.produtoNome))
@@ -286,7 +270,7 @@ function SolicitarProdutoModal({
         status: "pending",
         products: produtos.map((p) => ({
           name: p.produtoNome,
-          quantity: p.quantidade,
+          quantity: p.quantidade, 
           productId: p.produtoId || undefined,
           code: p.code || undefined,
         })),
@@ -300,6 +284,7 @@ function SolicitarProdutoModal({
           code: p.code || "",
           name: p.produtoNome,
           quantity: p.quantidade,
+          observation: p.observacao || "", 
         }))
       );
 
@@ -309,6 +294,7 @@ function SolicitarProdutoModal({
       alert("Erro ao criar solicitação.");
     }
   };
+
 
   return (
     <Overlay>

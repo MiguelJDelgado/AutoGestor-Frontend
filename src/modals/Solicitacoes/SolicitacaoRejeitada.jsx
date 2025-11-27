@@ -149,7 +149,14 @@ const ModalSolicitacaoRejeitada = ({ onClose, solicitacao }) => {
 
         <div>
           <Label>Observação</Label>
-          <TextArea readOnly value={solicitacao?.notes || "—"} />
+          <TextArea
+            readOnly
+            value={
+              solicitacao?.products
+                ?.map((p) => `${p.name}: ${p.observations || "—"}`)
+                .join("\n") || "—"
+            }
+          />
         </div>
 
       </Container>

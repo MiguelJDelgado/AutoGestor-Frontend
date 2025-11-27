@@ -144,7 +144,6 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
       }
 
       if (status === "purchased") {
-        // validação
         for (let i = 0; i < itens.length; i++) {
           const it = itens[i];
           if (!it.fornecedor || !it.un || it.valorPago === "") {
@@ -154,12 +153,8 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
         }
 
         const hasServiceOrder = !!solicitacao.serviceOrderId;
-
-        // REGRAS:
-        // Se possui OS → quantityToServiceOrder = quantidade, quantityToStock = 0
-        // Se não possui OS → quantityToStock = quantidade, quantityToServiceOrder = 0
         const updatedProducts = itens.map((it, idx) => {
-          const original = solicitacao.products[idx];
+        const original = solicitacao.products[idx];
 
           return {
             productId: original.productId,
@@ -178,7 +173,7 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
         });
 
         const payload = {
-          status: "purchased", // backend espera "delivered" e não "purchased"
+          status: "purchased",
           products: updatedProducts,
         };
 
@@ -307,7 +302,11 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
           <Label>Observação</Label>
           <TextArea
             readOnly
-            value={solicitacao?.observation || solicitacao?.observacao || ""}
+            value={
+              solicitacao?.products
+                ?.map((p) => `${p.name}: ${p.observations || "—"}`)
+                .join("\n") || "—"
+            }
           />
         </div>
       </Container>

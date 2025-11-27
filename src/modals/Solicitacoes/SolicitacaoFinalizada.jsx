@@ -194,7 +194,11 @@ const ModalSolicitacaoFinalizada = ({ onClose, solicitacao }) => {
           <Label>Observação</Label>
           <TextArea
             readOnly
-            value={solicitacao?.observation || solicitacao?.notes || ""}
+            value={
+              solicitacao?.products
+                ?.map((p) => `${p.name}: ${p.observations || "—"}`)
+                .join("\n") || "—"
+            }
           />
         </div>
       </Container>

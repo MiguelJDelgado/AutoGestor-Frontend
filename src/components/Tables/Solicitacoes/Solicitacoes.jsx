@@ -83,29 +83,36 @@ const TelaSolicitacoes = () => {
   };
 
   const formatSolicitacoes = (solicitacoes) =>
-    solicitacoes.map((s) => {
-      const produtoPrincipal = s.products?.[0];
-      const quantidade =
-        (produtoPrincipal?.quantityToServiceOrder ?? 0) +
-        (produtoPrincipal?.quantityToStock ?? 0);
+  solicitacoes.map((s) => {
+    const produtoPrincipal = s.products?.[0];
 
-      return {
-        OS: s.serviceOrderCode ? `${s.serviceOrderCode}` : "-",
+    const quantidade = produtoPrincipal?.quantity ?? 0;
 
-        "Produto Solicitado": produtoPrincipal?.name || "-",
-        Quantidade: `${quantidade} un`,
-        Solicitante: s.userName || s.userId?.name || "-",
-        Status: renderStatus(s.status),
-        "Data Solicitação": s.requestDate
-          ? new Date(s.requestDate).toLocaleDateString("pt-BR")
-          : "-",
-        "Data Finalização": s.deliveredDate
-          ? new Date(s.deliveredDate).toLocaleDateString("pt-BR")
-          : "—",
-        rawData: s,
-        rawStatus: s.status,
-      };
-    });
+    return {
+      OS: s.serviceOrderCode ? `${s.serviceOrderCode}` : "-",
+      "Produto Solicitado": produtoPrincipal?.name || "-",
+      Quantidade: `${quantidade} un`,
+      Solicitante: s.userName || s.userId?.name || "-",
+      Status: renderStatus(s.status),
+      "Data Solicitação": s.requestDate
+        ? new Date(s.requestDate).toLocaleDateString("pt-BR")
+        : "-",
+      "Data Finalização": s.deliveredDate
+        ? new Date(s.deliveredDate).toLocaleDateString("pt-BR")
+        : "—",
+      
+      rawData: {
+        ...s,
+        products: s.products.map((p) => ({
+          ...p,
+          quantity: p.quantity ?? 0,
+          observation: p.observation || "",
+        })),
+      },
+      rawStatus: s.status,
+    };
+  });
+
 
   const fetchSolicitacoes = async (filters = {}) => {
     setIsLoading(true);
@@ -161,10 +168,14 @@ const TelaSolicitacoes = () => {
     setModalAberto(true);
   };
 
-  const fecharModal = () => {
+  const fecharModal = (updated = false) => {
     setModalAberto(false);
     setModalTipo(null);
     setSolicitacaoSelecionada(null);
+
+    if (updated) {
+      fetchSolicitacoes();
+    }
   };
 
   const confirmDeleteAction = async () => {
@@ -222,13 +233,14 @@ const TelaSolicitacoes = () => {
         <ModalNovaSolicitacao
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveSolicitacao}
+          onStatusUpdated={fetchSolicitacoes}
         />
       )}
 
       {modalAberto && modalTipo === "pendente" && (
         <ModalPendente
-          onClose={fecharModal}
           solicitacao={solicitacaoSelecionada}
+          onClose={fecharModal}
           onStatusUpdated={fetchSolicitacoes}
         />
 
@@ -237,27 +249,31 @@ const TelaSolicitacoes = () => {
         <ModalAceita
           solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
+          onStatusUpdated={fetchSolicitacoes}
         />
       )}
       {modalAberto && modalTipo === "rejeitada" && (
         <ModalRejeitada
           solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
+          onStatusUpdated={fetchSolicitacoes}
         />
       )}
       {modalAberto && modalTipo === "comprada" && (
         <ModalSolicitacaoComprada
           solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
+          onStatusUpdated={fetchSolicitacoes}
         />
       )}
       {modalAberto && modalTipo === "finalizada" && (
         <ModalFinalizada
           solicitacao={solicitacaoSelecionada}
           onClose={fecharModal}
+          onStatusUpdated={fetchSolicitacoes}
         />
       )}
-      {/* Modal de Confirmação */}
+
       {confirmData && (
         <ModalConfirmacao
           title="Excluir Solicitação"
@@ -267,7 +283,6 @@ const TelaSolicitacoes = () => {
         />
       )}
 
-      {/* Modal de Sucesso */}
       {successMessage && (
         <ModalSucesso
           message={successMessage}
@@ -275,7 +290,6 @@ const TelaSolicitacoes = () => {
         />
       )}
 
-      {/* Modal de Erro */}
       {errorMessage && (
         <ModalErro
           message={errorMessage}

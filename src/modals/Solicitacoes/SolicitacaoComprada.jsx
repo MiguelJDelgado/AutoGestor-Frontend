@@ -1,8 +1,7 @@
 import styled from "styled-components";
 import LayoutModal from "../Layout";
 import { useState, useEffect } from "react";
-import { authorize } from "../../services/SolicitacaoService";
-import { updateSolicitacao } from "../../services/SolicitacaoService";
+import { authorize, updateSolicitacao } from "../../services/SolicitacaoService";
 import { getSupplierById } from "../../services/FornecedorService";
 
 const Container = styled.div`
@@ -76,9 +75,9 @@ const TextArea = styled.textarea`
   pointer-events: none;
 `;
 
-const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
-  const [status, setStatus] = useState("purchased");
-  const [supplierNames, setSupplierNames] = useState({}); // <- armazena nomes dos fornecedores
+const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated }) => {
+  const [status, setStatus] = useState(solicitacao?.status || "purchased");
+  const [supplierNames, setSupplierNames] = useState({}); // armazena nomes dos fornecedores
 
   useEffect(() => {
     const loadSuppliers = async () => {
@@ -94,7 +93,7 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
       for (const id of ids) {
         try {
           const supplier = await getSupplierById(id);
-          results[id] = supplier.name;
+          results[id] = supplier?.name || "—";
         } catch {
           results[id] = "—";
         }
@@ -109,20 +108,31 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
   const handleSave = async () => {
     try {
       if (status === "rejected") {
-        await authorize(solicitacao._id, { approved: false });
+        // enviar boolean FALSE (não um objeto)
+        await authorize(solicitacao._id, false);
       } else if (status === "delivered") {
         await updateSolicitacao(solicitacao._id, { status: "delivered" });
       }
 
-      onClose();
+      // notifica pai preferencialmente via callback específico
+      if (typeof onStatusUpdated === "function") {
+        await onStatusUpdated();
+      } else {
+        // compatibilidade: avisa com flag via onClose
+        onClose && onClose(true);
+      }
     } catch (error) {
       console.error(error);
       alert("Erro ao alterar status!");
+      return;
     }
+
+    // Fecha modal (se onStatusUpdated existiu, pai já atualizou)
+    onClose && onClose(false);
   };
 
   return (
-    <LayoutModal title="Solicitação Comprada" onClose={onClose} onSave={handleSave}>
+    <LayoutModal title="Solicitação Comprada" onClose={() => onClose && onClose(false)} onSave={handleSave}>
       <Container>
         <Row>
           <Field>
@@ -150,7 +160,7 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
             <Label>Data Solicitação</Label>
             <Input
               type="text"
-              value={new Date(solicitacao?.requestDate).toLocaleDateString()}
+              value={solicitacao?.requestDate ? new Date(solicitacao.requestDate).toLocaleDateString("pt-BR") : "-"}
               readOnly
             />
           </Field>
@@ -172,18 +182,16 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
             <tbody>
               {solicitacao?.products?.map((item, index) => {
                 const supplierId = item.providerIds?.[0];
-                const supplierName = supplierNames[supplierId] || "Carregando...";
+                const supplierName = supplierNames[supplierId] || "—";
 
                 return (
                   <tr key={index}>
                     <Td>{item.quantity}</Td>
                     <Td>{item.name}</Td>
                     <Td>{supplierName}</Td>
-                    <Td>{item.quantityToStock + item.quantityToServiceOrder}</Td>
+                    <Td>{(item.quantityToStock ?? 0) + (item.quantityToServiceOrder ?? 0)}</Td>
                     <Td>
-                      {item.costUnitPrice
-                        ? `R$ ${Number(item.costUnitPrice).toFixed(2)}`
-                        : "—"}
+                      {item.costUnitPrice ? `R$ ${Number(item.costUnitPrice).toFixed(2)}` : "—"}
                     </Td>
                   </tr>
                 );
@@ -192,10 +200,16 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
           </Table>
         </div>
 
-
         <div>
           <Label>Observação</Label>
-          <TextArea readOnly value={solicitacao?.notes || ""} />
+          <TextArea
+            readOnly
+            value={
+              solicitacao?.products
+                ?.map((p) => `${p.name}: ${p.observations || "—"}`)
+                .join("\n") || "—"
+            }
+          />
         </div>
       </Container>
     </LayoutModal>

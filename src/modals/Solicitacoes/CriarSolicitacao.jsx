@@ -198,7 +198,7 @@ const AddButton = styled.button`
 
 const ModalNovaSolicitacao = ({ onClose, onSave }) => {
   const [produtos, setProdutos] = useState([
-    { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" }
+    { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" },
   ]);
   const [listaProdutos, setListaProdutos] = useState([]);
   const [filtro, setFiltro] = useState("");
@@ -210,7 +210,6 @@ const ModalNovaSolicitacao = ({ onClose, onSave }) => {
     const fetchProdutos = async () => {
       try {
         const response = await getProducts();
-
         const produtosArray =
           Array.isArray(response)
             ? response
@@ -231,7 +230,7 @@ const ModalNovaSolicitacao = ({ onClose, onSave }) => {
   const adicionarProduto = () =>
     setProdutos([
       ...produtos,
-      { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" }
+      { produtoNome: "", produtoId: "", quantidade: 1, observacao: "" },
     ]);
 
   const removerProduto = (index) =>
@@ -268,34 +267,41 @@ const ModalNovaSolicitacao = ({ onClose, onSave }) => {
   };
 
   const handleSave = async () => {
-    try {
-      const payload = {
-        products: produtos.map((p) => {
-          const item = {
-            name: p.produtoNome,
-            quantityToStock: p.quantidade,
-          };
+  try {
+    const payload = {
+      products: produtos.map((p) => ({
+        name: p.produtoNome,
+        quantity: p.quantidade,
+        productId: p.produtoId || undefined,
+        code: p.code || undefined,
+        observations: p.observacao || "",
+      })),
+      status: "pending",
+    };
 
-          if (p.produtoId) {
-            item.productId = p.produtoId;
-            item.code = p.code;
-          }
+    console.log("Enviando payload:", payload);
 
-          return item;
-        }),
-        status: "pending",
-      };
+    await createSolicitacao(payload);
 
-      console.log("Enviando payload:", payload);
+    setSuccessMessage("Solicitação criada com sucesso!");
+    
+    if (onSave)
+      onSave(
+        produtos.map((p) => ({
+          productId: p.produtoId || null,
+          code: p.code || "",
+          name: p.produtoNome,
+          quantity: p.quantidade,
+          observations: p.observacao || "", 
+        }))
+      );
 
-      await createSolicitacao(payload);
-
-      setSuccessMessage("Solicitação criada com sucesso!");
-    } catch (err) {
-      console.error("Erro ao criar solicitação:", err);
-      setErrorMessage(err.message);
-    }
-  };
+    onClose();
+  } catch (err) {
+    console.error("Erro ao criar solicitação:", err);
+    setErrorMessage(err.message);
+  }
+};
 
   return (
     <>
