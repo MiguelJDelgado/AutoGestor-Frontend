@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { authorize } from "../../services/SolicitacaoService";
 import { updateSolicitacao } from "../../services/SolicitacaoService";
 import { getSupplierById } from "../../services/FornecedorService";
+import { useContext } from "react";
+import { AuthContext } from "../../auth/AuthContext";
 
 const Container = styled.div`
   display: flex;
@@ -79,6 +81,7 @@ const TextArea = styled.textarea`
 const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
   const [status, setStatus] = useState("purchased");
   const [supplierNames, setSupplierNames] = useState({}); // <- armazena nomes dos fornecedores
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const loadSuppliers = async () => {
@@ -106,7 +109,14 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
     loadSuppliers();
   }, [solicitacao]);
 
+    if (!user) return null;
+
+    const role = user.role?.toLowerCase();
+    const canEdit = role === "admin" || role === "manager";
+
   const handleSave = async () => {
+    if (!canEdit) return;
+    
     try {
       if (status === "rejected") {
         await authorize(solicitacao._id, { approved: false });
@@ -122,7 +132,13 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
   };
 
   return (
-    <LayoutModal title="Solicitação Comprada" onClose={onClose} onSave={handleSave}>
+      <LayoutModal
+        title="Solicitação Comprada"
+        onClose={onClose}
+        onSave={handleSave}
+        hideSaveButton={!canEdit}
+      >
+
       <Container>
         <Row>
           <Field>
@@ -132,7 +148,11 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
 
           <Field>
             <Label>Status</Label>
-            <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={!canEdit}
+            >
               <option value="purchased">Comprada</option>
               <option value="rejected">Rejeitada</option>
               <option value="delivered">Finalizada</option>
