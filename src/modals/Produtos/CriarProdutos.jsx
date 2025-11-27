@@ -5,6 +5,7 @@ import PesquisaIcon from "../../assets/pesquisa.png";
 import { createProduct } from "../../services/ProdutoService";
 import SuccessModal from "../Sucesso/SucessoModal";
 import ErrorModal from "../Erro/ErroModal";
+import { getSuppliers } from "../../services/FornecedorService";
 
 const FormGrid = styled.div`
   display: grid;
@@ -80,6 +81,34 @@ const IconButton = styled.button`
   }
 `;
 
+const DropdownContainer = styled.ul`
+  position: absolute;
+  top: 42px;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 1000;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const DropdownItem = styled.li`
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+
+  &:hover {
+    background: #f3f6f9;
+  }
+`;
+
+
 const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave = () => {}, onOpenSupplierPicker }) => {
   const isView = mode === "view";
 
@@ -93,6 +122,12 @@ const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave
     data: "",
     estoque: 0,
   });
+
+  const [fornecedores, setFornecedores] = useState([]);
+  const [filteredFornecedores, setFilteredFornecedores] = useState([]);
+  const [buscaFornecedor, setBuscaFornecedor] = useState("");
+  const [fornecedorSelecionado, setFornecedorSelecionado] = useState(null);
+
 
   useEffect(() => {
     if (data) {
@@ -108,6 +143,29 @@ const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave
       });
     }
   }, [data]);
+
+  useEffect(() => {
+    const fetchFornecedores = async () => {
+      try {
+        const res = await getSuppliers();
+        setFornecedores(res.data);
+        setFilteredFornecedores(res.data);
+      } catch (err) {
+        console.error("Erro ao buscar fornecedores:", err);
+      }
+    };
+
+    fetchFornecedores();
+  }, []);
+
+  useEffect(() => {
+    const termo = buscaFornecedor.toLowerCase();
+    const filtrados = fornecedores.filter((f) =>
+      f.name?.toLowerCase().includes(termo)
+    );
+    setFilteredFornecedores(filtrados);
+  }, [buscaFornecedor, fornecedores]);
+
 
   
   const [successMessage, setSuccessMessage] = useState("");
@@ -161,6 +219,13 @@ const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave
     setErrors(err);
     return Object.keys(err).length === 0;
   };
+
+  const handleSelectFornecedor = (fornecedor) => {
+    setFornecedorSelecionado(fornecedor);
+    setBuscaFornecedor(fornecedor.name);
+    setForm((prev) => ({ ...prev, fornecedor: fornecedor._id }));
+  };
+
 
   const handleSave = async () => {
     if (isView) return onClose();
@@ -241,12 +306,32 @@ const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave
 
         <Full>
           <Label>Fornecedor</Label>
-          <InputWrapper>
+          <InputWrapper style={{ position: "relative", flex: 1 }}>
             <Input
               disabled={isView}
-              value={form.fornecedor}
-              onChange={handleChange("fornecedor")}
+              value={buscaFornecedor}
+              onChange={(e) => {
+                setBuscaFornecedor(e.target.value);
+                setFornecedorSelecionado(null);
+                setForm((prev) => ({ ...prev, fornecedor: "" })); 
+              }}
+              placeholder="Digite para buscar fornecedor..."
+              autoComplete="off"
             />
+            {buscaFornecedor &&
+              !fornecedorSelecionado &&
+              filteredFornecedores.length > 0 && (
+                <DropdownContainer>
+                  {filteredFornecedores.slice(0, 8).map((f) => (
+                    <DropdownItem
+                      key={f._id}
+                      onClick={() => handleSelectFornecedor(f)}
+                    >
+                      {f.name}
+                    </DropdownItem>
+                  ))}
+                </DropdownContainer>
+              )}
             <IconButton disabled={isView} onClick={onOpenSupplierPicker}>
               <img src={PesquisaIcon} alt="Selecionar fornecedor" style={{ width: 18, height: 18 }} />
             </IconButton>
