@@ -3,8 +3,8 @@ import Table from "../Table";
 import Header from "../../Header/Header";
 import CriarColaborador from "../../../modals/Mecanicos/CriarMecanicos";
 import {
-  getAllMechanics,
   deleteMechanic,
+  getAllMechanics,
 } from "../../../services/MecanicoService";
 import ModalConfirmacao from "../../../modals/Confirmacao/ConfirmacaoModal";
 import ModalSucesso from "../../../modals/Sucesso/SucessoModal"
@@ -23,6 +23,17 @@ const TelaColaboradores = () => {
     "UF",
     "Anotação",
   ];
+
+  const searchOptions = [
+  { label: "Nome", value: "name" },
+  { label: "CPF", value: "cpf" },
+  { label: "Cargo", value: "position" },
+  { label: "Telefone", value: "cellphone" },
+  { label: "Email", value: "email" },
+  { label: "Endereço", value: "address" },
+  { label: "Município", value: "city" },
+];
+
 
   const [data, setData] = useState([]);
 
@@ -48,16 +59,21 @@ const TelaColaboradores = () => {
     message: "",
   });
 
-  const loadMechanics = async () => {
+  const loadMechanics = async (filters = {}) => {
     try {
-      const response = await getAllMechanics();
-      const mechanicsArray = Array.isArray(response) ? response : [];
+      const response = await getAllMechanics({
+        page: 1,
+        limit: 10,
+        ...filters,
+      });
 
+
+      const mechanicsArray = response || [];
+      
       const formattedData = mechanicsArray.map((m) => ({
         _id: m._id,
         Nome: m.name || "-",
         CPF: m.cpf || "-",
-        CEP: m.cep || "-",
         Cargo: m.position || "-",
         Telefone: m.cellphone || "-",
         Email: m.email || "-",
@@ -66,9 +82,11 @@ const TelaColaboradores = () => {
         Município: m.city || "-",
         UF: m.state || "-",
         Anotação: m.notes || "-",
+        raw: m,
       }));
 
       setData(formattedData);
+
     } catch (err) {
       console.error("Erro ao carregar mecânicos:", err);
       setModalError({
@@ -77,6 +95,7 @@ const TelaColaboradores = () => {
       });
     }
   };
+
 
   useEffect(() => {
     loadMechanics();
@@ -100,6 +119,15 @@ const TelaColaboradores = () => {
       mechanic: row,
     });
   };
+
+  const handleSearch = async ({ identifier, search }) => {
+  if (!identifier || !search) {
+    await loadMechanics();
+    return;
+  }
+  await loadMechanics({ identifier, search });
+};
+
 
   const confirmDelete = async () => {
     const mechanic = modalConfirm.mechanic;
@@ -133,7 +161,8 @@ const TelaColaboradores = () => {
       <Table
         columns={columns}
         data={data}
-        searchOptions={columns}
+        searchOptions={searchOptions}
+        onSearch={handleSearch}
         onView={(row) => openModal("view", row)}
         onEdit={(row) => openModal("edit", row)}
         onDelete={handleDelete}
