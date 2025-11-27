@@ -459,7 +459,9 @@ function Os({
   }, []);
 
     const handleView = (order) => {
-      navigate("/criar-ordem-de-serviço", { state: { orderId: order._id, mode: "view" } });
+      navigate("/criar-ordem-de-serviço", { 
+        state: { orderId: order.id || order._id, mode: "view" } 
+      });
     };
 
     const handleDelete = (order) => {
