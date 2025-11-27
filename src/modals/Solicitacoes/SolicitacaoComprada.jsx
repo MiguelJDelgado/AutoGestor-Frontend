@@ -77,7 +77,7 @@ const TextArea = styled.textarea`
   pointer-events: none;
 `;
 
-const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
+const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated}) => {
   const [status, setStatus] = useState("purchased");
   const [supplierNames, setSupplierNames] = useState({}); // <- armazena nomes dos fornecedores
   const { user } = useContext(AuthContext);
