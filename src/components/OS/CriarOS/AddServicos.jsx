@@ -5,7 +5,7 @@ import xIcon from "../../../assets/XIcon.png";
 import plusIcon from "../../../assets/plusIcon.png";
 import MecanicosModal from "../../../modals/Mecanicos/AdicionarMecanicoOS";
 import { getAllServices } from "../../../services/ServicoService";
-import { getAllMechanics, getMechanicById } from "../../../services/MecanicoService";
+import { getAllMechanics } from "../../../services/MecanicoService";
 
 const Section = styled.div`
   background: #fff;
@@ -204,18 +204,24 @@ function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
         workHours: "",
         hourValue: "",
         totalValue: "",
-        mechanicIds: [],
+        colaboradores: [],
       },
     ]);
 
   const removerServico = (index) =>
     !isLocked && setServicos(servicos.filter((_, i) => i !== index));
 
-  const handleSaveColaboradores = (colabs) => {
+  const handleSaveColaboradores = (colabIds) => {
     if (isLocked) return;
+
+    const colabsComNome = colabIds.map((id) => {
+      const mec = mechanics.find((m) => m._id === id);
+      return { _id: id, name: mec ? mec.name : id };
+    });
+
     setServicos((prev) =>
       prev.map((srv, i) =>
-        i === selectedIndex ? { ...srv, mechanicIds: colabs } : srv
+        i === selectedIndex ? { ...srv, colaboradores: colabsComNome } : srv
       )
     );
     setIsColabModalOpen(false);
@@ -300,7 +306,7 @@ function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
                 type="number"
                 min="1"
                 disabled={isLocked}
-                value={servico.quantity || servico.quantidade || ""}
+                value={servico.quantity || 1}
                 onChange={(e) =>
                   handleChangeQuantidade(index, Number(e.target.value))
                 }
@@ -332,10 +338,9 @@ function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
             <Field>
               <Label>Mecânicos</Label>
               <ChipsContainer>
-                {servico.mechanicIds?.map((mecId, i) => {
-                  const mec = mechanics.find((m) => m._id === mecId);
-                  return <Chip key={i}>{mec ? mec.name : mecId}</Chip>;
-                })}
+                {servico.colaboradores?.map((mec, i) => (
+                  <Chip key={i}>{mec.name || mec._id}</Chip>
+                ))}
                 <AddColabButton
                   disabled={isLocked}
                   onClick={() => {
@@ -347,7 +352,6 @@ function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
                 </AddColabButton>
               </ChipsContainer>
             </Field>
-
           </FormGrid>
         </FormWrapper>
       ))}
@@ -360,7 +364,7 @@ function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
         <MecanicosModal
           onClose={() => setIsColabModalOpen(false)}
           onSave={handleSaveColaboradores}
-          colaboradoresIniciais={servicos[selectedIndex]?.mechanicIds || []}
+          colaboradoresIniciais={servicos[selectedIndex]?.colaboradores || []}
         />
       )}
     </Section>

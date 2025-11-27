@@ -24,6 +24,7 @@ import PagamentosOS from "./Pagamentos";
 
 import ModalSucesso from "../../../modals/Sucesso/SucessoModal";
 import ModalErro from "../../../modals/Erro/ErroModal";
+import { getAllMechanics } from "../../../services/MecanicoService";
 
 const Container = styled.div`
   background: #7f929d;
@@ -87,6 +88,7 @@ function CriarOS() {
   const orderIdFromLocation = location?.state?.orderId || null;
 
   const [isLocked, setIsLocked] = useState(true);
+  const [mechanics, setMechanics] = useState([]);
 
   const pageTitle = viewingMode
     ? "Visualizar Ordem de Serviço"
@@ -167,7 +169,6 @@ function CriarOS() {
       discountType: descontoData.tipo,
       discountValue: descontoData.valor,
 
-      // ⭐ ADICIONE ESTES CAMPOS ⭐
       totalValueProducts: custoTotal.valorProdutos || 0,
       totalValueServices: custoTotal.valorServicos || 0,
       totalValueGeneral: custoTotal.valorTotal || 0,
@@ -181,7 +182,7 @@ function CriarOS() {
         workHours: s.workHours || 0,
         hourValue: s.hourValue || 0,
         totalValue: s.totalValue || 0,
-        mechanicIds: s.colaboradores || [],
+        mechanicIds: (s.colaboradores || []).map((m) => m._id),
       })),
 
       products: products.map((p) => ({
@@ -196,7 +197,6 @@ function CriarOS() {
         providerIds: p.providerIds || [],
       })),
     };
-
 
     if (serviceOrderId || editingMode) {
       const id = serviceOrderId || orderIdFromLocation;
@@ -242,8 +242,14 @@ function CriarOS() {
       if (!orderIdFromLocation) return;
 
       try {
-        const res = await getServiceOrderById(orderIdFromLocation);
+        const [res, mecList] = await Promise.all([
+          getServiceOrderById(orderIdFromLocation),
+          getAllMechanics(),
+        ]);
+
         if (!res) return;
+
+        setMechanics(mecList);
 
         setServiceOrderId(res._id || res.id);
         setServiceOrderCode(res.code || null);
@@ -267,7 +273,10 @@ function CriarOS() {
         setServicos(
           (res.services || []).map((s) => ({
             ...s,
-            colaboradores: s.mechanicIds || [],
+            colaboradores: (s.mechanicIds || []).map((id) => {
+              const mec = mecList.find((m) => m._id === id);
+              return { _id: id, name: mec ? mec.name : id };
+            }),
           }))
         );
 
@@ -303,7 +312,6 @@ function CriarOS() {
 
     if (editingMode || viewingMode) loadData();
   }, [orderIdFromLocation, editingMode, viewingMode]);
-
 
   return (
     <Container>
