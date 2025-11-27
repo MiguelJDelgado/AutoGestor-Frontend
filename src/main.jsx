@@ -17,6 +17,7 @@ import TelaFornecedores from './routes/Fornecedores.jsx'
 import TelaConfiguracoes from './routes/Configuracoes.jsx'
 import TelaPerfil from './routes/Perfil.jsx'
 import { AuthProvider } from './auth/AuthContext.jsx'
+import RequireAdmin from "./auth/RequireAdmin";
 
 const GlobalStyle = createGlobalStyle`
   :root {
@@ -108,7 +109,15 @@ createRoot(document.getElementById('root')).render(
           <Route path='/veículos' element={<TelaVeiculos />}/>
           <Route path='/clientes' element={<TelaClientes />}/>
           <Route path='/fornecedores' element={<TelaFornecedores />}/>
-          <Route path='/configurações' element={<TelaConfiguracoes />}/>
+          <Route 
+            path='/configurações'
+            element={
+              <RequireAdmin>
+                <TelaConfiguracoes />
+              </RequireAdmin>
+            }
+          />
+
           <Route path='/perfil' element={<TelaPerfil />}/>
         </Routes>
       </BrowserRouter>

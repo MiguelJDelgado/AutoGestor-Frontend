@@ -218,7 +218,14 @@ function Sidebar({ isOpen, onToggle }) {
         <ToggleButton src={sidebar} alt="Menu" onClick={onToggle} />
       </Header>
       <Opcoes>
-        {opcoesMenu.map((opcao) => (
+        {opcoesMenu
+          .filter((opcao) => {
+            if (opcao.texto === "Configurações" && user?.role !== "admin") {
+              return false;
+            }
+            return true;
+          })
+          .map((opcao) => (
           <ItemLink
             key={opcao.texto}
             to={`/${opcao.texto.toLowerCase().replace(/\s+/g, '-')}`}
