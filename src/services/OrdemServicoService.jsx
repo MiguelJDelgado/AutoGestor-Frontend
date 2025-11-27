@@ -131,3 +131,16 @@ export const deleteServiceOrder = async (id) => {
 
   return res.json();
 };
+
+export const downloadServiceOrderPDF = async (orderId) => {
+  if (!orderId) throw new Error("ID da ordem de serviço é obrigatório");
+
+  const res = await fetch(`${API_URL}/export-pdf/${orderId}`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) throw new Error("Erro ao gerar PDF da ordem de serviço");
+
+  return res.arrayBuffer();
+};

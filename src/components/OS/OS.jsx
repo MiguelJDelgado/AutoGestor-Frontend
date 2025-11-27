@@ -8,7 +8,7 @@ import aprovarIcon from '../../assets/aprovar.png'
 import imprimirIcon from '../../assets/imprimir.png'
 import clockIcon from '../../assets/clock.png'
 import Header from '../Header/Header'
-import { getAllServiceOrders, scheduleTimeReportEmailSender, stopTimeReportEmailSender, deleteServiceOrder } from '../../services/OrdemServicoService.jsx'
+import { getAllServiceOrders, scheduleTimeReportEmailSender, stopTimeReportEmailSender, deleteServiceOrder, downloadServiceOrderPDF } from '../../services/OrdemServicoService.jsx'
 import { getAllClients, getClientById } from '../../services/ClienteService.jsx'
 import { getVehicleById } from '../../services/VeiculoService.jsx'
 import { useContext } from 'react';
@@ -483,6 +483,31 @@ function Os({
       }
     };
 
+    const handlePrint = async (order) => {
+      if (!order?.id) {
+        alert("ID da ordem de serviço não encontrado.");
+        return;
+      }
+
+      try {
+        const pdfData = await downloadServiceOrderPDF(order.id);
+
+        const blob = new Blob([pdfData], { type: "application/pdf" });
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `OS_${order.codigo || order.osNumero}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error("Erro ao gerar PDF:", err);
+        alert("Erro ao gerar PDF da Ordem de Serviço.");
+      }
+    };
 
   
   const handleFilter = () => {
@@ -732,7 +757,7 @@ function Os({
                             <IconImage src={aprovarIcon} alt="Aprovar" />
                           </ActionButton>
                         )}
-                        <ActionButton title="Imprimir" onClick={() => onPrint(order)}>
+                        <ActionButton title="Imprimir" onClick={() => handlePrint(order)}>
                           <IconImage src={imprimirIcon} alt="Imprimir" />
                         </ActionButton>
                         <ActionButton
