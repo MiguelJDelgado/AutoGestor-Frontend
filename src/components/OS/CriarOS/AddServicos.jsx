@@ -5,6 +5,7 @@ import xIcon from "../../../assets/XIcon.png";
 import plusIcon from "../../../assets/plusIcon.png";
 import MecanicosModal from "../../../modals/Mecanicos/AdicionarMecanicoOS";
 import { getAllServices } from "../../../services/ServicoService";
+import { getAllMechanics } from "../../../services/MecanicoService";
 
 const Section = styled.div`
   background: #fff;
@@ -175,6 +176,12 @@ function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
   const [isColabModalOpen, setIsColabModalOpen] = useState(false);
   const [serviceList, setServiceList] = useState([]);
 
+  const [mechanics, setMechanics] = useState([]);
+
+  useEffect(() => {
+  getAllMechanics().then(setMechanics);
+}, []);
+
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -275,6 +282,87 @@ function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
               <Field>
                 <Label>Título do serviço</Label>
                 <Select
+      {servicos.map((servico, index) => (
+        <FormWrapper key={index}>
+          {!isLocked && (
+            <RemoveButton onClick={() => removerServico(index)}>
+              <img src={xIcon} alt="Remover" />
+            </RemoveButton>
+          )}
+
+          <FormGrid>
+            <Field>
+              <Label>Título do serviço</Label>
+              <Select
+                disabled={isLocked}
+                value={servico.serviceId || ""}
+                onChange={(e) => handleSelectService(index, e.target.value)}
+              >
+                <option value="">Selecione um serviço</option>
+                {serviceList.map((s) => (
+                  <option key={s._id} value={s._id}>
+                    {s.title}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+
+            <Field>
+              <Label>Horas de trabalho</Label>
+              <Input disabled value={servico.workHours || ""} />
+            </Field>
+
+            <Field>
+              <Label>Quantidade</Label>
+              <Input
+                type="number"
+                min="1"
+                disabled={isLocked}
+                value={servico.quantidade || ""}
+                onChange={(e) =>
+                  handleChangeQuantidade(index, Number(e.target.value))
+                }
+              />
+            </Field>
+
+            <Field>
+              <Label>Valor hora</Label>
+              <Input disabled value={servico.hourValue || ""} />
+            </Field>
+
+            <Field>
+              <Label>Valor unitário</Label>
+              <Input
+                disabled
+                value={
+                  servico.workHours && servico.hourValue
+                    ? servico.workHours * servico.hourValue
+                    : ""
+                }
+              />
+            </Field>
+
+            <Field>
+              <Label>Valor total</Label>
+              <Input disabled value={servico.totalValue || ""} />
+            </Field>
+
+            <Field>
+              <Label>Mecânicos</Label>
+              <ChipsContainer>
+                {servico.colaboradores.map((colab, i) => {
+  const mecId = typeof colab === "object" ? colab._id : colab;
+  const mec = mechanics.find(m => m._id === mecId);
+
+  return (
+    <Chip key={i}>
+      {mec ? mec.name : mecId}
+    </Chip>
+  );
+})}
+
+
+                <AddColabButton
                   disabled={isLocked}
                   value={servico.serviceId || ""}
                   onChange={(e) => handleSelectService(index, e.target.value)}

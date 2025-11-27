@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import React from "react";
 import styled from "styled-components";
 import LayoutModal from "../Layout";
-import { getAllMechanics } from "../../services/MecanicoService";
+import { getAllMechanics, getMechanicById } from "../../services/MecanicoService";
 
 const FormGrid = styled.div`
   display: flex;
@@ -92,7 +92,7 @@ export const DropdownItem = styled.div`
 `;
 
 const ColaboradoresModal = ({ onClose = () => {}, onSave = () => {}, colaboradoresIniciais = [] }) => {
-  const [colaboradores, setColaboradores] = useState(colaboradoresIniciais);
+  const [colaboradores, setColaboradores] = useState([]);
   const [colaboradorSelecionado, setColaboradorSelecionado] = useState("");
   const selectRef = useRef(null);
 
@@ -123,6 +123,36 @@ const ColaboradoresModal = ({ onClose = () => {}, onSave = () => {}, colaborador
     document.body.style.overflow = prev;
   };
 }, []);
+useEffect(() => {
+  if (!colaboradoresIniciais || colaboradoresIniciais.length === 0) return;
+
+  const carregarColaboradoresIniciais = async () => {
+    const lista = [];
+
+    for (const id of colaboradoresIniciais) {
+      // primeiro tenta achar na lista já carregada
+      let mec = mechanics.find(m => m._id === id);
+
+      // se não achou, busca pelo ID no backend
+      if (!mec) {
+        try {
+          mec = await getMechanicById(id);
+          console.log("MECÂNICO CARREGADO:", mec)
+        } catch (err) {
+          console.error("Erro ao buscar mecânico por ID:", id, err);
+        }
+      }
+
+      if (mec) lista.push(mec);
+    }
+
+    setColaboradores(lista);
+  };
+
+  carregarColaboradoresIniciais();
+}, [mechanics]);
+
+
 
 
       const filteredMechanics = mechanics.filter((m) =>
