@@ -141,8 +141,15 @@ const CriarProduto = ({ mode = "create", data = null, onClose = () => {}, onSave
         data: data.createdAt ? data.createdAt.split("T")[0] : "",
         estoque: data.quantity || 0,
       });
+
+      if (data.providerIds?.length > 0 && fornecedores.length > 0) {
+        const fornecedor = fornecedores.find(f => f._id === data.providerIds[0]);
+        setBuscaFornecedor(fornecedor?.name || "");
+        setFornecedorSelecionado(fornecedor || null);
+      }
     }
-  }, [data]);
+  }, [data, fornecedores]);
+
 
   useEffect(() => {
     const fetchFornecedores = async () => {
