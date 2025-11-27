@@ -166,7 +166,12 @@ const AddColabButton = styled.button`
   }
 `;
 
-function ServicosSection({ servicos, setServicos, isLocked = false }) {
+const formatCurrency = (value) =>
+  value !== undefined && value !== null && value !== ""
+    ? `R$ ${Number(value).toFixed(2)}`
+    : "";
+
+function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [isColabModalOpen, setIsColabModalOpen] = useState(false);
   const [serviceList, setServiceList] = useState([]);
@@ -190,18 +195,29 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
   }, []);
 
   const adicionarServico = () =>
-    !isLocked && setServicos([...servicos, { colaboradores: [] }]);
+    !isLocked &&
+    setServicos([
+      ...servicos,
+      {
+        serviceId: "",
+        title: "",
+        quantity: 1,
+        workHours: "",
+        hourValue: "",
+        totalValue: "",
+        mechanicIds: [],
+      },
+    ]);
 
   const removerServico = (index) =>
-    !isLocked &&
-    setServicos(servicos.filter((_, i) => i !== index));
+    !isLocked && setServicos(servicos.filter((_, i) => i !== index));
 
   const handleSaveColaboradores = (colabs) => {
     if (isLocked) return;
 
     setServicos((prev) =>
       prev.map((srv, i) =>
-        i === selectedIndex ? { ...srv, colaboradores: colabs } : srv
+        i === selectedIndex ? { ...srv, mechanicIds: colabs } : srv
       )
     );
     setIsColabModalOpen(false);
@@ -210,20 +226,20 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
   const handleSelectService = (index, serviceId) => {
     if (isLocked) return;
 
-    const selectedService = serviceList.find((s) => s._id === serviceId);
-    if (!selectedService) return;
+    const selected = serviceList.find((s) => s._id === serviceId);
+    if (!selected) return;
 
     setServicos((prev) =>
       prev.map((srv, i) =>
         i === index
           ? {
               ...srv,
-              serviceId: selectedService._id,
-              title: selectedService.title,
-              workHours: selectedService.workHours,
-              hourValue: selectedService.hourValue,
-              totalValue: selectedService.totalValue,
-              quantidade: 1,
+              serviceId: selected._id,
+              title: selected.title,
+              workHours: selected.workHours,
+              hourValue: selected.hourValue,
+              quantity: 1,
+              totalValue: selected.workHours * selected.hourValue,
             }
           : srv
       )
@@ -238,11 +254,8 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
         i === index
           ? {
               ...srv,
-              quantidade: value,
-              totalValue:
-                srv.hourValue && srv.workHours
-                  ? srv.hourValue * srv.workHours * value
-                  : srv.totalValue,
+              quantity: value,
+              totalValue: srv.workHours * srv.hourValue * value,
             }
           : srv
       )
@@ -256,6 +269,19 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
         Serviços
       </SectionHeader>
 
+      {servicos.map((servico, index) => {
+        return (
+          <FormWrapper key={index}>
+            {!isLocked && (
+              <RemoveButton onClick={() => removerServico(index)}>
+                <img src={xIcon} alt="Remover" />
+              </RemoveButton>
+            )}
+
+            <FormGrid>
+              <Field>
+                <Label>Título do serviço</Label>
+                <Select
       {servicos.map((servico, index) => (
         <FormWrapper key={index}>
           {!isLocked && (
@@ -338,18 +364,83 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
 
                 <AddColabButton
                   disabled={isLocked}
-                  onClick={() => {
-                    setSelectedIndex(index);
-                    setIsColabModalOpen(true);
-                  }}
+                  value={servico.serviceId || ""}
+                  onChange={(e) => handleSelectService(index, e.target.value)}
                 >
-                  <img src={plusIcon} alt="Adicionar" />
-                </AddColabButton>
-              </ChipsContainer>
-            </Field>
-          </FormGrid>
-        </FormWrapper>
-      ))}
+                  <option value="">Selecione um serviço</option>
+                  {serviceList.map((s) => (
+                    <option key={s._id} value={s._id}>
+                      {s.title}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+
+              <Field>
+                <Label>Horas de trabalho</Label>
+                <Input disabled value={servico.workHours || ""} />
+              </Field>
+
+              <Field>
+                <Label>Quantidade</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  disabled={isLocked}
+                  value={servico.quantity || ""}
+                  onChange={(e) =>
+                    handleChangeQuantidade(index, Number(e.target.value))
+                  }
+                />
+              </Field>
+
+              <Field>
+                <Label>Valor hora</Label>
+                <Input disabled value={formatCurrency(servico.hourValue)} />
+              </Field>
+
+              <Field>
+                <Label>Valor unitário</Label>
+                <Input
+                  disabled
+                  value={
+                    servico.workHours && servico.hourValue
+                      ? formatCurrency(servico.workHours * servico.hourValue)
+                      : ""
+                  }
+                />
+              </Field>
+
+              <Field>
+                <Label>Valor total</Label>
+                <Input
+                  disabled
+                  value={formatCurrency(servico.totalValue)}
+                />
+              </Field>
+
+              <Field>
+                <Label>Mecânicos</Label>
+                <ChipsContainer>
+                  {servico.mechanicIds?.map((mec, i) => (
+                    <Chip key={i}>{mec}</Chip>
+                  ))}
+
+                  <AddColabButton
+                    disabled={isLocked}
+                    onClick={() => {
+                      setSelectedIndex(index);
+                      setIsColabModalOpen(true);
+                    }}
+                  >
+                    <img src={plusIcon} alt="Adicionar" />
+                  </AddColabButton>
+                </ChipsContainer>
+              </Field>
+            </FormGrid>
+          </FormWrapper>
+        );
+      })}
 
       <AddButton onClick={adicionarServico} disabled={isLocked}>
         +
@@ -359,7 +450,9 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
         <MecanicosModal
           onClose={() => setIsColabModalOpen(false)}
           onSave={handleSaveColaboradores}
-          colaboradoresIniciais={servicos[selectedIndex]?.colaboradores || []}
+          colaboradoresIniciais={
+            servicos[selectedIndex]?.mechanicIds || []
+          }
         />
       )}
     </Section>

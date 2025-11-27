@@ -26,7 +26,6 @@ const MainContent = styled.div`
   box-sizing: border-box;
 `
 
-// ======== NOVO: Estilos para o ícone e modal ========
 const ClockButton = styled.button`
   background: none;
   border: none;
@@ -95,7 +94,6 @@ const ModalButton = styled.button`
     opacity: 0.9;
   }
 `
-// ====================================================
 
 const Title = styled.h1`
   font-size: 24px;
@@ -298,7 +296,6 @@ const DropdownItem = styled.li`
 function Os({
   onApprove = () => {},
   onPrint = () => {},
-  onEdit = () => {},
 }) {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -738,7 +735,10 @@ function Os({
                         <ActionButton title="Imprimir" onClick={() => onPrint(order)}>
                           <IconImage src={imprimirIcon} alt="Imprimir" />
                         </ActionButton>
-                        <ActionButton title="Editar" onClick={() => onEdit(order)}>
+                        <ActionButton
+                          title="Editar"
+                          onClick={() => navigate("/criar-ordem-de-serviço", { state: { orderId: order.id, mode: "edit" } })}
+                        >
                           <IconImage src={editarIcon} alt="Editar" />
                         </ActionButton>
                         <ActionButton title="Excluir" onClick={() => handleDelete(order)}>

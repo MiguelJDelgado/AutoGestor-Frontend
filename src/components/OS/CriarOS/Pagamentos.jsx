@@ -62,6 +62,14 @@ const Input = styled.input`
 `;
 
 const PagamentosOS = ({ value, onChange, isLocked = false }) => {
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return date.toISOString().split("T")[0];
+  };
+
   const handleChange = (field) => (e) => {
     if (isLocked) return;
 
@@ -116,7 +124,7 @@ const PagamentosOS = ({ value, onChange, isLocked = false }) => {
           <Label>Data do Pagamento</Label>
           <Input
             type="date"
-            value={value?.paymentDate || ""}
+            value={formatDate(value?.paymentDate)}
             onChange={handleChange("paymentDate")}
             disabled={isLocked}
           />

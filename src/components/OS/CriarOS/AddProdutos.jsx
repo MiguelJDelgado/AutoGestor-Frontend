@@ -201,6 +201,10 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
     fetchProdutos();
   }, []);
 
+  useEffect(() => {
+    setBuscas(products.map((p) => p.name || ""));
+  }, [products]);
+
   const adicionarProduto = () => {
     if (isLocked) return;
     setProducts([...products, {}]);
@@ -224,7 +228,7 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
     setDropdownAtivo(index);
 
     const novosProdutos = [...products];
-    novosProdutos[index] = {};
+    novosProdutos[index] = { ...novosProdutos[index], name: termo };
     setProducts(novosProdutos);
   };
 
@@ -241,9 +245,8 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
       salePrice: produto.salePrice || 0,
       grossProfitMargin: produto.grossProfitMargin ?? 0,
       providerIds: produto.providerIds || [],
-      unitMeasure: produto.unitMeasure || "",
-      stock: produto.quantity ?? 0,
-      total: (produto.salePrice || 0) * 1,
+      observations: produto.observations || "",
+      totalValue: produto.salePrice || 0,
     };
     setProducts(novosProdutos);
 
@@ -259,7 +262,7 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
     const novosProdutos = [...products];
     const p = novosProdutos[index] || {};
     p.quantity = quantidade;
-    p.total = (p.salePrice || 0) * (quantidade || 0);
+    p.totalValue = (p.salePrice || 0) * (quantidade || 0);
     novosProdutos[index] = p;
     setProducts(novosProdutos);
   };
@@ -305,7 +308,7 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
               <Input
                 type="text"
                 placeholder="Digite para buscar..."
-                value={buscas[index] || produto.name || ""}
+                value={buscas[index] || ""}
                 onChange={(e) => handleBuscaChange(index, e.target.value)}
                 onFocus={() => setDropdownAtivo(index)}
                 autoComplete="off"
@@ -313,9 +316,8 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
               />
 
               {dropdownAtivo === index &&
-                !isLocked &&
                 buscas[index] &&
-                produtosFiltrados(buscas[index]).length > 0 && (
+                produtosFiltrados(buscas[index]).length > 0 && !isLocked && (
                   <Dropdown>
                     {produtosFiltrados(buscas[index])
                       .slice(0, 8)
@@ -329,16 +331,6 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
                       ))}
                   </Dropdown>
                 )}
-            </Field>
-
-            <Field>
-              <Label>UN</Label>
-              <Input disabled={isLocked} value={produto.unitMeasure || ""} />
-            </Field>
-
-            <Field>
-              <Label>Estoque</Label>
-              <Input disabled={isLocked} value={produto.stock ?? produto.quantity ?? ""} />
             </Field>
 
             <Field>
@@ -359,7 +351,7 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
               <Input
                 disabled={isLocked}
                 value={
-                  produto.salePrice !== undefined && produto.salePrice !== null
+                  produto.salePrice !== undefined
                     ? `R$ ${Number(produto.salePrice).toFixed(2)}`
                     : ""
                 }
@@ -371,8 +363,8 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
               <Input
                 disabled={isLocked}
                 value={
-                  produto.total !== undefined && produto.total !== null
-                    ? `R$ ${Number(produto.total).toFixed(2)}`
+                  produto.totalValue !== undefined
+                    ? `R$ ${Number(produto.totalValue).toFixed(2)}`
                     : ""
                 }
               />

@@ -65,6 +65,19 @@ const Select = styled.select`
 `;
 
 function DadosOSSection({ dadosOS = {}, setDadosOS }) {
+  const formatForDateInput = (iso) => {
+    if (!iso) return "";
+    try {
+      return iso.slice(0, 10);
+    } catch {
+      return "";
+    }
+  };
+
+  const entryDate = formatForDateInput(dadosOS.entryDate);
+  const deadline = formatForDateInput(dadosOS.deadline);
+  const status = dadosOS.status || "analise";
+
   const handleChange = (field) => (e) => {
     const value = e.target.value;
     setDadosOS({ ...dadosOS, [field]: value });
@@ -82,17 +95,14 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
           <Label>Número da OS</Label>
           <Input
             placeholder="Gerado automaticamente"
-            value={dadosOS.numero || ""}
+            value={dadosOS.code ?? ""}
             disabled
           />
         </Field>
 
         <Field>
           <Label>Status</Label>
-          <Select
-            value={dadosOS.status || "analise"}
-            onChange={handleChange("status")}
-          >
+          <Select value={status} onChange={handleChange("status")}>
             <option value="analise">Solicitação</option>
             <option value="pendente">Orçamento</option>
             <option value="emprogresso">Em Progresso</option>
@@ -106,8 +116,10 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
           <Label>Entrada do veículo</Label>
           <Input
             type="date"
-            value={dadosOS.entryDate || ""}
-            onChange={handleChange("entryDate")}
+            value={entryDate}
+            onChange={(e) =>
+              setDadosOS({ ...dadosOS, entryDate: e.target.value })
+            }
           />
         </Field>
 
@@ -115,8 +127,10 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
           <Label>Previsão de entrega</Label>
           <Input
             type="date"
-            value={dadosOS.deadline || ""}
-            onChange={handleChange("deadline")}
+            value={deadline}
+            onChange={(e) =>
+              setDadosOS({ ...dadosOS, deadline: e.target.value })
+            }
           />
         </Field>
       </FormGrid>

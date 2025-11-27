@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import { useState, useEffect } from "react";
+import styled from "styled-components";
 import VeiculoIcon from "./icons/VeiculoOS.png";
-import { getAllVehicles } from '../../../services/VeiculoService';
+import { getAllVehicles } from "../../../services/VeiculoService";
 
 const Section = styled.div`
   background: #fff;
@@ -69,7 +69,6 @@ const Input = styled.input`
   }
 `;
 
-/* 🔽 Dropdown estilizado igual ao ClienteOS */
 const Dropdown = styled.ul`
   position: absolute;
   top: 64px;
@@ -115,7 +114,6 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
     km: "",
   });
 
-  // 🔹 Buscar todos os veículos
   useEffect(() => {
     const fetchVeiculos = async () => {
       try {
@@ -129,7 +127,26 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
     fetchVeiculos();
   }, []);
 
-  // 🔹 Filtrar veículos conforme busca
+  useEffect(() => {
+    if (!vehicleId || veiculos.length === 0) return;
+
+    const v = veiculos.find((x) => x._id === vehicleId);
+    if (!v) return;
+
+    setVeiculoSelecionado(v);
+    setBusca(`${v.name || ""} - ${v.licensePlate || ""}`);
+
+    setDadosVeiculo({
+      marca: v.brand || "",
+      modelo: v.name || "",
+      placa: v.licensePlate || "",
+      ano: v.year || "",
+      tipoCombustivel: v.fuel || "",
+      chassi: v.chassi || "",
+      km: v.km || "",
+    });
+  }, [vehicleId, veiculos]);
+
   useEffect(() => {
     const termo = busca.toLowerCase();
     const filtrados = veiculos.filter(
@@ -140,7 +157,6 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
     setFilteredVeiculos(filtrados);
   }, [busca, veiculos]);
 
-  // 🔹 Quando o veículo é selecionado
   const handleSelectVeiculo = (veiculo) => {
     setVeiculoSelecionado(veiculo);
     setBusca(`${veiculo.name || ""} - ${veiculo.licensePlate || ""}`);
@@ -155,7 +171,6 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
       km: veiculo.km || "",
     });
 
-    // 🔸 Envia apenas o ID do veículo
     setVehicleId(veiculo._id);
   };
 
@@ -167,7 +182,7 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
       </SectionHeader>
 
       <FormGrid>
-        <Field style={{ position: "relative" }}>
+        <Field>
           <Label>Veículo / Placa</Label>
           <Input
             type="text"
