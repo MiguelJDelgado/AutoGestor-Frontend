@@ -2,6 +2,8 @@ import styled from "styled-components";
 import LayoutModal from "../Layout";
 import { useState } from "react";
 import { authorize } from "../../services/SolicitacaoService";
+import { useContext } from "react";
+import { AuthContext } from "../../auth/AuthContext";
 
 const Container = styled.div`
   display: flex;
@@ -83,7 +85,20 @@ const ModalSolicitacaoPendente = ({ onClose, solicitacao, onStatusUpdated }) => 
     solicitacao?.status?.toLowerCase() || "pending"
   );
 
+  const { user } = useContext(AuthContext);
+
+  if (!user) {
+    return null;
+  }
+
+  const role = user.role.toLowerCase();
+
+  const canEdit = role === "admin" || role === "manager";
+
+
+
   const handleSave = async () => {
+    if (!canEdit) return;
     try {
       if (status === "approved") {
         await authorize(solicitacao._id, true); // aprovar
@@ -100,7 +115,12 @@ const ModalSolicitacaoPendente = ({ onClose, solicitacao, onStatusUpdated }) => 
   };
 
   return (
-    <LayoutModal title="Solicitação Pendente" onClose={onClose} onSave={handleSave}>
+    <LayoutModal
+        title="Solicitação Pendente"
+        onClose={onClose}
+        onSave={handleSave}
+        hideSaveButton={user ? !canEdit : true}
+      >
       <Container>
         <Row>
           <Field>
@@ -110,7 +130,11 @@ const ModalSolicitacaoPendente = ({ onClose, solicitacao, onStatusUpdated }) => 
 
           <Field>
             <Label>Status</Label>
-            <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={!canEdit}
+            >
               <option value="pending">Pendente</option>
               <option value="approved">Autorizada</option>
               <option value="rejected">Rejeitada</option>

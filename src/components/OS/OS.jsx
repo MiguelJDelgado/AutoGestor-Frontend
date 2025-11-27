@@ -11,6 +11,8 @@ import Header from '../Header/Header'
 import { getAllServiceOrders, scheduleTimeReportEmailSender, stopTimeReportEmailSender } from '../../services/OrdemServicoService.jsx'
 import { getAllClients, getClientById } from '../../services/ClienteService.jsx'
 import { getVehicleById } from '../../services/VeiculoService.jsx'
+import { useContext } from 'react';
+import { AuthContext } from '../../auth/AuthContext.jsx';
 
 const MainContent = styled.div`
   background-color:rgb(253, 253, 253);
@@ -297,6 +299,7 @@ function Os({
   onDelete = () => {},
   onView = () => {}
 }) {
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
@@ -311,6 +314,8 @@ function Os({
   const [filteredClientes, setFilteredClientes] = useState([]);
   const [buscaCliente, setBuscaCliente] = useState("");
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
+
+  const canShowClock = user?.role === "admin" || user?.role === "manager";
 
   const formatCurrencyBRL = (value) => {
     if (value === null || value === undefined) return "";
@@ -423,18 +428,15 @@ function Os({
             veiculoDescricao: vehicleDescription,
             placa: vehiclePlate,
             status: order.status,
-            statusLabel:
-              order.status === "budget"
-                ? "Análise/Orçamento"
-                : order.status === "pending"
-                ? "Pendente"
-                : order.status === "finalized"
-                ? "Finalizado"
-                : order.status === "canceled"
-                ? "Cancelado"
-                : order.status === "request"
-                ? "Solicitação"
-                : order.status,
+            statusLabel: {
+              request: "Solicitação",
+              pending_product: "Pendente de Produto",
+              budget: "Orçamento",
+              in_progress: "Em Progresso",
+              completed: "Concluído",
+              canceled: "Cancelado",
+            }[order.status] || "—",
+
             dataEntrada: order.entryDate,
             dataFinalizacao: order.deadline,
             valor: order.totalValueWithDiscount ?? order.totalValueGeneral,
@@ -479,9 +481,11 @@ function Os({
         title={
           <>
             Ordem de Serviço
+            {canShowClock && (
             <ClockButton onClick={() => setShowModal(true)}>
               <img src={clockIcon} alt="Configurar horário" />
             </ClockButton>
+          )}
           </>
         }
         onNew={() => navigate("/criar-ordem-de-serviço")}

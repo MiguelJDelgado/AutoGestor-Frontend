@@ -3,6 +3,8 @@ import LayoutModal from "../Layout";
 import { useState, useEffect } from "react";
 import { authorize, updateSolicitacao } from "../../services/SolicitacaoService";
 import { getSupplierById } from "../../services/FornecedorService";
+import { useContext } from "react";
+import { AuthContext } from "../../auth/AuthContext";
 
 const Container = styled.div`
   display: flex;
@@ -75,9 +77,10 @@ const TextArea = styled.textarea`
   pointer-events: none;
 `;
 
-const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated }) => {
-  const [status, setStatus] = useState(solicitacao?.status || "purchased");
-  const [supplierNames, setSupplierNames] = useState({}); // armazena nomes dos fornecedores
+const ModalSolicitacaoComprada = ({ onClose, solicitacao }) => {
+  const [status, setStatus] = useState("purchased");
+  const [supplierNames, setSupplierNames] = useState({}); // <- armazena nomes dos fornecedores
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const loadSuppliers = async () => {
@@ -105,7 +108,14 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated }) => 
     loadSuppliers();
   }, [solicitacao]);
 
+    if (!user) return null;
+
+    const role = user.role?.toLowerCase();
+    const canEdit = role === "admin" || role === "manager";
+
   const handleSave = async () => {
+    if (!canEdit) return;
+    
     try {
       if (status === "rejected") {
         // enviar boolean FALSE (não um objeto)
@@ -132,7 +142,13 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated }) => 
   };
 
   return (
-    <LayoutModal title="Solicitação Comprada" onClose={() => onClose && onClose(false)} onSave={handleSave}>
+      <LayoutModal
+        title="Solicitação Comprada"
+        onClose={onClose}
+        onSave={handleSave}
+        hideSaveButton={!canEdit}
+      >
+
       <Container>
         <Row>
           <Field>
@@ -142,7 +158,11 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated }) => 
 
           <Field>
             <Label>Status</Label>
-            <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={!canEdit}
+            >
               <option value="purchased">Comprada</option>
               <option value="rejected">Rejeitada</option>
               <option value="delivered">Finalizada</option>

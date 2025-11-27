@@ -3,6 +3,8 @@ import LayoutModal from "../Layout";
 import { useState, useEffect } from "react";
 import { authorize, updateSolicitacao } from "../../services/SolicitacaoService";
 import { getSuppliers } from "../../services/FornecedorService";
+import { useContext } from "react";
+import { AuthContext } from "../../auth/AuthContext";
 
 const Container = styled.div`
   display: flex;
@@ -107,6 +109,7 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
   );
   const [itens, setItens] = useState(formatInitialItems(solicitacao));
   const [listaFornecedores, setListaFornecedores] = useState([]);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     const loadSuppliers = async () => {
@@ -121,6 +124,12 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
     loadSuppliers();
   }, []);
 
+  
+  if (!user) return null;
+
+  const role = user.role?.toLowerCase();
+  const canEdit = role === "admin" || role === "manager";
+
   const handleChangeItem = (index, field, value) => {
     const novos = [...itens];
     novos[index] = { ...novos[index], [field]: value };
@@ -128,6 +137,7 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
   };
 
   const handleSave = async () => {
+    if (!canEdit) return; 
     try {
       if (status === "rejected") {
         await authorize(solicitacao._id, false);
@@ -191,7 +201,12 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
   };
 
   return (
-    <LayoutModal title="Editar Solicitação" onClose={onClose} onSave={handleSave}>
+    <LayoutModal
+      title="Editar Solicitação"
+      onClose={onClose}
+      onSave={handleSave}
+      hideSaveButton={!canEdit}
+    >
       <Container>
         
         <Row>
@@ -206,7 +221,11 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
 
           <Field>
             <Label>Status</Label>
-            <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              disabled={!canEdit}
+            >
               <option value="approved">Autorizada</option>
               <option value="purchased">Comprada</option>
               <option value="rejected">Rejeitada</option>
@@ -256,9 +275,8 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
                   <Td>
                     <TableSelect
                       value={item.fornecedor || ""}
-                      onChange={(e) =>
-                        handleChangeItem(index, "fornecedor", e.target.value)
-                      }
+                      onChange={(e) => handleChangeItem(index, "fornecedor", e.target.value)}
+                      disabled={!canEdit}
                     >
                       <option value="">Selecione</option>
 
@@ -274,10 +292,8 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
                     <TableInput
                       type="text"
                       value={item.un || ""}
-                      placeholder="Unidade"
-                      onChange={(e) =>
-                        handleChangeItem(index, "un", e.target.value)
-                      }
+                      onChange={(e) => handleChangeItem(index, "un", e.target.value)}
+                      disabled={!canEdit}
                     />
                   </Td>
 
@@ -286,10 +302,8 @@ const ModalSolicitacaoAceita = ({ onClose, solicitacao, onStatusUpdated }) => {
                       type="number"
                       step="0.01"
                       value={item.valorPago || ""}
-                      placeholder="0,00"
-                      onChange={(e) =>
-                        handleChangeItem(index, "valorPago", e.target.value)
-                      }
+                      onChange={(e) => handleChangeItem(index, "valorPago", e.target.value)}
+                      disabled={!canEdit}
                     />
                   </Td>
                 </tr>
