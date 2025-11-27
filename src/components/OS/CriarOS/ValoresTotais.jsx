@@ -78,34 +78,79 @@ const CalculateButton = styled.button`
   }
 `;
 
+const formatarValor = (num) => {
+  if (num == null || num === "") return "";
+  const n = Number(num);
+  if (Number.isNaN(n)) return "";
+  return `R$ ${n.toFixed(2)}`;
+};
+
 const ValoresTotais = ({ value, onChange, products = [], services = [], descontoData, isLocked = false }) => {
+
+  const normalizeDiscountType = (tipo) => {
+    if (!tipo) return "none";
+    const t = String(tipo).toLowerCase();
+    if (t === "percent" || t === "percentage" || t === "percentual") return "percent";
+    if (t === "real" || t === "value" || t === "money") return "real";
+    return "none";
+  };
+
+  const calcularLocalComDesconto = (totalGeneral, tipo, valor) => {
+    if (!tipo || !valor) return totalGeneral;
+    if (tipo === "percent") {
+      return totalGeneral - (totalGeneral * (Number(valor) / 100));
+    } else if (tipo === "real") {
+      return totalGeneral - Number(valor);
+    }
+    return totalGeneral;
+  };
 
   const handleCalcularTotais = async () => {
     if (isLocked) return;
 
     try {
+      const produtosTratados = (products || []).map((p) => ({
+        totalValue: p.totalValue ?? ((p.quantity || 0) * (p.salePrice || 0))
+      }));
+
+      const servicosTratados = (services || []).map((s) => ({
+        totalValue: s.totalValue ?? 0
+      }));
+
+      const discountTypeNormalized = normalizeDiscountType(descontoData?.tipo);
+      const discountValueNumber = Number(descontoData?.valor || 0);
+
       const payload = {
-        discountType: descontoData?.tipo || "none",
-        discountValue: descontoData?.valor || 0,
-        services: services.map((s) => ({ totalValue: s.totalValue || 0 })),
-        products: products.map((p) => ({
-          totalValue: (p.totalValue ?? p.quantity * (p.salePrice || 0)) || 0,
-        })),
+        products: produtosTratados,
+        services: servicosTratados,
+        discountType: discountTypeNormalized,
+        discountValue: discountValueNumber,
       };
 
       const res = await calculateServiceOrderTotals(payload);
 
-      if (onChange) {
-        onChange({
-          valorProdutos: res.totalValue.totalValueProducts || 0,
-          valorServicos: res.totalValue.totalValueServices || 0,
-          valorTotal: res.totalValue.totalValueGeneral || 0,
-          totalComDesconto: res.totalValue.totalValueWithDiscount || 0,
-        });
+      const tv = res?.totalValue || {};
+
+      let totalWithDiscount = tv.totalValueWithDiscount;
+      if (totalWithDiscount === undefined || totalWithDiscount === null) {
+        totalWithDiscount = calcularLocalComDesconto(
+          tv.totalValueGeneral ?? ( (tv.totalValueProducts || 0) + (tv.totalValueServices || 0) ),
+          discountTypeNormalized,
+          discountValueNumber
+        );
       }
+
+      const result = {
+        valorProdutos: tv.totalValueProducts ?? 0,
+        valorServicos: tv.totalValueServices ?? 0,
+        valorTotal: tv.totalValueGeneral ?? ((tv.totalValueProducts ?? 0) + (tv.totalValueServices ?? 0)),
+        totalComDesconto: totalWithDiscount ?? 0,
+      };
+
+      if (onChange) onChange(result);
     } catch (err) {
       console.error("Erro ao calcular totais:", err);
-      alert("Erro ao calcular totais: " + err.message);
+      alert("Erro ao calcular totais: " + (err.message || err));
     }
   };
 
@@ -119,22 +164,38 @@ const ValoresTotais = ({ value, onChange, products = [], services = [], desconto
       <Grid>
         <Field>
           <Label>Valor Produtos</Label>
-          <Input type="number" value={value?.valorProdutos || ""} placeholder="0,00" disabled />
+          <Input
+            type="text"
+            value={formatarValor(value?.valorProdutos)}
+            disabled
+          />
         </Field>
 
         <Field>
           <Label>Valor Serviços</Label>
-          <Input type="number" value={value?.valorServicos || ""} placeholder="0,00" disabled />
+          <Input
+            type="text"
+            value={formatarValor(value?.valorServicos)}
+            disabled
+          />
         </Field>
 
         <Field>
           <Label>Valor Total</Label>
-          <Input type="number" value={value?.valorTotal || ""} placeholder="0,00" disabled />
+          <Input
+            type="text"
+            value={formatarValor(value?.valorTotal)}
+            disabled
+          />
         </Field>
 
         <Field>
           <Label>Total com Desconto</Label>
-          <Input type="number" value={value?.totalComDesconto || ""} placeholder="0,00" disabled />
+          <Input
+            type="text"
+            value={formatarValor(value?.totalComDesconto)}
+            disabled
+          />
         </Field>
       </Grid>
 

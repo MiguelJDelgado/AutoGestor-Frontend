@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ClienteIcon from "./icons/ClienteOS.png";
-import { getAllClients } from '../../../services/ClienteService';
+import { getAllClients, getClientById } from '../../../services/ClienteService';
 
 const Section = styled.div`
   background: #fff;
@@ -97,7 +97,6 @@ const DropdownItem = styled.li`
   }
 `;
 
-
 const ClienteOS = ({ clientId, setClientId }) => {
   const [clientes, setClientes] = useState([]);
   const [filteredClientes, setFilteredClientes] = useState([]);
@@ -118,8 +117,8 @@ const ClienteOS = ({ clientId, setClientId }) => {
     const fetchClientes = async () => {
       try {
         const res = await getAllClients();
-        setClientes(res);
-        setFilteredClientes(res);
+        setClientes(res || []);
+        setFilteredClientes(res || []);
       } catch (err) {
         console.error("Erro ao buscar clientes:", err);
       }
@@ -128,27 +127,59 @@ const ClienteOS = ({ clientId, setClientId }) => {
   }, []);
 
   useEffect(() => {
-    const termo = busca.toLowerCase();
+    const termo = (busca || "").toLowerCase();
     const filtrados = clientes.filter((c) =>
-      c.name.toLowerCase().includes(termo)
+      (c.name || "").toLowerCase().includes(termo) ||
+      (c.cpf || c.cnpj || "").toString().toLowerCase().includes(termo) ||
+      (c.cellphone || "").toLowerCase().includes(termo)
     );
     setFilteredClientes(filtrados);
   }, [busca, clientes]);
 
+  useEffect(() => {
+    const fetchById = async (id) => {
+      if (!id) return;
+
+      try {
+        const client = await getClientById(id);
+        if (!client) return;
+
+        setClienteSelecionado(client);
+        setBusca(client.name || "");
+        setDadosCliente({
+          nome: client.name || "",
+          cpfCnpj: client.cpf || client.cnpj || "",
+          telefone: client.cellphone || client.phone || "",
+          email: client.email || "",
+          endereco: client.address || client.street || "",
+          numero: client.number || client.addressNumber || "",
+          municipio: client.city || client.town || "",
+          uf: client.state || client.uf || "",
+        });
+      } catch (err) {
+        console.error("Erro ao buscar cliente por id:", err);
+      }
+    };
+
+    if (clientId) {
+      fetchById(clientId);
+    }
+  }, [clientId]);
+
   const handleSelectCliente = (cliente) => {
     setClienteSelecionado(cliente);
     setClientId(cliente._id);
-    setBusca(cliente.name);
+    setBusca(cliente.name || "");
 
     setDadosCliente({
       nome: cliente.name || "",
       cpfCnpj: cliente.cpf || cliente.cnpj || "",
-      telefone: cliente.cellphone || "",
+      telefone: cliente.cellphone || cliente.phone || "",
       email: cliente.email || "",
-      endereco: cliente.address || "",
-      numero: cliente.number || "",
-      municipio: cliente.city || "",
-      uf: cliente.state || "",
+      endereco: cliente.address || cliente.street || "",
+      numero: cliente.number || cliente.addressNumber || "",
+      municipio: cliente.city || cliente.town || "",
+      uf: cliente.state || cliente.uf || "",
     });
   };
 
@@ -168,6 +199,7 @@ const ClienteOS = ({ clientId, setClientId }) => {
             onChange={(e) => {
               setBusca(e.target.value);
               setClienteSelecionado(null);
+              setClientId(null);
             }}
             placeholder="Digite para buscar..."
             autoComplete="off"
