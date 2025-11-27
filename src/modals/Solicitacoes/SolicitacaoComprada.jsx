@@ -79,7 +79,7 @@ const TextArea = styled.textarea`
 
 const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated}) => {
   const [status, setStatus] = useState("purchased");
-  const [supplierNames, setSupplierNames] = useState({}); // <- armazena nomes dos fornecedores
+  const [supplierNames, setSupplierNames] = useState({});
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
@@ -118,17 +118,14 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated}) => {
     
     try {
       if (status === "rejected") {
-        // enviar boolean FALSE (não um objeto)
         await authorize(solicitacao._id, false);
       } else if (status === "delivered") {
         await updateSolicitacao(solicitacao._id, { status: "delivered" });
       }
 
-      // notifica pai preferencialmente via callback específico
       if (typeof onStatusUpdated === "function") {
         await onStatusUpdated();
       } else {
-        // compatibilidade: avisa com flag via onClose
         onClose && onClose(true);
       }
     } catch (error) {
@@ -137,7 +134,6 @@ const ModalSolicitacaoComprada = ({ onClose, solicitacao, onStatusUpdated}) => {
       return;
     }
 
-    // Fecha modal (se onStatusUpdated existiu, pai já atualizou)
     onClose && onClose(false);
   };
 
