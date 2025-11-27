@@ -166,16 +166,20 @@ const AddColabButton = styled.button`
   }
 `;
 
-function ServicosSection({ servicos, setServicos, isLocked = false }) {
+const formatCurrency = (value) =>
+  value !== undefined && value !== null && value !== ""
+    ? `R$ ${Number(value).toFixed(2)}`
+    : "";
+
+function ServicosSection({ servicos = [], setServicos, isLocked = false }) {
   const [selectedIndex, setSelectedIndex] = useState(null);
   const [isColabModalOpen, setIsColabModalOpen] = useState(false);
   const [serviceList, setServiceList] = useState([]);
-
   const [mechanics, setMechanics] = useState([]);
 
   useEffect(() => {
-  getAllMechanics().then(setMechanics);
-}, []);
+    getAllMechanics().then(setMechanics);
+  }, []);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -190,18 +194,34 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
   }, []);
 
   const adicionarServico = () =>
-    !isLocked && setServicos([...servicos, { colaboradores: [] }]);
+    !isLocked &&
+    setServicos([
+      ...servicos,
+      {
+        serviceId: "",
+        title: "",
+        quantity: 1,
+        workHours: "",
+        hourValue: "",
+        totalValue: "",
+        colaboradores: [],
+      },
+    ]);
 
   const removerServico = (index) =>
-    !isLocked &&
-    setServicos(servicos.filter((_, i) => i !== index));
+    !isLocked && setServicos(servicos.filter((_, i) => i !== index));
 
-  const handleSaveColaboradores = (colabs) => {
+  const handleSaveColaboradores = (colabIds) => {
     if (isLocked) return;
+
+    const colabsComNome = colabIds.map((id) => {
+      const mec = mechanics.find((m) => m._id === id);
+      return { _id: id, name: mec ? mec.name : id };
+    });
 
     setServicos((prev) =>
       prev.map((srv, i) =>
-        i === selectedIndex ? { ...srv, colaboradores: colabs } : srv
+        i === selectedIndex ? { ...srv, colaboradores: colabsComNome } : srv
       )
     );
     setIsColabModalOpen(false);
@@ -209,21 +229,19 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
 
   const handleSelectService = (index, serviceId) => {
     if (isLocked) return;
-
-    const selectedService = serviceList.find((s) => s._id === serviceId);
-    if (!selectedService) return;
-
+    const selected = serviceList.find((s) => s._id === serviceId);
+    if (!selected) return;
     setServicos((prev) =>
       prev.map((srv, i) =>
         i === index
           ? {
               ...srv,
-              serviceId: selectedService._id,
-              title: selectedService.title,
-              workHours: selectedService.workHours,
-              hourValue: selectedService.hourValue,
-              totalValue: selectedService.totalValue,
-              quantidade: 1,
+              serviceId: selected._id,
+              title: selected.title,
+              workHours: selected.workHours,
+              hourValue: selected.hourValue,
+              quantity: 1,
+              totalValue: selected.workHours * selected.hourValue,
             }
           : srv
       )
@@ -232,17 +250,13 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
 
   const handleChangeQuantidade = (index, value) => {
     if (isLocked) return;
-
     setServicos((prev) =>
       prev.map((srv, i) =>
         i === index
           ? {
               ...srv,
-              quantidade: value,
-              totalValue:
-                srv.hourValue && srv.workHours
-                  ? srv.hourValue * srv.workHours * value
-                  : srv.totalValue,
+              quantity: value,
+              totalValue: srv.workHours * srv.hourValue * value,
             }
           : srv
       )
@@ -292,7 +306,7 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
                 type="number"
                 min="1"
                 disabled={isLocked}
-                value={servico.quantidade || ""}
+                value={servico.quantity || 1}
                 onChange={(e) =>
                   handleChangeQuantidade(index, Number(e.target.value))
                 }
@@ -301,7 +315,7 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
 
             <Field>
               <Label>Valor hora</Label>
-              <Input disabled value={servico.hourValue || ""} />
+              <Input disabled value={formatCurrency(servico.hourValue)} />
             </Field>
 
             <Field>
@@ -310,7 +324,7 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
                 disabled
                 value={
                   servico.workHours && servico.hourValue
-                    ? servico.workHours * servico.hourValue
+                    ? formatCurrency(servico.workHours * servico.hourValue)
                     : ""
                 }
               />
@@ -318,24 +332,15 @@ function ServicosSection({ servicos, setServicos, isLocked = false }) {
 
             <Field>
               <Label>Valor total</Label>
-              <Input disabled value={servico.totalValue || ""} />
+              <Input disabled value={formatCurrency(servico.totalValue)} />
             </Field>
 
             <Field>
               <Label>Mecânicos</Label>
               <ChipsContainer>
-                {servico.colaboradores.map((colab, i) => {
-  const mecId = typeof colab === "object" ? colab._id : colab;
-  const mec = mechanics.find(m => m._id === mecId);
-
-  return (
-    <Chip key={i}>
-      {mec ? mec.name : mecId}
-    </Chip>
-  );
-})}
-
-
+                {servico.colaboradores?.map((mec, i) => (
+                  <Chip key={i}>{mec.name || mec._id}</Chip>
+                ))}
                 <AddColabButton
                   disabled={isLocked}
                   onClick={() => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
 import NovaOSIcon from "./icons/NovaOS.png";
 
@@ -10,12 +10,21 @@ import AnaliseInicial from "./AnaliseInicial";
 import DescontoTotal from "./DescontoTotal";
 import ObservacaoOS from "./ObservacaoOS";
 import CustoTotal from "./ValoresTotais";
-import { createServiceOrder } from "../../../services/OrdemServicoService";
+
+import { useLocation } from "react-router-dom";
+import {
+  createServiceOrder,
+  updateServiceOrder,
+  getServiceOrderById,
+} from "../../../services/OrdemServicoService";
+
 import ClienteOS from "./AddClientes";
 import VeiculoOS from "./AddVeiculos";
 import PagamentosOS from "./Pagamentos";
+
 import ModalSucesso from "../../../modals/Sucesso/SucessoModal";
 import ModalErro from "../../../modals/Erro/ErroModal";
+import { getAllMechanics } from "../../../services/MecanicoService";
 
 const Container = styled.div`
   background: #7f929d;
@@ -57,10 +66,6 @@ const SaveButton = styled.button`
   cursor: pointer;
   font-size: 14px;
   width: 500px;
-
-  &:hover {
-    background: #00b248;
-  }
 `;
 
 const SaveExitButton = styled.button`
@@ -73,25 +78,26 @@ const SaveExitButton = styled.button`
   cursor: pointer;
   font-size: 14px;
   width: 500px;
-
-  &:hover {
-    background: #1565c0;
-  }
 `;
 
 function CriarOS() {
+  const location = useLocation();
+
+  const editingMode = location?.state?.mode === "edit";
+  const viewingMode = location?.state?.mode === "view";
+  const orderIdFromLocation = location?.state?.orderId || null;
+
   const [isLocked, setIsLocked] = useState(true);
+  const [mechanics, setMechanics] = useState([]);
 
-   const [modalSuccess, setModalSuccess] = useState({
-     open: false,
-     message: "",
-   });
+  const pageTitle = viewingMode
+    ? "Visualizar Ordem de Serviço"
+    : editingMode
+    ? "Editar Ordem de Serviço"
+    : "Nova Ordem de Serviço";
 
-   const [modalError, setModalError] = useState({
-     open: false,
-     message: "",
-   });
-
+  const [modalSuccess, setModalSuccess] = useState({ open: false, message: "" });
+  const [modalError, setModalError] = useState({ open: false, message: "" });
 
   const statusMap = {
     analise: "request",
@@ -114,6 +120,7 @@ function CriarOS() {
 
   const [serviceOrderId, setServiceOrderId] = useState(null);
   const [serviceOrderCode, setServiceOrderCode] = useState(null);
+
   const [clientId, setClientId] = useState(null);
   const [vehicleId, setVehicleId] = useState(null);
 
@@ -142,73 +149,62 @@ function CriarOS() {
     total: 0,
   });
 
-   const saveOrder = async () => {
-     const servicosValidos = servicos.filter((s) => s.serviceId);
+  const saveOrder = async () => {
+    const servicosValidos = servicos.filter((s) => s.serviceId);
 
-     const payload = {
-        clientId,
-        vehicleId,
-        technicalAnalysis: dadosOS.technicalAnalysis,
-        status: statusMap.analise,
-        descriptionClient: dadosOS.descriptionClient,
-        notes: observacao,
-        entryDate: dadosOS.entryDate,
-        deadline: dadosOS.deadline,
+    const payload = {
+      clientId,
+      vehicleId,
+      technicalAnalysis: dadosOS.technicalAnalysis,
+      status: statusMap[dadosOS.status] || dadosOS.status,
+      descriptionClient: dadosOS.descriptionClient,
+      notes: observacao,
+      entryDate: dadosOS.entryDate,
+      deadline: dadosOS.deadline,
 
-        paymentType: pagamento.paymentType,
-        paid: pagamento.paid,
-        paymentDate: pagamento.paymentDate,
+      paymentType: pagamento.paymentType,
+      paid: pagamento.paid,
+      paymentDate: pagamento.paymentDate,
 
-        discountType: descontoData.tipo,
-        discountValue: descontoData.valor,
+      discountType: descontoData.tipo,
+      discountValue: descontoData.valor,
 
-        services: servicosValidos.map((s) => ({
-          serviceId: s.serviceId,
-          title: s.title,
-          description: s.description || "",
-          quantity: s.quantidade || 1,
-          workHours: s.workHours || 0,
-          hourValue: s.hourValue || 0,
-          totalValue: s.totalValue || 0,
-          mechanicIds: s.colaboradores || [],
-        })),
+      totalValueProducts: custoTotal.valorProdutos || 0,
+      totalValueServices: custoTotal.valorServicos || 0,
+      totalValueGeneral: custoTotal.valorTotal || 0,
+      totalValueWithDiscount: custoTotal.totalComDesconto || 0,
 
-        products: products.map((p) => ({
-          productId: p.productId,
-          code: p.code,
-          name: p.name,
-          quantity: p.quantity,
-          costUnitPrice: p.costUnitPrice,
-          salePrice: p.salePrice,
-          totalValue: p.totalValue || 0,
-          grossProfitMargin: p.grossProfitMargin,
-          providerIds: p.providerIds || [],
-        })),
-      };
+      services: servicosValidos.map((s) => ({
+        serviceId: s.serviceId,
+        title: s.title,
+        description: s.description || "",
+        quantity: s.quantidade || 1,
+        workHours: s.workHours || 0,
+        hourValue: s.hourValue || 0,
+        totalValue: s.totalValue || 0,
+        mechanicIds: (s.colaboradores || []).map((m) => m._id),
+      })),
 
-     return await createServiceOrder(payload);
+      products: products.map((p) => ({
+        productId: p.productId,
+        code: p.code,
+        name: p.name,
+        quantity: p.quantity,
+        costUnitPrice: p.costUnitPrice,
+        salePrice: p.salePrice,
+        totalValue: p.totalValue || 0,
+        grossProfitMargin: p.grossProfitMargin,
+        providerIds: p.providerIds || [],
+      })),
+    };
+
+    if (serviceOrderId || editingMode) {
+      const id = serviceOrderId || orderIdFromLocation;
+      return await updateServiceOrder(id, payload);
+    }
+
+    return await createServiceOrder(payload);
   };
-
-  const handleSaveAndExit = async () => {
-   try {
-     await saveOrder();
-
-     setModalSuccess({
-       open: true,
-       message: "Ordem de Serviço salva com sucesso!",
-     });
-
-     setTimeout(() => {
-       window.location.href = "/ordem-de-serviço";
-     }, 1200);
-
-   } catch (error) {
-     setModalError({
-       open: true,
-       message: "Erro ao salvar OS: " + error.message,
-     });
-   }
- };
 
   const handleSave = async () => {
     try {
@@ -218,31 +214,123 @@ function CriarOS() {
       setServiceOrderCode(res.code);
       setIsLocked(false);
 
-      setModalSuccess({
-        open: true,
-        message: "Ordem de serviço salva com sucesso!",
-      });
+      setModalSuccess({ open: true, message: "Ordem de serviço salva com sucesso!" });
     } catch (error) {
-      console.error("❌ Erro ao criar OS:", error);
-      setModalError({
-        open: true,
-        message: "Erro ao salvar OS: " + error.message,
-      });
+      setModalError({ open: true, message: "Erro ao salvar OS: " + error.message });
     }
   };
+
+  const handleSaveAndExit = async () => {
+    try {
+      await saveOrder();
+
+      setModalSuccess({
+        open: true,
+        message: "Ordem de Serviço salva com sucesso!",
+      });
+
+      setTimeout(() => {
+        window.location.href = "/ordem-de-serviço";
+      }, 1200);
+    } catch (error) {
+      setModalError({ open: true, message: "Erro ao salvar OS: " + error.message });
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      if (!orderIdFromLocation) return;
+
+      try {
+        const [res, mecList] = await Promise.all([
+          getServiceOrderById(orderIdFromLocation),
+          getAllMechanics(),
+        ]);
+
+        if (!res) return;
+
+        setMechanics(mecList);
+
+        setServiceOrderId(res._id || res.id);
+        setServiceOrderCode(res.code || null);
+
+        setClientId(res.clientId || null);
+        setVehicleId(res.vehicleId || null);
+
+        setDadosOS((prev) => ({
+          ...prev,
+          code: res.code || "",
+          technicalAnalysis: res.technicalAnalysis || res.technical_analysis || "",
+          descriptionClient: res.descriptionClient || res.description_client || "",
+          entryDate: res.entryDate || res.entry_date || "",
+          deadline: res.deadline || "",
+          status:
+            Object.entries(statusMap).find(([, v]) => v === res.status)?.[0] ||
+            res.status ||
+            prev.status,
+        }));
+
+        setServicos(
+          (res.services || []).map((s) => ({
+            ...s,
+            colaboradores: (s.mechanicIds || []).map((id) => {
+              const mec = mecList.find((m) => m._id === id);
+              return { _id: id, name: mec ? mec.name : id };
+            }),
+          }))
+        );
+
+        setProducts(res.products || []);
+
+        setPagamento({
+          paymentType: res.paymentType || "",
+          paid: !!res.paid,
+          paymentDate: res.paymentDate || "",
+        });
+
+        setDescontoData({
+          tipo: res.discountType || "percent",
+          valor: res.discountValue || 0,
+          subtotal: 0,
+          total: 0,
+        });
+
+        setObservacao(res.notes || "");
+
+        setCustoTotal({
+          valorProdutos: res.totalValueProducts ?? "",
+          valorServicos: res.totalValueServices ?? "",
+          valorTotal: res.totalValueGeneral ?? "",
+          totalComDesconto: res.totalValueWithDiscount ?? "",
+        });
+
+        setIsLocked(viewingMode);
+      } catch (err) {
+        console.error("Erro ao carregar OS:", err);
+      }
+    };
+
+    if (editingMode || viewingMode) loadData();
+  }, [orderIdFromLocation, editingMode, viewingMode]);
 
   return (
     <Container>
       <Title>
         <Icon src={NovaOSIcon} alt="Nova OS" />
-        Nova Ordem de Serviço
+        {pageTitle}
       </Title>
 
       <DadosOSSection dadosOS={dadosOS} setDadosOS={setDadosOS} />
       <ClienteOS clientId={clientId} setClientId={setClientId} />
       <VeiculoOS vehicleId={vehicleId} setVehicleId={setVehicleId} />
-      <ServicosSection servicos={servicos} setServicos={setServicos} isLocked={isLocked}/>
-      <ProdutosSection 
+
+      <ServicosSection
+        servicos={servicos}
+        setServicos={setServicos}
+        isLocked={isLocked}
+      />
+
+      <ProdutosSection
         products={products}
         setProducts={setProducts}
         isLocked={isLocked}
@@ -252,20 +340,16 @@ function CriarOS() {
 
       <SolicitacaoCliente
         value={dadosOS.descriptionClient}
-        onChange={(e) =>
-          setDadosOS({ ...dadosOS, descriptionClient: e.target.value })
-        }
+        onChange={(e) => setDadosOS({ ...dadosOS, descriptionClient: e.target.value })}
       />
 
       <AnaliseInicial
         value={dadosOS.technicalAnalysis}
-        onChange={(value) =>
-          setDadosOS({ ...dadosOS, technicalAnalysis: value })
-        }
+        onChange={(v) => setDadosOS({ ...dadosOS, technicalAnalysis: v })}
         isLocked={isLocked}
       />
 
-      <DescontoTotal value={descontoData} onChange={setDescontoData} isLocked={isLocked}/>
+      <DescontoTotal value={descontoData} onChange={setDescontoData} isLocked={isLocked} />
 
       <CustoTotal
         value={custoTotal}
@@ -276,20 +360,24 @@ function CriarOS() {
         isLocked={isLocked}
       />
 
-      <PagamentosOS value={pagamento} onChange={setPagamento} isLocked={isLocked}/>
+      <PagamentosOS value={pagamento} onChange={setPagamento} isLocked={isLocked} />
 
       <ObservacaoOS value={observacao} onChange={setObservacao} />
 
-      <ButtonsWrapper>
-        <SaveButton onClick={handleSave}>SALVAR</SaveButton>
-        <SaveExitButton onClick={handleSaveAndExit}>SALVAR E SAIR</SaveExitButton>
-      </ButtonsWrapper>
+      {!viewingMode && (
+        <ButtonsWrapper>
+          <SaveButton onClick={handleSave}>SALVAR</SaveButton>
+          <SaveExitButton onClick={handleSaveAndExit}>SALVAR E SAIR</SaveExitButton>
+        </ButtonsWrapper>
+      )}
+
       {modalSuccess.open && (
         <ModalSucesso
           message={modalSuccess.message}
           onClose={() => setModalSuccess({ open: false, message: "" })}
         />
       )}
+
       {modalError.open && (
         <ModalErro
           message={modalError.message}
