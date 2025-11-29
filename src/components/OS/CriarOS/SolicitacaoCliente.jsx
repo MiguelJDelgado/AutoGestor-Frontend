@@ -35,13 +35,13 @@ const TextArea = styled.textarea`
   resize: vertical;
 `;
 
-const SolicitacaoCliente = ({ value = "", onChange }) => {
+const SolicitacaoCliente = ({ value = "", onChange, isLocked }) => {
   const handleChange = (e) => {
     if (onChange) onChange(e);
   };
 
   return (
-    <Section>
+    <Section style={{ opacity: isLocked ? 0.6 : 1 }}>
       <SectionHeader>
         <Icon src={SolIcon} alt="Solicitação Cliente" />
         Solicitação do Cliente

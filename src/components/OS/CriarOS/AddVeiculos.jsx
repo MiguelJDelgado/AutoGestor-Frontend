@@ -98,7 +98,7 @@ const DropdownItem = styled.li`
   }
 `;
 
-const VeiculoOS = ({ vehicleId, setVehicleId }) => {
+const VeiculoOS = ({ vehicleId, setVehicleId, isLocked }) => {
   const [veiculos, setVeiculos] = useState([]);
   const [filteredVeiculos, setFilteredVeiculos] = useState([]);
   const [veiculoSelecionado, setVeiculoSelecionado] = useState(null);
@@ -158,6 +158,8 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
   }, [busca, veiculos]);
 
   const handleSelectVeiculo = (veiculo) => {
+    if (isLocked) return;
+
     setVeiculoSelecionado(veiculo);
     setBusca(`${veiculo.name || ""} - ${veiculo.licensePlate || ""}`);
 
@@ -175,7 +177,7 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
   };
 
   return (
-    <Section>
+     <Section style={{ opacity: isLocked ? 0.6 : 1 }}>
       <SectionHeader>
         <Icon src={VeiculoIcon} alt="Veículo" />
         Veículo
@@ -187,24 +189,29 @@ const VeiculoOS = ({ vehicleId, setVehicleId }) => {
           <Input
             type="text"
             value={busca}
+            placeholder="Digite o nome ou placa..."
+            autoComplete="off"
+            disabled={isLocked}
             onChange={(e) => {
+              if (isLocked) return;
               setBusca(e.target.value);
               setVeiculoSelecionado(null);
               setVehicleId(null);
             }}
-            placeholder="Digite o nome ou placa..."
-            autoComplete="off"
           />
 
-          {busca && !veiculoSelecionado && filteredVeiculos.length > 0 && (
-            <Dropdown>
-              {filteredVeiculos.slice(0, 8).map((v) => (
-                <DropdownItem key={v._id} onClick={() => handleSelectVeiculo(v)}>
-                  {v.name} — {v.licensePlate}
-                </DropdownItem>
-              ))}
-            </Dropdown>
-          )}
+          {busca &&
+            !veiculoSelecionado &&
+            filteredVeiculos.length > 0 &&
+            !isLocked && (
+              <Dropdown>
+                {filteredVeiculos.slice(0, 8).map((v) => (
+                  <DropdownItem key={v._id} onClick={() => handleSelectVeiculo(v)}>
+                    {v.name} — {v.licensePlate}
+                  </DropdownItem>
+                ))}
+              </Dropdown>
+            )}
         </Field>
 
         <Field>

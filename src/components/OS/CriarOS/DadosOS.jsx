@@ -64,7 +64,7 @@ const Select = styled.select`
   color: #333;
 `;
 
-function DadosOSSection({ dadosOS = {}, setDadosOS }) {
+function DadosOSSection({ dadosOS = {}, setDadosOS, isLocked }) {
   const formatForDateInput = (iso) => {
     if (!iso) return "";
     try {
@@ -79,12 +79,13 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
   const status = dadosOS.status || "analise";
 
   const handleChange = (field) => (e) => {
+    if (isLocked) return;
     const value = e.target.value;
     setDadosOS({ ...dadosOS, [field]: value });
   };
 
   return (
-    <Section>
+    <Section style={{ opacity: isLocked ? 0.6 : 1, pointerEvents: isLocked ? "none" : "auto" }}>
       <SectionHeader>
         <Icon src={DadosIcon} alt="Dados OS" />
         Dados da OS
@@ -102,7 +103,7 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
 
         <Field>
           <Label>Status</Label>
-          <Select value={status} onChange={handleChange("status")}>
+          <Select value={status} onChange={handleChange("status")} disabled={isLocked}>
             <option value="analise">Solicitação</option>
             <option value="pendente">Orçamento</option>
             <option value="emprogresso">Em Progresso</option>
@@ -117,8 +118,9 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
           <Input
             type="date"
             value={entryDate}
+            disabled={isLocked}
             onChange={(e) =>
-              setDadosOS({ ...dadosOS, entryDate: e.target.value })
+              !isLocked && setDadosOS({ ...dadosOS, entryDate: e.target.value })
             }
           />
         </Field>
@@ -128,8 +130,9 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
           <Input
             type="date"
             value={deadline}
+            disabled={isLocked}
             onChange={(e) =>
-              setDadosOS({ ...dadosOS, deadline: e.target.value })
+              !isLocked && setDadosOS({ ...dadosOS, deadline: e.target.value })
             }
           />
         </Field>
@@ -138,4 +141,4 @@ function DadosOSSection({ dadosOS = {}, setDadosOS }) {
   );
 }
 
-export default DadosOSSection;
+export default DadosOSSection

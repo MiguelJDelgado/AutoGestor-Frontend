@@ -97,7 +97,7 @@ const DropdownItem = styled.li`
   }
 `;
 
-const ClienteOS = ({ clientId, setClientId }) => {
+const ClienteOS = ({ clientId, setClientId, isLocked }) => {
   const [clientes, setClientes] = useState([]);
   const [filteredClientes, setFilteredClientes] = useState([]);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
@@ -161,16 +161,14 @@ const ClienteOS = ({ clientId, setClientId }) => {
       }
     };
 
-    if (clientId) {
-      fetchById(clientId);
-    }
+    if (clientId) fetchById(clientId);
   }, [clientId]);
 
   const handleSelectCliente = (cliente) => {
+    if (isLocked) return;
     setClienteSelecionado(cliente);
     setClientId(cliente._id);
     setBusca(cliente.name || "");
-
     setDadosCliente({
       nome: cliente.name || "",
       cpfCnpj: cliente.cpf || cliente.cnpj || "",
@@ -184,7 +182,7 @@ const ClienteOS = ({ clientId, setClientId }) => {
   };
 
   return (
-    <Section>
+    <Section style={{ opacity: isLocked ? 0.6 : 1 }}>
       <SectionHeader>
         <Icon src={ClienteIcon} alt="Cliente" />
         Cliente
@@ -197,52 +195,63 @@ const ClienteOS = ({ clientId, setClientId }) => {
             type="text"
             value={busca}
             onChange={(e) => {
+              if (isLocked) return;
               setBusca(e.target.value);
               setClienteSelecionado(null);
               setClientId(null);
             }}
             placeholder="Digite para buscar..."
             autoComplete="off"
+            disabled={isLocked}
           />
 
-          {busca && !clienteSelecionado && filteredClientes.length > 0 && (
-            <Dropdown>
-              {filteredClientes.slice(0, 8).map((cliente) => (
-                <DropdownItem
-                  key={cliente._id}
-                  onClick={() => handleSelectCliente(cliente)}
-                >
-                  {cliente.name}
-                </DropdownItem>
-              ))}
-            </Dropdown>
-          )}
+          {!isLocked &&
+            busca &&
+            !clienteSelecionado &&
+            filteredClientes.length > 0 && (
+              <Dropdown>
+                {filteredClientes.slice(0, 8).map((cliente) => (
+                  <DropdownItem
+                    key={cliente._id}
+                    onClick={() => handleSelectCliente(cliente)}
+                  >
+                    {cliente.name}
+                  </DropdownItem>
+                ))}
+              </Dropdown>
+            )}
         </Field>
 
         <Field>
           <Label>CPF / CNPJ</Label>
           <Input value={dadosCliente.cpfCnpj} disabled />
         </Field>
+
         <Field>
           <Label>Telefone</Label>
           <Input value={dadosCliente.telefone} disabled />
         </Field>
+
         <Field>
           <Label>Email</Label>
           <Input value={dadosCliente.email} disabled />
         </Field>
+
         <Field>
           <Label>Endereço</Label>
           <Input value={dadosCliente.endereco} disabled />
         </Field>
+
         <Field>
           <Label>Número</Label>
           <Input value={dadosCliente.numero} disabled />
         </Field>
+
         <Field>
           <Label>Município</Label>
           <Input value={dadosCliente.municipio} disabled />
         </Field>
+
         <Field>
           <Label>UF</Label>
           <Input value={dadosCliente.uf} disabled />

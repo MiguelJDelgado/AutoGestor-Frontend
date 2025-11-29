@@ -87,7 +87,9 @@ function CriarOS() {
   const viewingMode = location?.state?.mode === "view";
   const orderIdFromLocation = location?.state?.orderId || null;
 
-  const [isLocked, setIsLocked] = useState(true);
+  const isCreateLock = !editingMode && !viewingMode;
+  const isViewLock = viewingMode;
+
   const [mechanics, setMechanics] = useState([]);
 
   const pageTitle = viewingMode
@@ -161,19 +163,15 @@ function CriarOS() {
       notes: observacao,
       entryDate: dadosOS.entryDate,
       deadline: dadosOS.deadline,
-
       paymentType: pagamento.paymentType,
       paid: pagamento.paid,
       paymentDate: pagamento.paymentDate,
-
       discountType: descontoData.tipo,
       discountValue: descontoData.valor,
-
       totalValueProducts: custoTotal.valorProdutos || 0,
       totalValueServices: custoTotal.valorServicos || 0,
       totalValueGeneral: custoTotal.valorTotal || 0,
       totalValueWithDiscount: custoTotal.totalComDesconto || 0,
-
       services: servicosValidos.map((s) => ({
         serviceId: s.serviceId,
         title: s.title,
@@ -184,7 +182,6 @@ function CriarOS() {
         totalValue: s.totalValue || 0,
         mechanicIds: (s.colaboradores || []).map((m) => m._id),
       })),
-
       products: products.map((p) => ({
         productId: p.productId,
         code: p.code,
@@ -209,11 +206,8 @@ function CriarOS() {
   const handleSave = async () => {
     try {
       const res = await saveOrder();
-
       setServiceOrderId(res._id);
       setServiceOrderCode(res.code);
-      setIsLocked(false);
-
       setModalSuccess({ open: true, message: "Ordem de serviço salva com sucesso!" });
     } catch (error) {
       setModalError({ open: true, message: "Erro ao salvar OS: " + error.message });
@@ -223,12 +217,10 @@ function CriarOS() {
   const handleSaveAndExit = async () => {
     try {
       await saveOrder();
-
       setModalSuccess({
         open: true,
         message: "Ordem de Serviço salva com sucesso!",
       });
-
       setTimeout(() => {
         window.location.href = "/ordem-de-serviço";
       }, 1200);
@@ -303,10 +295,8 @@ function CriarOS() {
           valorTotal: res.totalValueGeneral ?? "",
           totalComDesconto: res.totalValueWithDiscount ?? "",
         });
-
-        setIsLocked(viewingMode);
-      } catch (err) {
-        console.error("Erro ao carregar OS:", err);
+      } catch (error) {
+        return error
       }
     };
 
@@ -320,20 +310,20 @@ function CriarOS() {
         {pageTitle}
       </Title>
 
-      <DadosOSSection dadosOS={dadosOS} setDadosOS={setDadosOS} />
-      <ClienteOS clientId={clientId} setClientId={setClientId} />
-      <VeiculoOS vehicleId={vehicleId} setVehicleId={setVehicleId} />
+      <DadosOSSection dadosOS={dadosOS} setDadosOS={setDadosOS} isLocked={isViewLock} />
+      <ClienteOS clientId={clientId} setClientId={setClientId} isLocked={isViewLock} />
+      <VeiculoOS vehicleId={vehicleId} setVehicleId={setVehicleId} isLocked={isViewLock} />
 
       <ServicosSection
         servicos={servicos}
         setServicos={setServicos}
-        isLocked={isLocked}
+        isLocked={isViewLock || isCreateLock}
       />
 
       <ProdutosSection
         products={products}
         setProducts={setProducts}
-        isLocked={isLocked}
+        isLocked={isViewLock || isCreateLock}
         serviceOrderId={serviceOrderId}
         serviceOrderCode={serviceOrderCode}
       />
@@ -341,15 +331,16 @@ function CriarOS() {
       <SolicitacaoCliente
         value={dadosOS.descriptionClient}
         onChange={(e) => setDadosOS({ ...dadosOS, descriptionClient: e.target.value })}
+        isLocked={isViewLock}
       />
 
       <AnaliseInicial
         value={dadosOS.technicalAnalysis}
         onChange={(v) => setDadosOS({ ...dadosOS, technicalAnalysis: v })}
-        isLocked={isLocked}
+        isLocked={isViewLock || isCreateLock}
       />
 
-      <DescontoTotal value={descontoData} onChange={setDescontoData} isLocked={isLocked} />
+      <DescontoTotal value={descontoData} onChange={setDescontoData} isLocked={isViewLock || isCreateLock} />
 
       <CustoTotal
         value={custoTotal}
@@ -357,12 +348,12 @@ function CriarOS() {
         products={products}
         services={servicos}
         descontoData={descontoData}
-        isLocked={isLocked}
+        isLocked={isViewLock || isCreateLock}
       />
 
-      <PagamentosOS value={pagamento} onChange={setPagamento} isLocked={isLocked} />
+      <PagamentosOS value={pagamento} onChange={setPagamento} isLocked={isViewLock || isCreateLock} />
 
-      <ObservacaoOS value={observacao} onChange={setObservacao} />
+      <ObservacaoOS value={observacao} onChange={setObservacao} isLocked={isViewLock} />
 
       {!viewingMode && (
         <ButtonsWrapper>

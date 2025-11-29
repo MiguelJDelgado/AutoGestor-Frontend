@@ -295,7 +295,6 @@ const DropdownItem = styled.li`
 
 function Os({
   onApprove = () => {},
-  onPrint = () => {},
 }) {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();

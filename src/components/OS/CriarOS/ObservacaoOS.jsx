@@ -35,9 +35,9 @@ const TextArea = styled.textarea`
   resize: vertical;
 `;
 
-const ObservacaoOS = ({ value, onChange }) => {
+const ObservacaoOS = ({ value, onChange, isLocked }) => {
   return (
-    <Section>
+    <Section style={{ opacity: isLocked ? 0.6 : 1 }}>
       <SectionHeader>
         <Icon src={ObservacaoIcon} alt="Observação" />
         Observação
