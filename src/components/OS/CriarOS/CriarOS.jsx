@@ -206,13 +206,18 @@ function CriarOS() {
   const handleSave = async () => {
     try {
       const res = await saveOrder();
+
       setServiceOrderId(res._id);
       setServiceOrderCode(res.code);
+
+      location.state = { mode: "edit", orderId: res._id };
+
       setModalSuccess({ open: true, message: "Ordem de serviço salva com sucesso!" });
     } catch (error) {
       setModalError({ open: true, message: "Erro ao salvar OS: " + error.message });
     }
   };
+
 
   const handleSaveAndExit = async () => {
     try {

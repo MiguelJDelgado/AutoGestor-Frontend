@@ -186,8 +186,6 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
   const [dropdownAtivo, setDropdownAtivo] = useState(null);
   const [modalAberto, setModalAberto] = useState(false);
 
-  const listaDeProdutos = products?.length > 0 ? products : [{}];
-
   useEffect(() => {
     const fetchProdutos = async () => {
       try {
@@ -293,7 +291,7 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
         />
       )}
 
-      {listaDeProdutos.map((produto, index) => (
+      {products.map((produto, index) => (
         <FormWrapper key={index}>
           <RemoveButton
             onClick={() => removerProduto(index)}
@@ -317,7 +315,8 @@ function ProdutosSection({ products, setProducts, isLocked, serviceOrderId, serv
 
               {dropdownAtivo === index &&
                 buscas[index] &&
-                produtosFiltrados(buscas[index]).length > 0 && !isLocked && (
+                produtosFiltrados(buscas[index]).length > 0 &&
+                !isLocked && (
                   <Dropdown>
                     {produtosFiltrados(buscas[index])
                       .slice(0, 8)
