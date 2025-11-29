@@ -10,15 +10,6 @@ const FormGrid = styled.div`
   gap: 12px;
 `;
 
-const Select = styled.select`
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  font-size: 14px;
-  background: #fff;
-`;
-
 const ButtonAdd = styled.button`
   background: #00c853;
   color: white;
@@ -62,7 +53,7 @@ const RemoveChip = styled.button`
 `;
 
 export const InputSearch = styled.input`
-  width: 100%;
+  width: 95%;
   height: 32px;
   padding: 0 10px;
   border: 1px solid #dcdfe6;
@@ -102,7 +93,6 @@ const ColaboradoresModal = ({ onClose = () => {}, onSave = () => {}, colaborador
 
   const dropdownRef = useRef(null);
 
-
  useEffect(() => {
   const loadMechanics = async () => {
     try {
@@ -130,10 +120,8 @@ useEffect(() => {
     const lista = [];
 
     for (const id of colaboradoresIniciais) {
-      // primeiro tenta achar na lista já carregada
       let mec = mechanics.find(m => m._id === id);
 
-      // se não achou, busca pelo ID no backend
       if (!mec) {
         try {
           mec = await getMechanicById(id);
@@ -152,9 +140,6 @@ useEffect(() => {
   carregarColaboradoresIniciais();
 }, [mechanics]);
 
-
-
-
       const filteredMechanics = mechanics.filter((m) =>
       m.name.toLowerCase().includes(search.toLowerCase())
     );
@@ -172,7 +157,6 @@ useEffect(() => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
   const adicionarColaborador = () => {
    if (colaboradorSelecionado && !colaboradores.find(c => c._id === colaboradorSelecionado._id)) {
       setColaboradores((prev) => [...prev, colaboradorSelecionado]);
@@ -181,20 +165,15 @@ useEffect(() => {
     }
   };
 
-
   const handleSelectMechanic = (mec) => {
     setColaboradorSelecionado(mec);
     setSearch(mec.name);
     setShowOptions(false);
   };
-
-
-
-
+ 
   const removerColaborador = (id) => {
     setColaboradores(prev => prev.filter(c => c._id !== id));
   };
-
 
   const handleSave = () => {
     onSave(colaboradores.map(c => c._id));
