@@ -66,7 +66,7 @@ const Td = styled.td`
 `;
 
 const TableInput = styled.input`
-  width: 100%;
+  width: 90%;
   padding: 4px;
   border: 1px solid #ccc;
   border-radius: 4px;

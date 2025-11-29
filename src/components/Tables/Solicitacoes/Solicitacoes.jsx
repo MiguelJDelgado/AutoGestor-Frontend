@@ -5,6 +5,7 @@ import {
   getAllSolicitacao,
   deleteSolicitacao,
 } from "../../../services/SolicitacaoService";
+import { getUserById } from "../../../services/UsuarioService"; 
 import ModalNovaSolicitacao from "../../../modals/Solicitacoes/CriarSolicitacao";
 import ModalPendente from "../../../modals/Solicitacoes/SolicitacaoPendente";
 import ModalAceita from "../../../modals/Solicitacoes/SolicitacaoAceita";
@@ -97,10 +98,10 @@ const TelaSolicitacoes = () => {
       "Data Solicitação": s.requestDate
         ? new Date(s.requestDate).toLocaleDateString("pt-BR")
         : "-",
-      "Data Finalização": s.deliveredDate
-        ? new Date(s.deliveredDate).toLocaleDateString("pt-BR")
+      "Data Finalização": s.status?.toLowerCase() === "delivered"
+        ? new Date(s.updatedAt).toLocaleDateString("pt-BR")
         : "—",
-      
+
       rawData: {
         ...s,
         products: s.products.map((p) => ({
@@ -124,7 +125,28 @@ const TelaSolicitacoes = () => {
       });
 
       const solicitacoesArray = response.data || response;
-      setData(formatSolicitacoes(solicitacoesArray));
+
+      const solicitacoesComNomes = await Promise.all(
+        solicitacoesArray.map(async (s) => {
+          let userName = "-";
+
+          try {
+            if (s.userId) {
+              const userData = await getUserById(s.userId);
+              userName = userData?.name || userData?.fullName || "-";
+            }
+          } catch (err) {
+            console.error(`Erro ao buscar usuário ${s.userId}`, err);
+          }
+
+          return {
+            ...s,
+            userName,
+          };
+        })
+      );
+
+      setData(formatSolicitacoes(solicitacoesComNomes));
     } catch (error) {
       console.error("Erro ao buscar solicitações:", error.message);
     } finally {
